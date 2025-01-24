@@ -90,3 +90,19 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Deployment
 
 The easiest way to deploy your application is through [Vercel](https://vercel.com/new?utm_source=fal-ai&utm_medium=default-template&utm_campaign=video-starter-kit).
+
+
+## UI RENDER MAP
+
+src/app/page.tsx
+├── src/components/main.tsx
+│   ├── src/components/header.tsx
+│   ├── src/components/left-panel.tsx
+│   ├── src/components/video-previer.tsx
+│   ├── src/components/bottom-bar.tsx
+│   ├── src/components/right-panel.tsx
+│   ├── src/components/toaster.tsx
+│   ├── src/components/project-dialog.tsx
+│   ├── src/components/export-dialog.tsx
+│   ├── src/components/key-dialog.tsx
+│   └── src/components/media-gallery.tsx 
