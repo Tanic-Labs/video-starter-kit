@@ -96,15 +96,33 @@ The easiest way to deploy your application is through [Vercel](https://vercel.co
 
 ```plaintext
 src/app/page.tsx
-├── src/components/main.tsx
-│   ├── src/components/header.tsx
-│   ├── src/components/left-panel.tsx
-│   ├── src/components/video-previer.tsx
-│   ├── src/components/bottom-bar.tsx
-│   ├── src/components/right-panel.tsx
-│   ├── src/components/toaster.tsx
-│   ├── src/components/project-dialog.tsx
-│   ├── src/components/export-dialog.tsx
-│   ├── src/components/key-dialog.tsx
-│   └── src/components/media-gallery.tsx 
+└── src/components/main.tsx
+    ├── src/components/header.tsx
+    │   ├──src/components/logo.tsx
+    │   └──src/components/ui/...
+    ├── src/components/left-panel.tsx
+    │   ├──src/components/media-panel.tsx
+    │   └──src/components/ui/...
+    ├── src/components/video-previer.tsx
+    │   ├──@remotion/player/dsit/cjs/Player.d.ts
+    │   └──src/components/ui/...
+    ├── src/components/bottom-bar.tsx
+    │   ├──src/components/video-controls.tsx
+    │   ├──src/components/video/timeline.tsx
+    │   └──src/components/videotrack.tsx
+    ├── src/components/right-panel.tsx
+    │   ├──src/components/media-panel.tsx
+    │   ├──src/components/playht/voice-selector.tsx
+    │   └──src/components/ui/...
+    ├── src/components/toaster.tsx
+    │   └──src/components/ui/...
+    ├── src/components/project-dialog.tsx
+    │   ├──src/components/logo.tsx
+    │   └──src/components/ui/...
+    ├── src/components/export-dialog.tsx
+    │   └──src/components/ui/...
+    ├── src/components/key-dialog.tsx
+    │   └──src/components/ui/...
+    └── src/components/media-gallery.tsx
+        └──src/components/ui/...
 ```
