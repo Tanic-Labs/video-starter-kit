@@ -9,7 +9,7 @@ import {
   createVideoProjectStore,
 } from "@/data/store";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useStore } from "zustand";
 import { ProjectDialog } from "./project-dialog";
 import { MediaGallerySheet } from "./media-gallery";
@@ -18,6 +18,7 @@ import { Toaster } from "./ui/toaster";
 import { ExportDialog } from "./export-dialog";
 import LeftPanel from "./left-panel";
 import { KeyDialog } from "./key-dialog";
+import { useToast } from "@/hooks/use-toast";
 
 type AppProps = {
   projectId: string;
@@ -48,6 +49,16 @@ export function App({ projectId }: AppProps) {
     projectStore,
     (s) => s.setExportDialogOpen,
   );
+
+  const { toast } = useToast();
+  
+  useEffect(() => {
+    toast({
+      title: "Welcome!",
+      description: "Happy to see you again."
+    })
+  }, [toast])
+
   return (
     <ToastProvider>
       <QueryClientProvider client={queryClient}>
