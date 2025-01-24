@@ -94,6 +94,7 @@ The easiest way to deploy your application is through [Vercel](https://vercel.co
 
 ## UI RENDER MAP
 
+```plaintext
 src/app/page.tsx
 ├── src/components/main.tsx
 │   ├── src/components/header.tsx
@@ -106,3 +107,4 @@ src/app/page.tsx
 │   ├── src/components/export-dialog.tsx
 │   ├── src/components/key-dialog.tsx
 │   └── src/components/media-gallery.tsx 
+```

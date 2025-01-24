@@ -51,13 +51,13 @@ export function App({ projectId }: AppProps) {
   );
 
   const { toast } = useToast();
-  
+
   useEffect(() => {
     toast({
       title: "Welcome!",
-      description: "Happy to see you again."
-    })
-  }, [toast])
+      description: "Happy to see you again.",
+    });
+  }, [toast]);
 
   return (
     <ToastProvider>
