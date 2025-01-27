@@ -26,7 +26,7 @@ type AppProps = {
 };
 
 export function App({ projectId, supabase }: AppProps) {
-  console.log("supabase: ", supabase)
+  console.log("supabase: ", supabase);
   const [keyDialog, setKeyDialog] = useState(false);
 
   const queryClient = useRef(new QueryClient()).current;
