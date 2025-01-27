@@ -5,8 +5,8 @@ import Header from "@/components/header";
 import RightPanel from "@/components/right-panel";
 import VideoPreview from "@/components/video-preview";
 import {
-VideoProjectStoreContext,
-createVideoProjectStore,
+  VideoProjectStoreContext,
+  createVideoProjectStore,
 } from "@/data/store";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useRef, useState, useEffect } from "react";
@@ -22,79 +22,79 @@ import { useToast } from "@/hooks/use-toast";
 import { createClient } from "@supabase/supabase-js";
 
 type AppProps = {
-projectId: string;
-supabaseUrl: string;
-supabaseKey: string;
+  projectId: string;
+  supabaseUrl: string;
+  supabaseKey: string;
 };
 
-export function App({ projectId, supabaseUrl, supabaseKey  }: AppProps) {
-const supabase = createClient(supabaseUrl, supabaseKey);
-const [keyDialog, setKeyDialog] = useState(false);
+export function App({ projectId, supabaseUrl, supabaseKey }: AppProps) {
+  const supabase = createClient(supabaseUrl, supabaseKey);
+  const [keyDialog, setKeyDialog] = useState(false);
 
-const queryClient = useRef(new QueryClient()).current;
-const projectStore = useRef(
-createVideoProjectStore({
-projectId,
-}),
-).current;
-const projectDialogOpen = useStore(projectStore, (s) => s.projectDialogOpen);
-const selectedMediaId = useStore(projectStore, (s) => s.selectedMediaId);
-const setSelectedMediaId = useStore(
-projectStore,
-(s) => s.setSelectedMediaId,
-);
-const handleOnSheetOpenChange = (open: boolean) => {
-if (!open) {
-setSelectedMediaId(null);
-}
-};
-const isExportDialogOpen = useStore(projectStore, (s) => s.exportDialogOpen);
-const setExportDialogOpen = useStore(
-projectStore,
-(s) => s.setExportDialogOpen,
-);
+  const queryClient = useRef(new QueryClient()).current;
+  const projectStore = useRef(
+    createVideoProjectStore({
+      projectId,
+    }),
+  ).current;
+  const projectDialogOpen = useStore(projectStore, (s) => s.projectDialogOpen);
+  const selectedMediaId = useStore(projectStore, (s) => s.selectedMediaId);
+  const setSelectedMediaId = useStore(
+    projectStore,
+    (s) => s.setSelectedMediaId,
+  );
+  const handleOnSheetOpenChange = (open: boolean) => {
+    if (!open) {
+      setSelectedMediaId(null);
+    }
+  };
+  const isExportDialogOpen = useStore(projectStore, (s) => s.exportDialogOpen);
+  const setExportDialogOpen = useStore(
+    projectStore,
+    (s) => s.setExportDialogOpen,
+  );
 
-const { toast } = useToast();
+  const { toast } = useToast();
 
-useEffect(() => {
-toast({
-title: "Welcome!",
-description: "Happy to see you again.",
-});
-}, [toast]);
+  useEffect(() => {
+    toast({
+      title: "Welcome!",
+      description: "Happy to see you again.",
+    });
+  }, [toast]);
 
-return (
-<ToastProvider>
-<QueryClientProvider client={queryClient}>
-<VideoProjectStoreContext.Provider value={projectStore}>
-<div className="flex flex-col h-screen bg-background">
-<Header openKeyDialog={() => setKeyDialog(true)} />
-<main className="flex overflow-hidden h-full">
-<LeftPanel />
-<div className="flex flex-col flex-1">
-<VideoPreview />
-<BottomBar />
-</div>
-<RightPanel />
-</main>
-</div>
-<Toaster />
-<ProjectDialog open={projectDialogOpen} />
-<ExportDialog
-open={isExportDialogOpen}
-onOpenChange={setExportDialogOpen}
-/>
-<KeyDialog
-open={keyDialog}
-onOpenChange={(open) => setKeyDialog(open)}
-/>
-<MediaGallerySheet
-open={selectedMediaId !== null}
-onOpenChange={handleOnSheetOpenChange}
-selectedMediaId={selectedMediaId ?? ""}
-/>
-</VideoProjectStoreContext.Provider>
-</QueryClientProvider>
-</ToastProvider> 
-);
+  return (
+    <ToastProvider>
+      <QueryClientProvider client={queryClient}>
+        <VideoProjectStoreContext.Provider value={projectStore}>
+          <div className="flex flex-col h-screen bg-background">
+            <Header openKeyDialog={() => setKeyDialog(true)} />
+            <main className="flex overflow-hidden h-full">
+              <LeftPanel />
+              <div className="flex flex-col flex-1">
+                <VideoPreview />
+                <BottomBar />
+              </div>
+              <RightPanel />
+            </main>
+          </div>
+          <Toaster />
+          <ProjectDialog open={projectDialogOpen} />
+          <ExportDialog
+            open={isExportDialogOpen}
+            onOpenChange={setExportDialogOpen}
+          />
+          <KeyDialog
+            open={keyDialog}
+            onOpenChange={(open) => setKeyDialog(open)}
+          />
+          <MediaGallerySheet
+            open={selectedMediaId !== null}
+            onOpenChange={handleOnSheetOpenChange}
+            selectedMediaId={selectedMediaId ?? ""}
+          />
+        </VideoProjectStoreContext.Provider>
+      </QueryClientProvider>
+    </ToastProvider>
+  );
 }
