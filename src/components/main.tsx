@@ -22,11 +22,11 @@ import { useToast } from "@/hooks/use-toast";
 
 type AppProps = {
   projectId: string;
-  //supabase: any;
+  supabase: any;
 };
 
-export function App({ projectId, /* supabase */ }: AppProps) {
-  //console.log("supabase: ", supabase)
+export function App({ projectId, supabase }: AppProps) {
+  console.log("supabase: ", supabase)
   const [keyDialog, setKeyDialog] = useState(false);
 
   const queryClient = useRef(new QueryClient()).current;
