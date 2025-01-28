@@ -8,7 +8,7 @@ import { useStore } from "zustand/react";
 
 export const LAST_PROJECT_ID_KEY = "__aivs_lastProjectId";
 
-export type MediaType = "image" | "video" | "voiceover" | "music";
+export type MediaType = "image" | "video" | "voiceover" | "audio";
 
 export type GenerateData = {
   prompt: string;

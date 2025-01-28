@@ -37,6 +37,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { db } from "@/data/db";
 import { LoadingIcon } from "./ui/icons";
 import { AVAILABLE_ENDPOINTS } from "@/lib/fal";
+import { metadata } from "@/app/layout";
 
 type MediaGallerySheetProps = ComponentProps<typeof Sheet> & {
   selectedMediaId: string;
@@ -53,8 +54,8 @@ function AudioPlayer({ media, ...props }: AudioPlayerProps) {
   return (
     <div className="flex flex-col gap-4">
       <div className="aspect-square bg-accent text-muted-foreground flex flex-col items-center justify-center">
-        {media.mediaType === "music" && <MusicIcon className="w-1/2 h-1/2" />}
-        {media.mediaType === "voiceover" && <MicIcon className="w-1/2 h-1/2" />}
+        {media.type === "audio" && <MusicIcon className="w-1/2 h-1/2" />}
+        {media.type === "voiceover" && <MicIcon className="w-1/2 h-1/2" />}
       </div>
       <div>
         <audio src={src} {...props} controls className="rounded" />
@@ -103,14 +104,19 @@ function MediaPropertyItem({
 
 const MEDIA_PLACEHOLDER: MediaItem = {
   id: "placeholder",
-  kind: "generated",
-  input: { prompt: "n/a" },
-  mediaType: "image",
-  status: "pending",
-  createdAt: 0,
-  endpointId: "n/a",
-  projectId: "",
-  requestId: "",
+  user_id: "placeholder",
+  type: "image",
+  source_type: "generated",
+  file_path: "placeholder",
+  crated_at: 0, 
+  metadata: {
+    name: "placeholder",
+    status: "pending",
+    input: {prompt: "n/a"},
+    output:{},
+    endpointId: "n/a",
+    requestId: "n/a",
+  }
 };
 
 export function MediaGallerySheet({
@@ -132,7 +138,9 @@ export function MediaGallerySheet({
 
   const handleOpenGenerateDialog = () => {
     setGenerateMediaType("video");
-    const image = selectedMedia.output?.images?.[0]?.url;
+    const image = selectedMedia.metadata && 'output' in selectedMedia.metadata 
+      ? selectedMedia.metadata.output?.images?.[0]?.url 
+      : undefined;
 
     const endpoint = AVAILABLE_ENDPOINTS.find(
       (endpoint) => endpoint.category === "video",
@@ -141,7 +149,7 @@ export function MediaGallerySheet({
     setEndpointId(endpoint?.endpointId ?? AVAILABLE_ENDPOINTS[0].endpointId);
 
     setGenerateData({
-      ...(selectedMedia.input || {}),
+      ...(selectedMedia.metadata && 'input' in selectedMedia.metadata ? selectedMedia.metadata.input : {} ),
       image,
       duration: undefined,
     });
@@ -150,9 +158,13 @@ export function MediaGallerySheet({
   };
 
   const handleVary = () => {
-    setGenerateMediaType(selectedMedia.mediaType);
-    setEndpointId(selectedMedia.endpointId as string);
-    setGenerateData(selectedMedia.input || {});
+    setGenerateMediaType(selectedMedia.type);
+    setEndpointId(
+      selectedMedia?.metadata && 'endpointId' in selectedMedia.metadata
+        ? selectedMedia.metadata.endpointId
+        : ''
+    );
+    setGenerateData(selectedMedia.metadata && 'input' in selectedMedia.metadata ? selectedMedia.metadata.input : {} )
     setSelectedMediaId(null);
     onGenerate();
   };
@@ -169,7 +181,9 @@ export function MediaGallerySheet({
     () => resolveMediaUrl(selectedMedia),
     [selectedMedia],
   );
-  const prompt = selectedMedia?.input?.prompt;
+  const prompt = selectedMedia?.metadata && 'input' in selectedMedia.metadata 
+    ? selectedMedia.metadata.input?.prompt 
+    : undefined;
 
   const queryClient = useQueryClient();
   const deleteMedia = useMutation({
@@ -192,14 +206,14 @@ export function MediaGallerySheet({
         >
           {!!mediaUrl && (
             <>
-              {selectedMedia.mediaType === "image" && (
+              {selectedMedia.type === "image" && (
                 <img
                   src={mediaUrl}
                   className="animate-fade-scale-in h-auto max-h-[90%] w-auto max-w-[90%] object-contain transition-all"
                   onClick={preventClose}
                 />
               )}
-              {selectedMedia.mediaType === "video" && (
+              {selectedMedia.type === "video" && (
                 <video
                   src={mediaUrl}
                   className="animate-fade-scale-in h-auto max-h-[90%] w-auto max-w-[90%] object-contain transition-all"
@@ -207,8 +221,8 @@ export function MediaGallerySheet({
                   onClick={preventClose}
                 />
               )}
-              {(selectedMedia.mediaType === "music" ||
-                selectedMedia.mediaType === "voiceover") && (
+              {(selectedMedia.type === "audio" ||
+                selectedMedia.type === "voiceover") && (
                 <AudioPlayer media={selectedMedia} />
               )}
             </>
@@ -247,7 +261,7 @@ export function MediaGallerySheet({
               <div></div>
             </div>
             <div className="flex flex-row gap-2">
-              {selectedMedia?.mediaType === "image" && (
+              {selectedMedia?.type === "image" && (
                 <Button
                   onClick={handleOpenGenerateDialog}
                   variant="secondary"
@@ -282,25 +296,48 @@ export function MediaGallerySheet({
               <MediaPropertyItem label="Media URL" value={mediaUrl ?? "n/a"} />
               <MediaPropertyItem
                 label="Model (fal endpoint)"
-                value={selectedMedia.endpointId ?? "n/a"}
+                value={selectedMedia?.metadata && 'endpointId' in selectedMedia.metadata 
+                  ? selectedMedia.metadata.endpointId 
+                  : "n/a"
+                }
               >
                 <a
-                  href={`https://fal.ai/models/${selectedMedia.endpointId}`}
+                  href={`https://fal.ai/models/
+                    ${selectedMedia?.metadata && 'endpointId' in selectedMedia.metadata 
+                      ? selectedMedia.metadata.endpointId 
+                      : "n/a"
+                    }
+                  `}
                   target="_blank"
                   className="underline underline-offset-4 decoration-muted-foreground/70 decoration-dotted"
                 >
-                  <code>{selectedMedia.endpointId}</code>
+                  <code>
+                    {selectedMedia?.metadata && 'endpointId' in selectedMedia.metadata 
+                      ? selectedMedia.metadata.endpointId 
+                      : "n/a"
+                    }
+                  </code>
                 </a>
               </MediaPropertyItem>
               <MediaPropertyItem
                 label="Status"
-                value={selectedMedia.status ?? "n/a"}
+                value={selectedMedia?.metadata && 'status' in selectedMedia.metadata 
+                  ? selectedMedia.metadata.status : "n/a"
+                }
               />
               <MediaPropertyItem
                 label="Request ID"
-                value={selectedMedia.requestId ?? "n/a"}
+                value={selectedMedia?.metadata && 'requestId' in selectedMedia.metadata 
+                  ? selectedMedia.metadata.requestId 
+                  : "n/a"
+                }
               >
-                <code>{selectedMedia.requestId}</code>
+                <code>
+                  {selectedMedia?.metadata && 'requestId' in selectedMedia.metadata 
+                    ? selectedMedia.metadata.requestId 
+                    : "n/a"
+                  }
+                </code>
               </MediaPropertyItem>
             </div>
           </div>

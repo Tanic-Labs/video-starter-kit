@@ -99,12 +99,20 @@ export type MediaItem = {
   type: "image" | "video" | "audio" | "voiceover";
   source_type: "generated" | "uploaded";
   file_path: string;
-  metadata: {
-    name: string;
-    size: number;
-    type: string;
-    description: string;
-    original_name: string;
-  };
-  crated_at: string;
+  crated_at: number;
+  metadata?: 
+    | { // For "generated"
+        name: string;
+        status: "pending" | "running" | "completed" | "failed";
+        input: Record<string, any>;
+        output: Record<string, any>;
+        endpointId: string;
+        requestId: string;
+      }
+    | { // For "uploaded"
+        name: string;
+        size: number;
+        description: string;
+        original_name: string;
+      };
 };
