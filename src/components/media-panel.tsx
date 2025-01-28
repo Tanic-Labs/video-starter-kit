@@ -20,6 +20,7 @@ import {
   Fragment,
   type HTMLAttributes,
   createElement,
+  useEffect,
 } from "react";
 import { Badge } from "./ui/badge";
 import { LoadingIcon } from "./ui/icons";
@@ -197,11 +198,11 @@ export function MediaItemRow({
         <div className="flex flex-col items-start justify-center">
           <div className="flex w-full justify-between">
             <h3 className="text-sm font-medium flex flex-row gap-1 items-center">
-              {createElement(trackIcons[data.mediaType], {
+              {/* {createElement(trackIcons[data.mediaType], {
                 className: "w-4 h-4 stroke-1",
               } as React.ComponentProps<
                 (typeof trackIcons)[keyof typeof trackIcons]
-              >)}
+              >)} */}
               <span>{data.kind === "generated" ? "Job" : "File"}</span>
               <code className="text-muted-foreground">#{mediaId}</code>
             </h3>
@@ -224,7 +225,7 @@ export function MediaItemRow({
         </div>
         <div className="flex flex-row gap-2 justify-between">
           <span className="text-xs text-muted-foreground">
-            {formatDistanceToNow(data.createdAt, { addSuffix: true })}
+            {/* {formatDistanceToNow(data.createdAt, { addSuffix: true })} */}
           </span>
         </div>
       </div>

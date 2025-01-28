@@ -92,3 +92,19 @@ export type MediaItem = {
       url: string;
     }
 );
+
+/* export type MediaItem = {
+  id: string;
+  user_id: string;
+  type: "image" | "video" | "audio" | "voiceover";
+  source_type: "generated" | "uploaded";
+  file_path: string;
+  metadata: {
+    name: string;
+    size: number;
+    type: string;
+    description: string;
+    original_name: string;
+  };
+  crated_at: string;
+} */

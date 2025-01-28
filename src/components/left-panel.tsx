@@ -1,5 +1,7 @@
 "use client";
 
+// #region IMPORTS
+import { SupabaseClient } from "@supabase/supabase-js";
 import { useProjectUpdater } from "@/data/mutations";
 import { queryKeys, useProject, useProjectMediaItems } from "@/data/queries";
 import { type MediaItem, PROJECT_PLACEHOLDER } from "@/data/schema";
@@ -32,30 +34,43 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
-import { useState } from "react";
-import { useUploadThing } from "@/lib/uploadthing";
-import type { ClientUploadedFileData } from "uploadthing/types";
+import { useState, useEffect } from "react";
+/* import { useUploadThing } from "@/lib/uploadthing";
+import type { ClientUploadedFileData } from "uploadthing/types"; */
 import { db } from "@/data/db";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/hooks/use-toast";
 import { getMediaMetadata } from "@/lib/ffmpeg";
+import { Description } from "@radix-ui/react-toast";
+// #endregion
 
-export default function LeftPanel() {
+// #region TYPES
+type LeftPanelProps = {
+  supabase: SupabaseClient;
+};
+// #endregion
+
+export default function LeftPanel({ supabase }: LeftPanelProps) {
+  // #region CONSTANTS
   const projectId = useProjectId();
   const { data: project = PROJECT_PLACEHOLDER } = useProject(projectId);
   const projectUpdate = useProjectUpdater(projectId);
   const [mediaType, setMediaType] = useState("all");
+  const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const queryClient = useQueryClient();
 
-  const { data: mediaItems = [], isLoading } = useProjectMediaItems(projectId);
+  //const { data: mediaItems = [], isLoading } = useProjectMediaItems(projectId);
   const setProjectDialogOpen = useVideoProjectStore(
     (s) => s.setProjectDialogOpen,
   );
   const openGenerateDialog = useVideoProjectStore((s) => s.openGenerateDialog);
+  // #endregion
 
-  const { startUpload, isUploading } = useUploadThing("fileUploader");
+  // #region UPLOAD FILE
+  //const { startUpload, isUploading } = useUploadThing("fileUploader");
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  /* const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
 
@@ -110,8 +125,97 @@ export default function LeftPanel() {
           });
       }
     }
-  };
+  }; */
+  //#endregion
+  //#region NEW UPLOAD FILE SUPABASE
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
 
+    try {
+      const user = {id: '58e01467-2bbf-418f-9210-de8b76334dc4'};
+      const file = files[0]; // Suponemos que solo subimos un archivo por vez (puedes ajustar esto)
+      const fileExt = file.name.split('.').pop();
+      const assetId = crypto.randomUUID();
+      // Insertar el archivo en la base de datos de 'assets'
+      const mediaType = file.type.split("/")[0]; // Ajustar según sea necesario
+
+      const filePath = `${user.id}/${mediaType}s/${assetId}.${fileExt}`;
+
+      // Subir el archivo a Supabase Storage
+      const { data, error } = await supabase.storage
+        .from("assets") // Asegúrate de reemplazarlo con tu bucket de Supabase Storage
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (error) {
+        console.warn(`Error al subir archivo: ${error.message}`);
+        toast({
+          title: "Failed to upload file",
+          description: "Please try again",
+        });
+        return;
+      }
+
+      const { data: assetData, error: assetError } = await supabase
+        .from('assets') // Asegúrate de que el nombre de tu tabla sea 'assets'
+        .insert([
+          {
+            id: assetId,
+            user_id: user.id,
+            type: mediaType,
+            source_type: "uploaded",
+            file_path: filePath, // La URL del archivo en Supabase Storage
+            metadata: {
+              name: "",
+              size: file.size,
+              type: file.type,
+              description: "",
+              orignalName: file.name
+            },
+          }
+        ]);
+
+      if (assetError) {
+        console.error('Error al insertar en la tabla assets:', assetError.message);
+      } else {
+        // Actualizamos los elementos de media
+        fetchData()
+      }
+    } catch (err) {
+      console.warn(`ERROR! ${err}`);
+      toast({
+        title: "Failed to upload file",
+        description: "Please try again",
+      });
+    }
+  };
+  //#endregion
+
+  //#region GET ASSETS
+  async function fetchData() {
+    setIsLoading(true)
+    const { data, error } = await supabase
+      .from('assets')  // Reemplaza con el nombre de tu tabla
+      .select('*');  // Aquí puedes especificar las columnas que necesitas
+
+    if (error) {
+      console.error('Error fetching data:', error.message);
+      setIsLoading(false)
+    } else {
+      setMediaItems(data);
+      setIsLoading(false);
+    }
+  }
+  
+  useEffect(() => {
+    fetchData();
+  }, [supabase]);
+  //#endregion
+
+  //#region JSX
   return (
     <div className="flex flex-col border-r border-border w-96">
       <div className="p-4 flex flex-col gap-4 border-b border-border">
@@ -211,7 +315,7 @@ export default function LeftPanel() {
             <Button
               variant="secondary"
               size="sm"
-              disabled={isUploading}
+              /* disabled={isUploading} */
               className="cursor-pointer disabled:cursor-default disabled:opacity-50"
               asChild
             >
@@ -222,14 +326,15 @@ export default function LeftPanel() {
                   className="hidden"
                   onChange={handleFileUpload}
                   multiple={false}
-                  disabled={isUploading}
+                  /* disabled={isUploading} */
                   accept="image/*,audio/*,video/*"
                 />
-                {isUploading ? (
+                {/* {isUploading ? (
                   <LoaderCircleIcon className="w-4 h-4 opacity-50 animate-spin" />
                 ) : (
                   <CloudUploadIcon className="w-4 h-4 opacity-50" />
-                )}
+                )} */}
+                <CloudUploadIcon className="w-4 h-4 opacity-50" />
               </label>
             </Button>
           </div>
@@ -272,4 +377,5 @@ export default function LeftPanel() {
       </div>
     </div>
   );
+  //#endregion
 }
