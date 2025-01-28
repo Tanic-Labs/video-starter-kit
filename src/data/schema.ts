@@ -66,7 +66,7 @@ export type KeyFrameData = {
     }
 );
 
-export type MediaItem = {
+/* export type MediaItem = {
   id: string;
   kind: "generated" | "uploaded";
   endpointId?: string;
@@ -91,9 +91,9 @@ export type MediaItem = {
       kind: "uploaded";
       url: string;
     }
-);
+); */
 
-/* export type MediaItem = {
+export type MediaItem = {
   id: string;
   user_id: string;
   type: "image" | "video" | "audio" | "voiceover";
@@ -107,4 +107,4 @@ export type MediaItem = {
     original_name: string;
   };
   crated_at: string;
-} */
+}

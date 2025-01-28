@@ -112,9 +112,9 @@ const VideoTrackSequence: React.FC<TrackSequenceProps> = ({
     <AbsoluteFill>
       {frames.map((frame) => {
         const media = mediaItems[frame.data.mediaId];
-        if (!media || media.status !== "completed") return null;
+        if (!media /* || media.status !== "completed" */) return null;
 
-        const mediaUrl = resolveMediaUrl(media);
+        const mediaUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/${media.file_path}`
         if (!mediaUrl) return null;
 
         const duration = frame.duration || resolveDuration(media) || 5000;
@@ -127,8 +127,8 @@ const VideoTrackSequence: React.FC<TrackSequenceProps> = ({
             durationInFrames={durationInFrames}
             premountFor={3000}
           >
-            {media.mediaType === "video" && <Video src={mediaUrl} />}
-            {media.mediaType === "image" && (
+            {media.type === "video" && <Video src={mediaUrl} />}
+            {media.type === "image" && (
               <Img src={mediaUrl} style={{ objectFit: "cover" }} />
             )}
           </Sequence>
@@ -146,9 +146,9 @@ const AudioTrackSequence: React.FC<TrackSequenceProps> = ({
     <>
       {frames.map((frame) => {
         const media = mediaItems[frame.data.mediaId];
-        if (!media || media.status !== "completed") return null;
+        if (!media /* || media.status !== "completed" */) return null;
 
-        const audioUrl = resolveMediaUrl(media);
+        const audioUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/${media.file_path}`
         if (!audioUrl) return null;
 
         const duration = frame.duration || resolveDuration(media) || 5000;
@@ -185,15 +185,15 @@ export default function VideoPreview() {
       .flat()
       .flatMap((f) => f.data.mediaId);
     for (const media of Object.values(mediaItems)) {
-      if (media.status === "completed" && mediaIds.includes(media.id)) {
-        const mediaUrl = resolveMediaUrl(media);
+      if (/* media.status === "completed" && */ mediaIds.includes(media.id)) {
+        const mediaUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/${media.file_path}`
         if (!mediaUrl) continue;
-        if (media.mediaType === "video") {
+        if (media.type === "video") {
           preloadVideo(mediaUrl);
         }
         if (
           mediaUrl.indexOf("v2.") === -1 &&
-          (media.mediaType === "music" || media.mediaType === "voiceover")
+          (media.type === "audio" || media.type === "voiceover")
         ) {
           preloadAudio(mediaUrl);
         }
