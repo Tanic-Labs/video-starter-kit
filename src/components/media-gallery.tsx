@@ -186,9 +186,10 @@ export function MediaGallerySheet({
     setSelectedMediaId(null);
   };
   const mediaUrl = useMemo(
-    () => `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/${selectedMedia.file_path}`,
-    [selectedMedia]
-  );  
+    () =>
+      `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/${selectedMedia.file_path}`,
+    [selectedMedia],
+  );
   const prompt =
     selectedMedia?.metadata && "input" in selectedMedia.metadata
       ? selectedMedia.metadata.input?.prompt
