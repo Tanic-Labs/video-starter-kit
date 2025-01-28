@@ -138,8 +138,8 @@ export default function LeftPanel({ supabase }: LeftPanelProps) {
     setIsLoading(true);
     const { data, error } = await supabase
       .from("assets") // Reemplaza con el nombre de tu tabla
-      .select("*") // Aquí puedes especificar las columnas que necesitas
-      //.eq("user_id", '58e01467-2bbf-418f-9210-de8b76334dc4');
+      .select("*"); // Aquí puedes especificar las columnas que necesitas
+    //.eq("user_id", '58e01467-2bbf-418f-9210-de8b76334dc4');
     if (error) {
       console.error("Error fetching data:", error.message);
       setIsLoading(false);
