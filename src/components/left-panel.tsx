@@ -35,13 +35,7 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import { useState, useEffect } from "react";
-/* import { useUploadThing } from "@/lib/uploadthing";
-import type { ClientUploadedFileData } from "uploadthing/types"; */
-import { db } from "@/data/db";
-import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/hooks/use-toast";
-import { getMediaMetadata } from "@/lib/ffmpeg";
-import { Description } from "@radix-ui/react-toast";
 // #endregion
 
 // #region TYPES
@@ -58,9 +52,8 @@ export default function LeftPanel({ supabase }: LeftPanelProps) {
   const [mediaType, setMediaType] = useState("all");
   const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const queryClient = useQueryClient();
+  const [isUploading, setIsUploading] = useState(false);
 
-  //const { data: mediaItems = [], isLoading } = useProjectMediaItems(projectId);
   const setProjectDialogOpen = useVideoProjectStore(
     (s) => s.setProjectDialogOpen,
   );
@@ -68,69 +61,10 @@ export default function LeftPanel({ supabase }: LeftPanelProps) {
   // #endregion
 
   // #region UPLOAD FILE
-  //const { startUpload, isUploading } = useUploadThing("fileUploader");
-
-  /* const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files) return;
-
-    try {
-      const uploadedFiles = await startUpload(Array.from(files));
-      if (uploadedFiles) {
-        await handleUploadComplete(uploadedFiles);
-      }
-    } catch (err) {
-      console.warn(`ERROR! ${err}`);
-      toast({
-        title: "Failed to upload file",
-        description: "Please try again",
-      });
-    }
-  };
-
-  const handleUploadComplete = async (
-    files: ClientUploadedFileData<{
-      uploadedBy: string;
-    }>[],
-  ) => {
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      const mediaType = file.type.split("/")[0];
-      const outputType = mediaType === "audio" ? "music" : mediaType;
-
-      const data: Omit<MediaItem, "id"> = {
-        projectId,
-        kind: "uploaded",
-        createdAt: Date.now(),
-        mediaType: outputType as MediaType,
-        status: "completed",
-        url: file.url,
-      };
-
-      const mediaId = await db.media.create(data);
-      const media = await db.media.find(mediaId as string);
-
-      if (media) {
-        const mediaMetadata = await getMediaMetadata(media as MediaItem);
-
-        await db.media
-          .update(media.id, {
-            ...media,
-            metadata: mediaMetadata?.media || {},
-          })
-          .finally(() => {
-            queryClient.invalidateQueries({
-              queryKey: queryKeys.projectMediaItems(projectId),
-            });
-          });
-      }
-    }
-  }; */
-  //#endregion
-  //#region NEW UPLOAD FILE SUPABASE
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
+    setIsUploading(true);
 
     try {
       const user = { id: "58e01467-2bbf-418f-9210-de8b76334dc4" };
@@ -186,6 +120,7 @@ export default function LeftPanel({ supabase }: LeftPanelProps) {
       } else {
         // Actualizamos los elementos de media
         fetchData();
+        setIsUploading(false);
       }
     } catch (err) {
       console.warn(`ERROR! ${err}`);
@@ -193,6 +128,7 @@ export default function LeftPanel({ supabase }: LeftPanelProps) {
         title: "Failed to upload file",
         description: "Please try again",
       });
+      setIsUploading(false);
     }
   };
   //#endregion
@@ -202,8 +138,8 @@ export default function LeftPanel({ supabase }: LeftPanelProps) {
     setIsLoading(true);
     const { data, error } = await supabase
       .from("assets") // Reemplaza con el nombre de tu tabla
-      .select("*"); // Aquí puedes especificar las columnas que necesitas
-
+      .select("*") // Aquí puedes especificar las columnas que necesitas
+      //.eq("user_id", '58e01467-2bbf-418f-9210-de8b76334dc4');
     if (error) {
       console.error("Error fetching data:", error.message);
       setIsLoading(false);
@@ -318,7 +254,7 @@ export default function LeftPanel({ supabase }: LeftPanelProps) {
             <Button
               variant="secondary"
               size="sm"
-              /* disabled={isUploading} */
+              disabled={isUploading}
               className="cursor-pointer disabled:cursor-default disabled:opacity-50"
               asChild
             >
@@ -329,14 +265,14 @@ export default function LeftPanel({ supabase }: LeftPanelProps) {
                   className="hidden"
                   onChange={handleFileUpload}
                   multiple={false}
-                  /* disabled={isUploading} */
+                  disabled={isUploading}
                   accept="image/*,audio/*,video/*"
                 />
-                {/* {isUploading ? (
+                {isUploading ? (
                   <LoaderCircleIcon className="w-4 h-4 opacity-50 animate-spin" />
                 ) : (
                   <CloudUploadIcon className="w-4 h-4 opacity-50" />
-                )} */}
+                )}
                 <CloudUploadIcon className="w-4 h-4 opacity-50" />
               </label>
             </Button>
