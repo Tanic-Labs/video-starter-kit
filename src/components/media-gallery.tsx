@@ -112,6 +112,7 @@ const MEDIA_PLACEHOLDER: MediaItem = {
   metadata: {
     name: "placeholder",
     status: "pending",
+    type: "placeholder",
     input: { prompt: "n/a" },
     output: {},
     endpointId: "n/a",
@@ -185,9 +186,9 @@ export function MediaGallerySheet({
     setSelectedMediaId(null);
   };
   const mediaUrl = useMemo(
-    () => resolveMediaUrl(selectedMedia),
-    [selectedMedia],
-  );
+    () => `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/${selectedMedia.file_path}`,
+    [selectedMedia]
+  );  
   const prompt =
     selectedMedia?.metadata && "input" in selectedMedia.metadata
       ? selectedMedia.metadata.input?.prompt
@@ -204,6 +205,7 @@ export function MediaGallerySheet({
       close();
     },
   });
+
   return (
     <Sheet {...props}>
       <SheetOverlay className="pointer-events-none flex flex-col" />

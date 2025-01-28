@@ -26,75 +26,132 @@ import { Badge } from "./ui/badge";
 import { LoadingIcon } from "./ui/icons";
 import { useToast } from "@/hooks/use-toast";
 import { getMediaMetadata } from "@/lib/ffmpeg";
+import { metadata } from "@/app/layout";
+import { SupabaseClient } from "@supabase/supabase-js";
 
 type MediaItemRowProps = {
+  supabase: SupabaseClient
   data: MediaItem;
   onOpen: (data: MediaItem) => void;
   draggable?: boolean;
 } & HTMLAttributes<HTMLDivElement>;
 
 export function MediaItemRow({
+  supabase,
   data,
   className,
   onOpen,
   draggable = true,
   ...props
 }: MediaItemRowProps) {
-  const isDone = data.status === "completed" || data.status === "failed";
+  const isDone = data?.metadata && 'status' in data.metadata && (data.metadata.status === "completed" ||  data.metadata.status === "failed");
   const queryClient = useQueryClient();
   const projectId = useProjectId();
   const { toast } = useToast();
   useQuery({
     queryKey: queryKeys.projectMedia(projectId, data.id),
     queryFn: async () => {
-      if (data.kind === "uploaded") return null;
-      const queueStatus = await fal.queue.status(data.endpointId, {
-        requestId: data.requestId,
+      if (data.source_type === "uploaded") return null;
+      const queueStatus = await fal.queue.status(data?.metadata && 'endpointId' in data.metadata ? data.metadata.endpointId : "", {
+        requestId: data?.metadata && 'requestId' in data.metadata ? data.metadata.requestId : "",
       });
       if (queueStatus.status === "IN_PROGRESS") {
-        await db.media.update(data.id, {
+        /* await db.media.update(data.id, {
           ...data,
           status: "running",
         });
         await queryClient.invalidateQueries({
           queryKey: queryKeys.projectMediaItems(data.projectId),
-        });
+        }); */
+        const {data: progressData, error: progressError } = await supabase
+          .from('assets')
+          .update({
+            metadata: {
+              ...data.metadata,
+              status: "runnin"
+            }
+          })
+          .eq("id", data.id)
+          .select("*");
+
+        if(progressError){
+          console.error('Error updating asset:', progressError)
+        } else {
+          console.log('Asset actualizado:', progressData);
+        }
       }
       let media: Partial<MediaItem> = {};
 
       if (queueStatus.status === "COMPLETED") {
         try {
-          const result = await fal.queue.result(data.endpointId, {
-            requestId: data.requestId,
+          const result = await fal.queue.result(data?.metadata && 'endpointId' in data.metadata ? data.metadata.endpointId : "", {
+            requestId: data?.metadata && 'requestId' in data.metadata ? data.metadata.requestId : "",
           });
-          media = {
+          /* media = {
             ...data,
             output: result.data,
             status: "completed",
           };
 
-          await db.media.update(data.id, media);
+          await db.media.update(data.id, media); */
+
+          const {data: completedData, error: completedError} = await supabase
+            .from('assets')
+            .update({
+              metadata:{
+                ...data.metadata,
+                output: result.data,
+                status: 'completed',
+              }
+            })
+            .eq('id', data.id)
+            .select('*');
+
+          if(completedError){
+            console.error('Error updating asset:', completedError)
+          } else {
+            console.log('Asset updated:', completedData)
+          };
 
           toast({
             title: "Generation completed",
-            description: `Your ${data.mediaType} has been generated successfully.`,
+            description: `Your ${data.type} has been generated successfully.`,
           });
         } catch {
-          await db.media.update(data.id, {
+          /* await db.media.update(data.id, {
             ...data,
             status: "failed",
-          });
+          }); */
+
+          const {data: failData, error: failError} = await supabase
+            .from('assets')
+            .update({
+              metadata: {
+                ...data.metadata,
+                status: "failed"
+              }
+            })
+            .eq('id', data.id)
+            .select('*');
+
+          if(failError){
+            console.error('Error updating asset:', failError)
+          } else {
+            console.log('Asset updated:', failData)
+          };
+
           toast({
             title: "Generation failed",
-            description: `Failed to generate ${data.mediaType}.`,
+            description: `Failed to generate ${data.type}.`,
           });
-        } finally {
+        } 
+        /* finally {
           await queryClient.invalidateQueries({
             queryKey: queryKeys.projectMediaItems(data.projectId),
           });
         }
-
-        if (media.mediaType !== "image") {
+          
+        if (media.type !== "image") {
           const mediaMetadata = await getMediaMetadata(media as MediaItem);
 
           await db.media.update(data.id, {
@@ -105,15 +162,15 @@ export function MediaItemRow({
           await queryClient.invalidateQueries({
             queryKey: queryKeys.projectMediaItems(data.projectId),
           });
-        }
+        } */
       }
 
       return null;
     },
-    enabled: !isDone && data.kind === "generated",
-    refetchInterval: data.mediaType === "video" ? 20000 : 1000,
+    enabled: !isDone && data.source_type === "generated",
+    refetchInterval: data.type === "video" ? 20000 : 1000,
   });
-  const mediaUrl = resolveMediaUrl(data) ?? "";
+  const mediaUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/${data.file_path}`;
   const mediaId = data.id.split("-")[0];
   const handleOnDragStart: DragEventHandler<HTMLDivElement> = (event) => {
     event.dataTransfer.setData("job", JSON.stringify(data));
@@ -121,10 +178,11 @@ export function MediaItemRow({
     // event.dataTransfer.dropEffect = "copy";
   };
 
-  const coverImage =
-    data.mediaType === "video"
+  const coverImage = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/${data.file_path}`;
+  /* const coverImage =
+    data.type === "video"
       ? data.metadata?.start_frame_url || data?.metadata?.end_frame_url
-      : resolveMediaUrl(data);
+      : `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/${data.file_path}`; */
 
   return (
     <div
@@ -137,7 +195,7 @@ export function MediaItemRow({
         e.stopPropagation();
         onOpen(data);
       }}
-      draggable={draggable && data.status === "completed"}
+      draggable={draggable && data?.metadata && 'status' in data.metadata && data.metadata.status === "completed"}
       onDragStart={handleOnDragStart}
     >
       {!!draggable && (
@@ -145,7 +203,7 @@ export function MediaItemRow({
           className={cn(
             "flex items-center h-full cursor-grab text-muted-foreground",
             {
-              "text-muted": data.status !== "completed",
+              "text-muted": data?.metadata && 'status' in data.metadata && data.metadata.status !== "completed",
             },
           )}
         >
@@ -153,30 +211,32 @@ export function MediaItemRow({
         </div>
       )}
       <div className="w-16 h-16 aspect-square relative rounded overflow-hidden border border-transparent hover:border-accent bg-accent transition-all">
-        {data.status === "completed" ? (
-          <>
-            {(data.mediaType === "image" || data.mediaType === "video") &&
+        {data?.metadata && 'status' in data.metadata && data.metadata.status === "completed" ? (
+          <>         
+            {(data.type === "image" || data.type === "video") &&
               (coverImage ? (
-                <img
-                  src={coverImage}
-                  alt="Generated media"
-                  className="h-full w-full object-cover"
-                />
+                <div className="w-full h-full flex items-center justify-center top-0 left-0 absolute p-2 z-50">
+                  <img
+                    src={coverImage}
+                    alt="Generated media"
+                    className="h-full w-full object-cover"
+                  />
+                </div>
               ) : (
                 <div className="w-full h-full flex items-center justify-center top-0 left-0 absolute p-2 z-50">
-                  {data.mediaType === "image" ? (
+                  {data.type === "image" ? (
                     <ImageIcon className="w-7 h-7 text-muted-foreground" />
                   ) : (
                     <VideoIcon className="w-7 h-7 text-muted-foreground" />
                   )}
                 </div>
               ))}
-            {data.mediaType === "music" && (
+            {data.type === "audio" && (
               <div className="w-full h-full flex items-center justify-center top-0 left-0 absolute p-2 z-50">
                 <MusicIcon className="w-7 h-7 text-muted-foreground" />
               </div>
             )}
-            {data.mediaType === "voiceover" && (
+            {data.type === "voiceover" && (
               <div className="w-full h-full flex items-center justify-center top-0 left-0 absolute p-2 z-50">
                 <MicIcon className="w-7 h-7 text-muted-foreground" />
               </div>
@@ -184,14 +244,50 @@ export function MediaItemRow({
           </>
         ) : (
           <div className="w-full h-full bg-white/5 flex items-center justify-center text-muted-foreground">
-            {data.status === "running" && <LoadingIcon className="w-8 h-8" />}
-            {data.status === "pending" && (
-              <HourglassIcon className="w-8 h-8 animate-spin ease-in-out delay-700 duration-1000" />
-            )}
-            {data.status === "failed" && (
-              <CircleXIcon className="w-8 h-8 text-rose-700" />
+            {data?.metadata && 'status' in data.metadata && (
+              <>
+                {data.metadata.status === "running" && <LoadingIcon className="w-8 h-8" />}
+                {data.metadata.status === "pending" && (
+                  <HourglassIcon className="w-8 h-8 animate-spin ease-in-out delay-700 duration-1000" />
+                )}
+                {data.metadata.status === "failed" && (
+                  <CircleXIcon className="w-8 h-8 text-rose-700" />
+                )}
+              </>
             )}
           </div>
+        )}
+        {data.source_type !== "generated" && (
+          <>         
+            {(data.type === "image" || data.type === "video") &&
+              (coverImage ? (
+                <div className="w-full h-full flex items-center justify-center top-0 left-0 absolute p-2 z-50">
+                  <img
+                    src={coverImage}
+                    alt="Generated media"
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="w-full h-full flex items-center justify-center top-0 left-0 absolute p-2 z-50">
+                  {data.type === "image" ? (
+                    <ImageIcon className="w-7 h-7 text-muted-foreground" />
+                  ) : (
+                    <VideoIcon className="w-7 h-7 text-muted-foreground" />
+                  )}
+                </div>
+              ))}
+            {data.type === "audio" && (
+              <div className="w-full h-full flex items-center justify-center top-0 left-0 absolute p-2 z-50">
+                <MusicIcon className="w-7 h-7 text-muted-foreground" />
+              </div>
+            )}
+            {data.type === "voiceover" && (
+              <div className="w-full h-full flex items-center justify-center top-0 left-0 absolute p-2 z-50">
+                <MicIcon className="w-7 h-7 text-muted-foreground" />
+              </div>
+            )}
+          </>
         )}
       </div>
       <div className="flex flex-col h-full gap-1 flex-1">
@@ -203,24 +299,24 @@ export function MediaItemRow({
               } as React.ComponentProps<
                 (typeof trackIcons)[keyof typeof trackIcons]
               >)} */}
-              <span>{data.kind === "generated" ? "Job" : "File"}</span>
+              <span>{data.source_type === "generated" ? "Job" : "File"}</span>
               <code className="text-muted-foreground">#{mediaId}</code>
             </h3>
-            {data.status !== "completed" && (
+            {data?.metadata && 'status' in data.metadata && data.metadata.status !== "completed" && (
               <Badge
                 variant="outline"
                 className={cn({
-                  "text-rose-700": data.status === "failed",
-                  "text-sky-500": data.status === "running",
-                  "text-muted-foreground": data.status === "pending",
+                  "text-rose-700": data.metadata.status === "failed",
+                  "text-sky-500": data.metadata.status === "running",
+                  "text-muted-foreground": data.metadata.status === "pending",
                 })}
               >
-                {data.status}
+                {data.metadata.status}
               </Badge>
             )}
           </div>
           <p className="opacity-40 text-sm line-clamp-1 ">
-            {data.input?.prompt}
+            {data?.metadata && "input" in data.metadata && data.metadata.input?.prompt}
           </p>
         </div>
         <div className="flex flex-row gap-2 justify-between">
@@ -234,6 +330,7 @@ export function MediaItemRow({
 }
 
 type MediaItemsPanelProps = {
+  supabase: SupabaseClient;
   data: MediaItem[];
   mediaType: string;
 } & HTMLAttributes<HTMLDivElement>;
@@ -242,6 +339,7 @@ export function MediaItemPanel({
   className,
   data,
   mediaType,
+  supabase
 }: MediaItemsPanelProps) {
   const setSelectedMediaId = useVideoProjectStore((s) => s.setSelectedMediaId);
   const handleOnOpen = (item: MediaItem) => {
@@ -258,11 +356,11 @@ export function MediaItemPanel({
       {data
         .filter((media) => {
           if (mediaType === "all") return true;
-          return media.mediaType === mediaType;
+          return media.type === mediaType;
         })
         .map((media) => (
           <Fragment key={media.id}>
-            <MediaItemRow data={media} onOpen={handleOnOpen} />
+            <MediaItemRow data={media} onOpen={handleOnOpen} supabase={supabase}/>
           </Fragment>
         ))}
     </div>

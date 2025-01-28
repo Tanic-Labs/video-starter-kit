@@ -105,6 +105,7 @@ export type MediaItem = {
         // For "generated"
         name: string;
         status: "pending" | "running" | "completed" | "failed";
+        type: string;
         input: Record<string, any>;
         output: Record<string, any>;
         endpointId: string;
@@ -114,6 +115,7 @@ export type MediaItem = {
         // For "uploaded"
         name: string;
         size: number;
+        type: string;
         description: string;
         original_name: string;
       };

@@ -273,7 +273,6 @@ export default function LeftPanel({ supabase }: LeftPanelProps) {
                 ) : (
                   <CloudUploadIcon className="w-4 h-4 opacity-50" />
                 )}
-                <CloudUploadIcon className="w-4 h-4 opacity-50" />
               </label>
             </Button>
           </div>
@@ -307,6 +306,7 @@ export default function LeftPanel({ supabase }: LeftPanelProps) {
 
         {mediaItems.length > 0 && (
           <MediaItemPanel
+            supabase={supabase}
             data={mediaItems}
             mediaType={mediaType}
             className="overflow-y-auto"
