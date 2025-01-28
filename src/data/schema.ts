@@ -107,4 +107,4 @@ export type MediaItem = {
     original_name: string;
   };
   crated_at: string;
-}
+};

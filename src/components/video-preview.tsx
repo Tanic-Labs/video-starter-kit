@@ -114,7 +114,7 @@ const VideoTrackSequence: React.FC<TrackSequenceProps> = ({
         const media = mediaItems[frame.data.mediaId];
         if (!media /* || media.status !== "completed" */) return null;
 
-        const mediaUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/${media.file_path}`
+        const mediaUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/${media.file_path}`;
         if (!mediaUrl) return null;
 
         const duration = frame.duration || resolveDuration(media) || 5000;
@@ -148,7 +148,7 @@ const AudioTrackSequence: React.FC<TrackSequenceProps> = ({
         const media = mediaItems[frame.data.mediaId];
         if (!media /* || media.status !== "completed" */) return null;
 
-        const audioUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/${media.file_path}`
+        const audioUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/${media.file_path}`;
         if (!audioUrl) return null;
 
         const duration = frame.duration || resolveDuration(media) || 5000;
@@ -186,7 +186,7 @@ export default function VideoPreview() {
       .flatMap((f) => f.data.mediaId);
     for (const media of Object.values(mediaItems)) {
       if (/* media.status === "completed" && */ mediaIds.includes(media.id)) {
-        const mediaUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/${media.file_path}`
+        const mediaUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/${media.file_path}`;
         if (!mediaUrl) continue;
         if (media.type === "video") {
           preloadVideo(mediaUrl);
