@@ -133,9 +133,9 @@ export default function LeftPanel({ supabase }: LeftPanelProps) {
     if (!files) return;
 
     try {
-      const user = {id: '58e01467-2bbf-418f-9210-de8b76334dc4'};
+      const user = { id: "58e01467-2bbf-418f-9210-de8b76334dc4" };
       const file = files[0]; // Suponemos que solo subimos un archivo por vez (puedes ajustar esto)
-      const fileExt = file.name.split('.').pop();
+      const fileExt = file.name.split(".").pop();
       const assetId = crypto.randomUUID();
       // Insertar el archivo en la base de datos de 'assets'
       const mediaType = file.type.split("/")[0]; // Ajustar según sea necesario
@@ -146,8 +146,8 @@ export default function LeftPanel({ supabase }: LeftPanelProps) {
       const { data, error } = await supabase.storage
         .from("assets") // Asegúrate de reemplazarlo con tu bucket de Supabase Storage
         .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: false
+          cacheControl: "3600",
+          upsert: false,
         });
 
       if (error) {
@@ -160,7 +160,7 @@ export default function LeftPanel({ supabase }: LeftPanelProps) {
       }
 
       const { data: assetData, error: assetError } = await supabase
-        .from('assets') // Asegúrate de que el nombre de tu tabla sea 'assets'
+        .from("assets") // Asegúrate de que el nombre de tu tabla sea 'assets'
         .insert([
           {
             id: assetId,
@@ -173,16 +173,19 @@ export default function LeftPanel({ supabase }: LeftPanelProps) {
               size: file.size,
               type: file.type,
               description: "",
-              orignalName: file.name
+              orignalName: file.name,
             },
-          }
+          },
         ]);
 
       if (assetError) {
-        console.error('Error al insertar en la tabla assets:', assetError.message);
+        console.error(
+          "Error al insertar en la tabla assets:",
+          assetError.message,
+        );
       } else {
         // Actualizamos los elementos de media
-        fetchData()
+        fetchData();
       }
     } catch (err) {
       console.warn(`ERROR! ${err}`);
@@ -196,20 +199,20 @@ export default function LeftPanel({ supabase }: LeftPanelProps) {
 
   //#region GET ASSETS
   async function fetchData() {
-    setIsLoading(true)
+    setIsLoading(true);
     const { data, error } = await supabase
-      .from('assets')  // Reemplaza con el nombre de tu tabla
-      .select('*');  // Aquí puedes especificar las columnas que necesitas
+      .from("assets") // Reemplaza con el nombre de tu tabla
+      .select("*"); // Aquí puedes especificar las columnas que necesitas
 
     if (error) {
-      console.error('Error fetching data:', error.message);
-      setIsLoading(false)
+      console.error("Error fetching data:", error.message);
+      setIsLoading(false);
     } else {
       setMediaItems(data);
       setIsLoading(false);
     }
   }
-  
+
   useEffect(() => {
     fetchData();
   }, [supabase]);
