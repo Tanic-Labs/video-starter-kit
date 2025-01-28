@@ -108,15 +108,15 @@ const MEDIA_PLACEHOLDER: MediaItem = {
   type: "image",
   source_type: "generated",
   file_path: "placeholder",
-  crated_at: 0, 
+  crated_at: 0,
   metadata: {
     name: "placeholder",
     status: "pending",
-    input: {prompt: "n/a"},
-    output:{},
+    input: { prompt: "n/a" },
+    output: {},
     endpointId: "n/a",
     requestId: "n/a",
-  }
+  },
 };
 
 export function MediaGallerySheet({
@@ -138,9 +138,10 @@ export function MediaGallerySheet({
 
   const handleOpenGenerateDialog = () => {
     setGenerateMediaType("video");
-    const image = selectedMedia.metadata && 'output' in selectedMedia.metadata 
-      ? selectedMedia.metadata.output?.images?.[0]?.url 
-      : undefined;
+    const image =
+      selectedMedia.metadata && "output" in selectedMedia.metadata
+        ? selectedMedia.metadata.output?.images?.[0]?.url
+        : undefined;
 
     const endpoint = AVAILABLE_ENDPOINTS.find(
       (endpoint) => endpoint.category === "video",
@@ -149,7 +150,9 @@ export function MediaGallerySheet({
     setEndpointId(endpoint?.endpointId ?? AVAILABLE_ENDPOINTS[0].endpointId);
 
     setGenerateData({
-      ...(selectedMedia.metadata && 'input' in selectedMedia.metadata ? selectedMedia.metadata.input : {} ),
+      ...(selectedMedia.metadata && "input" in selectedMedia.metadata
+        ? selectedMedia.metadata.input
+        : {}),
       image,
       duration: undefined,
     });
@@ -160,11 +163,15 @@ export function MediaGallerySheet({
   const handleVary = () => {
     setGenerateMediaType(selectedMedia.type);
     setEndpointId(
-      selectedMedia?.metadata && 'endpointId' in selectedMedia.metadata
+      selectedMedia?.metadata && "endpointId" in selectedMedia.metadata
         ? selectedMedia.metadata.endpointId
-        : ''
+        : "",
     );
-    setGenerateData(selectedMedia.metadata && 'input' in selectedMedia.metadata ? selectedMedia.metadata.input : {} )
+    setGenerateData(
+      selectedMedia.metadata && "input" in selectedMedia.metadata
+        ? selectedMedia.metadata.input
+        : {},
+    );
     setSelectedMediaId(null);
     onGenerate();
   };
@@ -181,9 +188,10 @@ export function MediaGallerySheet({
     () => resolveMediaUrl(selectedMedia),
     [selectedMedia],
   );
-  const prompt = selectedMedia?.metadata && 'input' in selectedMedia.metadata 
-    ? selectedMedia.metadata.input?.prompt 
-    : undefined;
+  const prompt =
+    selectedMedia?.metadata && "input" in selectedMedia.metadata
+      ? selectedMedia.metadata.input?.prompt
+      : undefined;
 
   const queryClient = useQueryClient();
   const deleteMedia = useMutation({
@@ -296,47 +304,55 @@ export function MediaGallerySheet({
               <MediaPropertyItem label="Media URL" value={mediaUrl ?? "n/a"} />
               <MediaPropertyItem
                 label="Model (fal endpoint)"
-                value={selectedMedia?.metadata && 'endpointId' in selectedMedia.metadata 
-                  ? selectedMedia.metadata.endpointId 
-                  : "n/a"
+                value={
+                  selectedMedia?.metadata &&
+                  "endpointId" in selectedMedia.metadata
+                    ? selectedMedia.metadata.endpointId
+                    : "n/a"
                 }
               >
                 <a
                   href={`https://fal.ai/models/
-                    ${selectedMedia?.metadata && 'endpointId' in selectedMedia.metadata 
-                      ? selectedMedia.metadata.endpointId 
-                      : "n/a"
+                    ${
+                      selectedMedia?.metadata &&
+                      "endpointId" in selectedMedia.metadata
+                        ? selectedMedia.metadata.endpointId
+                        : "n/a"
                     }
                   `}
                   target="_blank"
                   className="underline underline-offset-4 decoration-muted-foreground/70 decoration-dotted"
                 >
                   <code>
-                    {selectedMedia?.metadata && 'endpointId' in selectedMedia.metadata 
-                      ? selectedMedia.metadata.endpointId 
-                      : "n/a"
-                    }
+                    {selectedMedia?.metadata &&
+                    "endpointId" in selectedMedia.metadata
+                      ? selectedMedia.metadata.endpointId
+                      : "n/a"}
                   </code>
                 </a>
               </MediaPropertyItem>
               <MediaPropertyItem
                 label="Status"
-                value={selectedMedia?.metadata && 'status' in selectedMedia.metadata 
-                  ? selectedMedia.metadata.status : "n/a"
+                value={
+                  selectedMedia?.metadata && "status" in selectedMedia.metadata
+                    ? selectedMedia.metadata.status
+                    : "n/a"
                 }
               />
               <MediaPropertyItem
                 label="Request ID"
-                value={selectedMedia?.metadata && 'requestId' in selectedMedia.metadata 
-                  ? selectedMedia.metadata.requestId 
-                  : "n/a"
+                value={
+                  selectedMedia?.metadata &&
+                  "requestId" in selectedMedia.metadata
+                    ? selectedMedia.metadata.requestId
+                    : "n/a"
                 }
               >
                 <code>
-                  {selectedMedia?.metadata && 'requestId' in selectedMedia.metadata 
-                    ? selectedMedia.metadata.requestId 
-                    : "n/a"
-                  }
+                  {selectedMedia?.metadata &&
+                  "requestId" in selectedMedia.metadata
+                    ? selectedMedia.metadata.requestId
+                    : "n/a"}
                 </code>
               </MediaPropertyItem>
             </div>

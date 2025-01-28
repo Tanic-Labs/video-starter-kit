@@ -100,8 +100,9 @@ export type MediaItem = {
   source_type: "generated" | "uploaded";
   file_path: string;
   crated_at: number;
-  metadata?: 
-    | { // For "generated"
+  metadata?:
+    | {
+        // For "generated"
         name: string;
         status: "pending" | "running" | "completed" | "failed";
         input: Record<string, any>;
@@ -109,7 +110,8 @@ export type MediaItem = {
         endpointId: string;
         requestId: string;
       }
-    | { // For "uploaded"
+    | {
+        // For "uploaded"
         name: string;
         size: number;
         description: string;
