@@ -124,6 +124,7 @@ export function App({ projectId, supabaseUrl, supabaseKey }: AppProps) {
             open={selectedMedia !== null}
             onOpenChange={handleOnSheetOpenChange}
             media={selectedMedia ?? null}
+            setSelectedMedia={setSelectedMedia}
           />
         </VideoProjectStoreContext.Provider>
       </QueryClientProvider>

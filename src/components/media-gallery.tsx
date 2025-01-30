@@ -1,8 +1,10 @@
 import {
   ComponentProps,
+  Dispatch,
   HTMLAttributes,
   MouseEventHandler,
   PropsWithChildren,
+  SetStateAction,
   useMemo,
 } from "react";
 import {
@@ -41,6 +43,7 @@ import { metadata } from "@/app/layout";
 
 type MediaGallerySheetProps = ComponentProps<typeof Sheet> & {
   media: MediaItem | null;
+  setSelectedMedia: Dispatch<SetStateAction<MediaItem | null>>;
 };
 
 type AudioPlayerProps = {
@@ -112,7 +115,7 @@ const MEDIA_PLACEHOLDER: MediaItem = {
   metadata: undefined,
 };
 
-export function MediaGallerySheet({ media, ...props }: MediaGallerySheetProps) {
+export function MediaGallerySheet({ media, setSelectedMedia, ...props }: MediaGallerySheetProps) {
   const projectId = useProjectId();
   const { data: mediaItems = [] } = useProjectMediaItems(projectId);
   const selectedMedia = media ?? MEDIA_PLACEHOLDER;
@@ -144,7 +147,7 @@ export function MediaGallerySheet({ media, ...props }: MediaGallerySheetProps) {
       image,
       duration: undefined,
     });
-    setSelectedMediaId(null);
+    setSelectedMedia(null);
     onGenerate();
   };
 
@@ -160,7 +163,7 @@ export function MediaGallerySheet({ media, ...props }: MediaGallerySheetProps) {
         ? selectedMedia.metadata.input
         : {},
     );
-    setSelectedMediaId(null);
+    setSelectedMedia(null);
     onGenerate();
   };
 
@@ -170,7 +173,7 @@ export function MediaGallerySheet({ media, ...props }: MediaGallerySheetProps) {
     e.stopPropagation();
   };
   const close = () => {
-    setSelectedMediaId(null);
+    setSelectedMedia(null);
   };
   const mediaUrl = useMemo(
     () =>
