@@ -45,8 +45,8 @@ export function MediaItemRow({
   draggable = true,
   ...props
 }: MediaItemRowProps) {
-  if(data.id === 'a80db7c2-90fd-4102-8825-2d01e86cf604'){
-    console.log('data para: a80db7c2-90fd-4102-8825-2d01e86cf604: ', data)
+  if (data.id === "a80db7c2-90fd-4102-8825-2d01e86cf604") {
+    console.log("data para: a80db7c2-90fd-4102-8825-2d01e86cf604: ", data);
   }
   const isDone =
     data?.metadata &&
@@ -243,9 +243,8 @@ export function MediaItemRow({
       )}
       <div className="w-16 h-16 aspect-square relative rounded overflow-hidden border border-transparent hover:border-accent bg-accent transition-all">
         {data?.metadata &&
-          "status" in data.metadata &&
-          data.metadata.status === "completed" ? 
-        (
+        "status" in data.metadata &&
+        data.metadata.status === "completed" ? (
           <>
             {(data.type === "image" || data.type === "video") &&
               (coverImage ? (

@@ -70,8 +70,8 @@ export function App({ projectId, supabaseUrl, supabaseKey }: AppProps) {
     setIsLoading(true);
     const { data, error } = await supabase
       .from("assets") // Reemplaza con el nombre de tu tabla
-      .select("*") // Aquí puedes especificar las columnas que necesitas
-      //.eq("user_id", '58e01467-2bbf-418f-9210-de8b76334dc4');
+      .select("*"); // Aquí puedes especificar las columnas que necesitas
+    //.eq("user_id", '58e01467-2bbf-418f-9210-de8b76334dc4');
     if (error) {
       console.error("Error fetching data:", error.message);
       setIsLoading(false);
@@ -92,7 +92,12 @@ export function App({ projectId, supabaseUrl, supabaseKey }: AppProps) {
           <div className="flex flex-col h-screen bg-background">
             <Header openKeyDialog={() => setKeyDialog(true)} />
             <main className="flex overflow-hidden h-full">
-              <LeftPanel supabase={supabase} mediaItems={mediaItems} isLoading={isLoading} fetchData={fetchData} />
+              <LeftPanel
+                supabase={supabase}
+                mediaItems={mediaItems}
+                isLoading={isLoading}
+                fetchData={fetchData}
+              />
               <div className="flex flex-col flex-1">
                 <VideoPreview />
                 <BottomBar />

@@ -47,7 +47,12 @@ type LeftPanelProps = {
 };
 // #endregion
 
-export default function LeftPanel({ supabase, mediaItems, isLoading, fetchData }: LeftPanelProps) {
+export default function LeftPanel({
+  supabase,
+  mediaItems,
+  isLoading,
+  fetchData,
+}: LeftPanelProps) {
   // #region CONSTANTS
   const projectId = useProjectId();
   const { data: project = PROJECT_PLACEHOLDER } = useProject(projectId);
