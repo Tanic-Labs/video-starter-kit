@@ -237,8 +237,8 @@ export function MediaGallerySheet({
 
       if (errorStorage) throw errorStorage;
 
-      setMediaItems((prevMediaItems) => 
-        prevMediaItems.filter((item) => item.id !== selectedMedia.id)
+      setMediaItems((prevMediaItems) =>
+        prevMediaItems.filter((item) => item.id !== selectedMedia.id),
       );
     } catch (error) {
       if (error instanceof Error) {
