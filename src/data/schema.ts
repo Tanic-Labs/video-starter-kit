@@ -14,11 +14,11 @@ export const PROJECT_PLACEHOLDER: VideoProject = {
   aspectRatio: "16:9",
 };
 
-export type VideoTrackType = "video" | "music" | "voiceover";
+export type VideoTrackType = "video" | "audio" | "voiceover";
 
 export const TRACK_TYPE_ORDER: Record<VideoTrackType, number> = {
   video: 1,
-  music: 2,
+  audio: 2,
   voiceover: 3,
 };
 

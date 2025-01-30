@@ -85,7 +85,7 @@ const MainComposition: React.FC<VideoCompositionProps> = ({
               mediaItems={mediaItems}
             />
           )}
-          {(track.type === "music" || track.type === "voiceover") && (
+          {(track.type === "audio" || track.type === "voiceover") && (
             <AudioTrackSequence
               track={track}
               frames={frames[track.id] || []}

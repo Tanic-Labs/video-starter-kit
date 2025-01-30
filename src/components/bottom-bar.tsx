@@ -31,19 +31,21 @@ export default function BottomBar() {
     const jobPayload = event.dataTransfer.getData("job");
     if (!jobPayload) return false;
     const job: MediaItem = JSON.parse(jobPayload);
-    return job.status === "completed";
+    const jobComplete = job?.metadata && 'status' in job.metadata && job.metadata.status === "completed";
+    return jobComplete;
+    //return job.metadata.status === "completed";
   };
 
   const addToTrack = useMutation({
     mutationFn: async (media: MediaItem) => {
       const tracks = await db.tracks.tracksByProject(media.projectId);
-      const trackType = media.mediaType === "image" ? "video" : media.mediaType;
+      const trackType = media.type === "image" ? "video" : media.type;
       let track = tracks.find((t) => t.type === trackType);
       if (!track) {
         const id = await db.tracks.create({
           projectId: media.projectId,
           type: trackType,
-          label: media.mediaType,
+          label: media.type,
           locked: true,
         });
         const newTrack = await db.tracks.find(id.toString());
@@ -65,19 +67,26 @@ export default function BottomBar() {
 
       const duration = resolveDuration(media) ?? 5000;
 
-      const newId = await db.keyFrames.create({
-        trackId: track.id,
-        data: {
-          mediaId: media.id,
-          type: media.input?.image_url ? "image" : "prompt",
-          prompt: media.input?.prompt || "",
-          url: media.input?.image_url?.url,
-        },
-        timestamp: lastKeyframe
-          ? lastKeyframe.timestamp + 1 + lastKeyframe.duration
-          : 0,
-        duration,
-      });
+      let newId;
+      
+      if(media?.metadata && 'input' in media.metadata){
+        newId = await db.keyFrames.create({
+          trackId: track.id,
+          data: {
+            mediaId: media.id,
+            type: media.metadata.input?.image_url ? "image" : "prompt",
+            prompt: media.metadata.input?.prompt || "",
+            url: media.metadata.input?.image_url?.url,
+          },
+          timestamp: lastKeyframe
+            ? lastKeyframe.timestamp + 1 + lastKeyframe.duration
+            : 0,
+          duration,
+        });        
+      } else {
+        return;
+      }
+
       return db.keyFrames.find(newId.toString());
     },
     onSuccess: (data) => {
@@ -109,11 +118,11 @@ export default function BottomBar() {
           projectId: projectId,
         } as VideoTrack),
       music:
-        tracks.find((t) => t.type === "music") ||
+        tracks.find((t) => t.type === "audio") ||
         ({
-          id: "music",
-          type: "music",
-          label: "Music",
+          id: "audio",
+          type: "audio",
+          label: "Audio",
           locked: true,
           keyframes: [],
           projectId: projectId,
