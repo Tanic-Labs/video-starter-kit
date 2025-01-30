@@ -184,10 +184,13 @@ export function MediaGallerySheet({
       `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/${selectedMedia.file_path}`,
     [selectedMedia],
   );
+
   const prompt =
-    selectedMedia?.metadata && "input" in selectedMedia.metadata
+    selectedMedia?.metadata && "input" in selectedMedia.metadata 
       ? selectedMedia.metadata.input?.prompt
-      : undefined;
+      : selectedMedia?.metadata && "description" in selectedMedia.metadata 
+        ? selectedMedia.metadata.description
+        : undefined;
 
   const queryClient = useQueryClient();
   const deleteMedia = useMutation({
