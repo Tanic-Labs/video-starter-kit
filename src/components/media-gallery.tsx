@@ -1,3 +1,4 @@
+// #region IMPORTS
 import {
   ComponentProps,
   Dispatch,
@@ -6,6 +7,7 @@ import {
   PropsWithChildren,
   SetStateAction,
   useMemo,
+  useState,
 } from "react";
 import {
   Sheet,
@@ -40,16 +42,22 @@ import { db } from "@/data/db";
 import { LoadingIcon } from "./ui/icons";
 import { AVAILABLE_ENDPOINTS } from "@/lib/fal";
 import { metadata } from "@/app/layout";
+import { SupabaseClient } from "@supabase/supabase-js";
+// #endregion
 
+// #region TYPES
 type MediaGallerySheetProps = ComponentProps<typeof Sheet> & {
   media: MediaItem | null;
   setSelectedMedia: Dispatch<SetStateAction<MediaItem | null>>;
+  supabase: SupabaseClient;
 };
 
 type AudioPlayerProps = {
   media: MediaItem;
 } & HTMLAttributes<HTMLAudioElement>;
+// #endregion
 
+// #region AUDIOPLAYER
 function AudioPlayer({ media, ...props }: AudioPlayerProps) {
   const src = resolveMediaUrl(media);
   if (!src) return null;
@@ -66,13 +74,17 @@ function AudioPlayer({ media, ...props }: AudioPlayerProps) {
     </div>
   );
 }
+// #endregion
 
+// #region TYPES 2
 type MediaPropertyItemProps = {
   className?: string;
   label: string;
   value: string;
 };
+// #endregion
 
+// #region MEDIA PROPERTY ITEM
 function MediaPropertyItem({
   children,
   className,
@@ -104,7 +116,9 @@ function MediaPropertyItem({
     </div>
   );
 }
+// #endregion
 
+// #region PLACEHOLDER
 const MEDIA_PLACEHOLDER: MediaItem = {
   id: "placeholder",
   user_id: "placeholder",
@@ -114,23 +128,30 @@ const MEDIA_PLACEHOLDER: MediaItem = {
   crated_at: 0,
   metadata: undefined,
 };
+// #endregion
 
+// #region Media
 export function MediaGallerySheet({
   media,
   setSelectedMedia,
+  supabase,
   ...props
 }: MediaGallerySheetProps) {
-  const projectId = useProjectId();
-  const { data: mediaItems = [] } = useProjectMediaItems(projectId);
+  // #region CONST
+  //const projectId = useProjectId();
+  //const { data: mediaItems = [] } = useProjectMediaItems(projectId);
   const selectedMedia = media ?? MEDIA_PLACEHOLDER;
-  const setSelectedMediaId = useVideoProjectStore((s) => s.setSelectedMediaId);
+  const [isDeleting, setIsDeleting] = useState(false);
+  //const setSelectedMediaId = useVideoProjectStore((s) => s.setSelectedMediaId);
   const setGenerateData = useVideoProjectStore((s) => s.setGenerateData);
   const setEndpointId = useVideoProjectStore((s) => s.setEndpointId);
   const setGenerateMediaType = useVideoProjectStore(
     (s) => s.setGenerateMediaType,
   );
   const onGenerate = useVideoProjectStore((s) => s.onGenerate);
+  // #endregion
 
+  // #region GENERATE  MEDIA
   const handleOpenGenerateDialog = () => {
     setGenerateMediaType("video");
     const image =
@@ -170,6 +191,7 @@ export function MediaGallerySheet({
     setSelectedMedia(null);
     onGenerate();
   };
+  // #endregion
 
   // Event handlers
   const preventClose: MouseEventHandler = (e) => {
@@ -193,17 +215,37 @@ export function MediaGallerySheet({
         : undefined;
 
   const queryClient = useQueryClient();
-  const deleteMedia = useMutation({
-    mutationFn: () => db.media.delete(selectedMediaId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.projectMediaItems(projectId),
-      });
-      refreshVideoCache(queryClient, projectId);
-      close();
-    },
-  });
 
+  // #region DELETE MEDIA
+  const deleteMedia = async () => {
+    setIsDeleting(true);
+    try {
+      const {error} = await supabase
+        .from('assets')
+        .delete()
+        .eq('id', selectedMedia.id)
+      
+      if (error) throw error;
+
+      const {error: errorStorage} = await supabase.storage
+        .from('assets')
+        .remove([selectedMedia.file_path])
+
+      if (errorStorage) throw errorStorage;
+
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error("Error!", error.message);
+      } else {
+        console.error("Unknown error", error);
+      }
+    }
+    setIsDeleting(false);
+    close();
+  }
+  // #endregion
+
+  // #region MAIN JSX
   return (
     <Sheet {...props}>
       <SheetOverlay className="pointer-events-none flex flex-col" />
@@ -273,7 +315,7 @@ export function MediaGallerySheet({
                 <Button
                   onClick={handleOpenGenerateDialog}
                   variant="secondary"
-                  disabled={deleteMedia.isPending}
+                  disabled={isDeleting}
                 >
                   <FilmIcon className="w-4 h-4 opacity-50" />
                   Make Video
@@ -282,17 +324,17 @@ export function MediaGallerySheet({
               <Button
                 onClick={handleVary}
                 variant="secondary"
-                disabled={deleteMedia.isPending}
+                disabled={isDeleting}
               >
                 <ImagesIcon className="w-4 h-4 opacity-50" />
                 Re-run
               </Button>
               <Button
                 variant="secondary"
-                disabled={deleteMedia.isPending}
-                onClick={() => deleteMedia.mutate()}
+                disabled={isDeleting}
+                onClick={deleteMedia}
               >
-                {deleteMedia.isPending ? (
+                {isDeleting ? (
                   <LoadingIcon />
                 ) : (
                   <TrashIcon className="w-4 h-4 opacity-50" />
@@ -361,4 +403,6 @@ export function MediaGallerySheet({
       </SheetPortal>
     </Sheet>
   );
+  // #endregion
 }
+// #endregion
