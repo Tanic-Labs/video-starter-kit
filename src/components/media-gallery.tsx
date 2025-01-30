@@ -115,7 +115,11 @@ const MEDIA_PLACEHOLDER: MediaItem = {
   metadata: undefined,
 };
 
-export function MediaGallerySheet({ media, setSelectedMedia, ...props }: MediaGallerySheetProps) {
+export function MediaGallerySheet({
+  media,
+  setSelectedMedia,
+  ...props
+}: MediaGallerySheetProps) {
   const projectId = useProjectId();
   const { data: mediaItems = [] } = useProjectMediaItems(projectId);
   const selectedMedia = media ?? MEDIA_PLACEHOLDER;
