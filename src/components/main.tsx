@@ -33,7 +33,9 @@ export function App({ projectId, supabaseUrl, supabaseKey }: AppProps) {
   const [keyDialog, setKeyDialog] = useState(false);
   const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
   const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
-  useEffect(() => {console.log(selectedMedia)}, [selectedMedia])
+  useEffect(() => {
+    console.log(selectedMedia);
+  }, [selectedMedia]);
   const [isLoading, setIsLoading] = useState(false);
 
   const queryClient = useRef(new QueryClient()).current;

@@ -379,7 +379,7 @@ export function MediaItemPanel({
   data,
   mediaType,
   supabase,
-  setSelectedMedia
+  setSelectedMedia,
 }: MediaItemsPanelProps) {
   const setSelectedMediaId = useVideoProjectStore((s) => s.setSelectedMediaId);
   //const [selectedMedia, setSelectedMedia] = useState<MediaItem[]>();

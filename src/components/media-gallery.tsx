@@ -112,15 +112,10 @@ const MEDIA_PLACEHOLDER: MediaItem = {
   metadata: undefined,
 };
 
-export function MediaGallerySheet({
-  media,
-  ...props
-}: MediaGallerySheetProps) {
+export function MediaGallerySheet({ media, ...props }: MediaGallerySheetProps) {
   const projectId = useProjectId();
   const { data: mediaItems = [] } = useProjectMediaItems(projectId);
-  const selectedMedia =
-    media ??
-    MEDIA_PLACEHOLDER;
+  const selectedMedia = media ?? MEDIA_PLACEHOLDER;
   const setSelectedMediaId = useVideoProjectStore((s) => s.setSelectedMediaId);
   const setGenerateData = useVideoProjectStore((s) => s.setGenerateData);
   const setEndpointId = useVideoProjectStore((s) => s.setEndpointId);
