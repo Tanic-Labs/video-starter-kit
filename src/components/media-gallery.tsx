@@ -220,19 +220,18 @@ export function MediaGallerySheet({
   const deleteMedia = async () => {
     setIsDeleting(true);
     try {
-      const {error} = await supabase
-        .from('assets')
+      const { error } = await supabase
+        .from("assets")
         .delete()
-        .eq('id', selectedMedia.id)
-      
+        .eq("id", selectedMedia.id);
+
       if (error) throw error;
 
-      const {error: errorStorage} = await supabase.storage
-        .from('assets')
-        .remove([selectedMedia.file_path])
+      const { error: errorStorage } = await supabase.storage
+        .from("assets")
+        .remove([selectedMedia.file_path]);
 
       if (errorStorage) throw errorStorage;
-
     } catch (error) {
       if (error instanceof Error) {
         console.error("Error!", error.message);
@@ -242,7 +241,7 @@ export function MediaGallerySheet({
     }
     setIsDeleting(false);
     close();
-  }
+  };
   // #endregion
 
   // #region MAIN JSX
