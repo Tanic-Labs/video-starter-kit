@@ -31,7 +31,10 @@ export default function BottomBar() {
     const jobPayload = event.dataTransfer.getData("job");
     if (!jobPayload) return false;
     const job: MediaItem = JSON.parse(jobPayload);
-    const jobComplete = job?.metadata && 'status' in job.metadata && job.metadata.status === "completed";
+    const jobComplete =
+      job?.metadata &&
+      "status" in job.metadata &&
+      job.metadata.status === "completed";
     return jobComplete;
     //return job.metadata.status === "completed";
   };
@@ -68,8 +71,8 @@ export default function BottomBar() {
       const duration = resolveDuration(media) ?? 5000;
 
       let newId;
-      
-      if(media?.metadata && 'input' in media.metadata){
+
+      if (media?.metadata && "input" in media.metadata) {
         newId = await db.keyFrames.create({
           trackId: track.id,
           data: {
@@ -82,7 +85,7 @@ export default function BottomBar() {
             ? lastKeyframe.timestamp + 1 + lastKeyframe.duration
             : 0,
           duration,
-        });        
+        });
       } else {
         return;
       }
