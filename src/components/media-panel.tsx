@@ -16,9 +16,11 @@ import {
   VideoIcon,
 } from "lucide-react";
 import {
+  Dispatch,
   type DragEventHandler,
   Fragment,
   type HTMLAttributes,
+  SetStateAction,
   createElement,
   useEffect,
   useState,
@@ -33,7 +35,7 @@ import { SupabaseClient } from "@supabase/supabase-js";
 type MediaItemRowProps = {
   supabase: SupabaseClient;
   data: MediaItem;
-  onOpen: (data: MediaItem[]) => void;
+  onOpen: (data: MediaItem) => void;
   draggable?: boolean;
 } & HTMLAttributes<HTMLDivElement>;
 
@@ -45,9 +47,6 @@ export function MediaItemRow({
   draggable = true,
   ...props
 }: MediaItemRowProps) {
-  if (data.id === "a80db7c2-90fd-4102-8825-2d01e86cf604") {
-    console.log("data para: a80db7c2-90fd-4102-8825-2d01e86cf604: ", data);
-  }
   const isDone =
     data?.metadata &&
     "status" in data.metadata &&
@@ -216,7 +215,7 @@ export function MediaItemRow({
       {...props}
       onClick={(e) => {
         e.stopPropagation();
-        onOpen([data]);
+        onOpen(data);
       }}
       draggable={
         draggable &&
@@ -372,6 +371,7 @@ type MediaItemsPanelProps = {
   supabase: SupabaseClient;
   data: MediaItem[];
   mediaType: string;
+  setSelectedMedia: Dispatch<SetStateAction<MediaItem | null>>;
 } & HTMLAttributes<HTMLDivElement>;
 
 export function MediaItemPanel({
@@ -379,10 +379,11 @@ export function MediaItemPanel({
   data,
   mediaType,
   supabase,
+  setSelectedMedia
 }: MediaItemsPanelProps) {
   const setSelectedMediaId = useVideoProjectStore((s) => s.setSelectedMediaId);
-  const [selectedMedia, setSelectedMedia] = useState<MediaItem[]>();
-  const handleOnOpen = (item: MediaItem[]) => {
+  //const [selectedMedia, setSelectedMedia] = useState<MediaItem[]>();
+  const handleOnOpen = (item: MediaItem) => {
     setSelectedMedia(item);
   };
 

@@ -40,7 +40,7 @@ import { AVAILABLE_ENDPOINTS } from "@/lib/fal";
 import { metadata } from "@/app/layout";
 
 type MediaGallerySheetProps = ComponentProps<typeof Sheet> & {
-  selectedMediaId: string;
+  media: MediaItem | null;
 };
 
 type AudioPlayerProps = {
@@ -113,13 +113,13 @@ const MEDIA_PLACEHOLDER: MediaItem = {
 };
 
 export function MediaGallerySheet({
-  selectedMediaId,
+  media,
   ...props
 }: MediaGallerySheetProps) {
   const projectId = useProjectId();
   const { data: mediaItems = [] } = useProjectMediaItems(projectId);
   const selectedMedia =
-    mediaItems.find((media) => media.id === selectedMediaId) ??
+    media ??
     MEDIA_PLACEHOLDER;
   const setSelectedMediaId = useVideoProjectStore((s) => s.setSelectedMediaId);
   const setGenerateData = useVideoProjectStore((s) => s.setGenerateData);

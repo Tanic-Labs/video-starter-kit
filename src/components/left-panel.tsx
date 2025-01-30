@@ -34,7 +34,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Dispatch, SetStateAction } from "react";
 import { toast } from "@/hooks/use-toast";
 // #endregion
 
@@ -44,6 +44,7 @@ type LeftPanelProps = {
   mediaItems: MediaItem[];
   isLoading: boolean;
   fetchData: () => Promise<void>;
+  setSelectedMedia: Dispatch<SetStateAction<MediaItem | null>>;
 };
 // #endregion
 
@@ -52,6 +53,7 @@ export default function LeftPanel({
   mediaItems,
   isLoading,
   fetchData,
+  setSelectedMedia,
 }: LeftPanelProps) {
   // #region CONSTANTS
   const projectId = useProjectId();
@@ -293,6 +295,7 @@ export default function LeftPanel({
           <MediaItemPanel
             supabase={supabase}
             data={mediaItems}
+            setSelectedMedia={setSelectedMedia}
             mediaType={mediaType}
             className="overflow-y-auto"
           />

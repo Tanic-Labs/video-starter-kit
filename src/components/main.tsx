@@ -32,6 +32,8 @@ export function App({ projectId, supabaseUrl, supabaseKey }: AppProps) {
   const supabase = createClient(supabaseUrl, supabaseKey);
   const [keyDialog, setKeyDialog] = useState(false);
   const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
+  const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
+  useEffect(() => {console.log(selectedMedia)}, [selectedMedia])
   const [isLoading, setIsLoading] = useState(false);
 
   const queryClient = useRef(new QueryClient()).current;
@@ -97,6 +99,7 @@ export function App({ projectId, supabaseUrl, supabaseKey }: AppProps) {
                 mediaItems={mediaItems}
                 isLoading={isLoading}
                 fetchData={fetchData}
+                setSelectedMedia={setSelectedMedia}
               />
               <div className="flex flex-col flex-1">
                 <VideoPreview />
@@ -116,9 +119,9 @@ export function App({ projectId, supabaseUrl, supabaseKey }: AppProps) {
             onOpenChange={(open) => setKeyDialog(open)}
           />
           <MediaGallerySheet
-            open={selectedMediaId !== null}
+            open={selectedMedia !== null}
             onOpenChange={handleOnSheetOpenChange}
-            selectedMediaId={selectedMediaId ?? ""}
+            media={selectedMedia ?? null}
           />
         </VideoProjectStoreContext.Provider>
       </QueryClientProvider>
