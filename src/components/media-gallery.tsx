@@ -109,15 +109,7 @@ const MEDIA_PLACEHOLDER: MediaItem = {
   source_type: "generated",
   file_path: "placeholder",
   crated_at: 0,
-  metadata: {
-    name: "placeholder",
-    status: "pending",
-    type: "placeholder",
-    input: { prompt: "n/a" },
-    output: {},
-    endpointId: "n/a",
-    requestId: "n/a",
-  },
+  metadata: undefined,
 };
 
 export function MediaGallerySheet({

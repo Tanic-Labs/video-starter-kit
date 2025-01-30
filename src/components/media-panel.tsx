@@ -21,6 +21,7 @@ import {
   type HTMLAttributes,
   createElement,
   useEffect,
+  useState,
 } from "react";
 import { Badge } from "./ui/badge";
 import { LoadingIcon } from "./ui/icons";
@@ -32,7 +33,7 @@ import { SupabaseClient } from "@supabase/supabase-js";
 type MediaItemRowProps = {
   supabase: SupabaseClient;
   data: MediaItem;
-  onOpen: (data: MediaItem) => void;
+  onOpen: (data: MediaItem[]) => void;
   draggable?: boolean;
 } & HTMLAttributes<HTMLDivElement>;
 
@@ -44,6 +45,9 @@ export function MediaItemRow({
   draggable = true,
   ...props
 }: MediaItemRowProps) {
+  if(data.id === 'a80db7c2-90fd-4102-8825-2d01e86cf604'){
+    console.log('data para: a80db7c2-90fd-4102-8825-2d01e86cf604: ', data)
+  }
   const isDone =
     data?.metadata &&
     "status" in data.metadata &&
@@ -212,7 +216,7 @@ export function MediaItemRow({
       {...props}
       onClick={(e) => {
         e.stopPropagation();
-        onOpen(data);
+        onOpen([data]);
       }}
       draggable={
         draggable &&
@@ -239,8 +243,9 @@ export function MediaItemRow({
       )}
       <div className="w-16 h-16 aspect-square relative rounded overflow-hidden border border-transparent hover:border-accent bg-accent transition-all">
         {data?.metadata &&
-        "status" in data.metadata &&
-        data.metadata.status === "completed" ? (
+          "status" in data.metadata &&
+          data.metadata.status === "completed" ? 
+        (
           <>
             {(data.type === "image" || data.type === "video") &&
               (coverImage ? (
@@ -377,8 +382,9 @@ export function MediaItemPanel({
   supabase,
 }: MediaItemsPanelProps) {
   const setSelectedMediaId = useVideoProjectStore((s) => s.setSelectedMediaId);
-  const handleOnOpen = (item: MediaItem) => {
-    setSelectedMediaId(item.id);
+  const [selectedMedia, setSelectedMedia] = useState<MediaItem[]>();
+  const handleOnOpen = (item: MediaItem[]) => {
+    setSelectedMedia(item);
   };
 
   return (

@@ -41,17 +41,18 @@ import { toast } from "@/hooks/use-toast";
 // #region TYPES
 type LeftPanelProps = {
   supabase: SupabaseClient;
+  mediaItems: MediaItem[];
+  isLoading: boolean;
+  fetchData: () => Promise<void>;
 };
 // #endregion
 
-export default function LeftPanel({ supabase }: LeftPanelProps) {
+export default function LeftPanel({ supabase, mediaItems, isLoading, fetchData }: LeftPanelProps) {
   // #region CONSTANTS
   const projectId = useProjectId();
   const { data: project = PROJECT_PLACEHOLDER } = useProject(projectId);
   const projectUpdate = useProjectUpdater(projectId);
   const [mediaType, setMediaType] = useState("all");
-  const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
   const setProjectDialogOpen = useVideoProjectStore(
@@ -133,27 +134,6 @@ export default function LeftPanel({ supabase }: LeftPanelProps) {
   };
   //#endregion
 
-  //#region GET ASSETS
-  async function fetchData() {
-    setIsLoading(true);
-    const { data, error } = await supabase
-      .from("assets") // Reemplaza con el nombre de tu tabla
-      .select("*"); // Aquí puedes especificar las columnas que necesitas
-    //.eq("user_id", '58e01467-2bbf-418f-9210-de8b76334dc4');
-    if (error) {
-      console.error("Error fetching data:", error.message);
-      setIsLoading(false);
-    } else {
-      setMediaItems(data);
-      setIsLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    fetchData();
-  }, [supabase]);
-  //#endregion
-
   //#region JSX
   return (
     <div className="flex flex-col border-r border-border w-96">
@@ -230,10 +210,10 @@ export default function LeftPanel({ supabase }: LeftPanelProps) {
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   className="text-sm"
-                  onClick={() => setMediaType("music")}
+                  onClick={() => setMediaType("audio")}
                 >
                   <MusicIcon className="w-4 h-4 opacity-50" />
-                  Music
+                  audio
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   className="text-sm"

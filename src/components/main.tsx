@@ -4,6 +4,7 @@ import BottomBar from "@/components/bottom-bar";
 import Header from "@/components/header";
 import RightPanel from "@/components/right-panel";
 import VideoPreview from "@/components/video-preview";
+import { type MediaItem, PROJECT_PLACEHOLDER } from "@/data/schema";
 import {
   VideoProjectStoreContext,
   createVideoProjectStore,
@@ -30,6 +31,8 @@ type AppProps = {
 export function App({ projectId, supabaseUrl, supabaseKey }: AppProps) {
   const supabase = createClient(supabaseUrl, supabaseKey);
   const [keyDialog, setKeyDialog] = useState(false);
+  const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const queryClient = useRef(new QueryClient()).current;
   const projectStore = useRef(
@@ -63,6 +66,25 @@ export function App({ projectId, supabaseUrl, supabaseKey }: AppProps) {
     });
   }, [toast]);
 
+  async function fetchData() {
+    setIsLoading(true);
+    const { data, error } = await supabase
+      .from("assets") // Reemplaza con el nombre de tu tabla
+      .select("*") // Aquí puedes especificar las columnas que necesitas
+      //.eq("user_id", '58e01467-2bbf-418f-9210-de8b76334dc4');
+    if (error) {
+      console.error("Error fetching data:", error.message);
+      setIsLoading(false);
+    } else {
+      setMediaItems(data);
+      setIsLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
   return (
     <ToastProvider>
       <QueryClientProvider client={queryClient}>
@@ -70,7 +92,7 @@ export function App({ projectId, supabaseUrl, supabaseKey }: AppProps) {
           <div className="flex flex-col h-screen bg-background">
             <Header openKeyDialog={() => setKeyDialog(true)} />
             <main className="flex overflow-hidden h-full">
-              <LeftPanel supabase={supabase} />
+              <LeftPanel supabase={supabase} mediaItems={mediaItems} isLoading={isLoading} fetchData={fetchData} />
               <div className="flex flex-col flex-1">
                 <VideoPreview />
                 <BottomBar />
