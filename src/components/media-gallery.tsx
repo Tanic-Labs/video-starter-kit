@@ -50,6 +50,8 @@ type MediaGallerySheetProps = ComponentProps<typeof Sheet> & {
   media: MediaItem | null;
   setSelectedMedia: Dispatch<SetStateAction<MediaItem | null>>;
   supabase: SupabaseClient;
+  mediaItems: MediaItem[];
+  setMediaItems: Dispatch<SetStateAction<MediaItem[]>>;
 };
 
 type AudioPlayerProps = {
@@ -135,6 +137,8 @@ export function MediaGallerySheet({
   media,
   setSelectedMedia,
   supabase,
+  mediaItems,
+  setMediaItems,
   ...props
 }: MediaGallerySheetProps) {
   // #region CONST
@@ -232,6 +236,10 @@ export function MediaGallerySheet({
         .remove([selectedMedia.file_path]);
 
       if (errorStorage) throw errorStorage;
+
+      setMediaItems((prevMediaItems) => 
+        prevMediaItems.filter((item) => item.id !== selectedMedia.id)
+      );
     } catch (error) {
       if (error instanceof Error) {
         console.error("Error!", error.message);

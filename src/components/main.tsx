@@ -126,6 +126,8 @@ export function App({ projectId, supabaseUrl, supabaseKey }: AppProps) {
             media={selectedMedia ?? null}
             setSelectedMedia={setSelectedMedia}
             supabase={supabase}
+            mediaItems={mediaItems}
+            setMediaItems={setMediaItems}
           />
         </VideoProjectStoreContext.Provider>
       </QueryClientProvider>
