@@ -186,9 +186,9 @@ export function MediaGallerySheet({
   );
 
   const prompt =
-    selectedMedia?.metadata && "input" in selectedMedia.metadata 
+    selectedMedia?.metadata && "input" in selectedMedia.metadata
       ? selectedMedia.metadata.input?.prompt
-      : selectedMedia?.metadata && "description" in selectedMedia.metadata 
+      : selectedMedia?.metadata && "description" in selectedMedia.metadata
         ? selectedMedia.metadata.description
         : undefined;
 
