@@ -1,5 +1,6 @@
 "use client";
 
+// #region IMPORTS
 import BottomBar from "@/components/bottom-bar";
 import Header from "@/components/header";
 import RightPanel from "@/components/right-panel";
@@ -26,12 +27,17 @@ import { KeyDialog } from "./key-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { createPagesBrowserClient } from "@supabase/auth-helpers-nextjs";
 import { User } from "@supabase/supabase-js";
+// #endregion
 
+// #region TYPE
 type AppProps = {
   projectId: string;
 };
+// #endregion
 
+// #region MIAN
 export function App({ projectId }: AppProps) {
+  // #region States & Effects
   const [supabaseClient] = useState(() => createPagesBrowserClient());
   const [keyDialog, setKeyDialog] = useState(false);
   const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
@@ -51,13 +57,18 @@ export function App({ projectId }: AppProps) {
     };
     initializeSession();
   }, [supabaseClient]);
+  // #endregion
 
+  // #region Other
   const queryClient = useRef(new QueryClient()).current;
   const projectStore = useRef(
     createVideoProjectStore({
       projectId,
     }),
   ).current;
+  // #endregion
+
+  // #region Open Modals
   const projectDialogOpen = useStore(projectStore, (s) => s.projectDialogOpen);
   const selectedMediaId = useStore(projectStore, (s) => s.selectedMediaId);
   const setSelectedMediaId = useStore(
@@ -74,7 +85,9 @@ export function App({ projectId }: AppProps) {
     projectStore,
     (s) => s.setExportDialogOpen,
   );
+  // #endregion
 
+  // #region Toast
   const { toast } = useToast();
 
   useEffect(() => {
@@ -83,7 +96,9 @@ export function App({ projectId }: AppProps) {
       description: "Happy to see you again.",
     });
   }, [toast]);
+  // #endregion
 
+  // #region FetchData
   async function fetchData() {
     setIsLoading(true);
 
@@ -119,7 +134,9 @@ export function App({ projectId }: AppProps) {
   useEffect(() => {
     fetchData();
   }, [user]);
+  // #endregion
 
+  // #region JSX
   return (
     <ToastProvider>
       <QueryClientProvider client={queryClient}>
@@ -172,4 +189,6 @@ export function App({ projectId }: AppProps) {
       </QueryClientProvider>
     </ToastProvider>
   );
+  // #endregion
 }
+// #endregion
