@@ -8,9 +8,7 @@ export default async function IndexPage() {
 
   return (
     <>
-      <App
-        projectId={lastProjectId?.value ?? PROJECT_PLACEHOLDER.id}
-      />
+      <App projectId={lastProjectId?.value ?? PROJECT_PLACEHOLDER.id} />
     </>
   );
 }
