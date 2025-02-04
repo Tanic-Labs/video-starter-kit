@@ -40,17 +40,13 @@ export function App({ projectId, supabaseUrl, supabaseKey }: AppProps) {
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    const fetchUser = async () => {
-      // Espera la respuesta del Promise de getSession()
-      const { data, error } = await supabaseClient.auth.getSession();
-      if (data?.session?.user) {
-        setUser(data.session.user);
-      } else {
-        console.error("No active session or error:", error?.message);
-      }
+    const initializeDevSession = async () => {
+      // 1. Check for existing valid session first
+      const { data: { user } } = await supabaseClient.auth.getUser();
+      setUser(user)
     };
-    fetchUser();
-  }, []);
+    initializeDevSession();
+  }, [supabaseClient]);
 
   const queryClient = useRef(new QueryClient()).current;
   const projectStore = useRef(
@@ -86,22 +82,39 @@ export function App({ projectId, supabaseUrl, supabaseKey }: AppProps) {
 
   async function fetchData() {
     setIsLoading(true);
-    const { data, error } = await supabase
-      .from("assets") // Reemplaza con el nombre de tu tabla
-      .select("*"); // Aquí puedes especificar las columnas que necesitas
-    //.eq("user_id", '58e01467-2bbf-418f-9210-de8b76334dc4');
-    if (error) {
-      console.error("Error fetching data:", error.message);
-      setIsLoading(false);
+
+    if(user){
+      const {data, error} = await supabaseClient
+        .from("assets")
+        .select("*")
+        .eq("user_id", user.id);
+
+        if(error) {
+          console.error("Error fetching data:", error.message);
+          setIsLoading(false);
+          return;
+        } else {
+          setMediaItems(data)
+          setIsLoading(false);
+        }
     } else {
-      setMediaItems(data);
-      setIsLoading(false);
+      const { data, error } = await supabase
+        .from("assets") // Reemplaza con el nombre de tu tabla
+        .select("*"); // Aquí puedes especificar las columnas que necesitas
+
+      if (error) {
+        console.error("Error fetching data:", error.message);
+        setIsLoading(false);
+      } else {
+        setMediaItems(data);
+        setIsLoading(false);
+      }
     }
   }
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [user]);
 
   return (
     <ToastProvider>
@@ -125,7 +138,11 @@ export function App({ projectId, supabaseUrl, supabaseKey }: AppProps) {
             </main>
           </div>
           <Toaster />
-          <ProjectDialog open={projectDialogOpen} supabase={supabase} />
+          <ProjectDialog 
+            open={projectDialogOpen} 
+            supabase={supabase} 
+            user={user}
+          />
           <ExportDialog
             open={isExportDialogOpen}
             onOpenChange={setExportDialogOpen}

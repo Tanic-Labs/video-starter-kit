@@ -28,12 +28,13 @@ import { Skeleton } from "./ui/skeleton";
 import { Textarea } from "./ui/textarea";
 import { WithTooltip } from "./ui/tooltip";
 import { seedDatabase } from "@/data/seed";
-import { SupabaseClient } from "@supabase/supabase-js";
+import { SupabaseClient, User } from "@supabase/supabase-js";
 // #endregion
 
 // #region TYPES
 type ProjectDialogProps = {
   supabase: SupabaseClient;
+  user: User | null;
 } & Parameters<typeof Dialog>[0];
 // #endregion
 
@@ -41,6 +42,7 @@ type ProjectDialogProps = {
 export function ProjectDialog({
   onOpenChange,
   supabase,
+  user,
   ...props
 }: ProjectDialogProps) {
   // #region Const & Effects
