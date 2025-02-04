@@ -72,13 +72,13 @@ export function ProjectDialog({
 
   //#region New Create Project
   const handleCreateProject = async () => {
-    if (!title.trim) return;
+    if (!title.trim() || !user) return;
 
     const { data, error } = await supabase
       .from("projects")
       .insert([
         {
-          user_id: "58e01467-2bbf-418f-9210-de8b76334dc4",
+          user_id: user.id,
           title: title,
           description: description,
           status: "draft",

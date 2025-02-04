@@ -21,16 +21,13 @@ import LeftPanel from "./left-panel";
 import { KeyDialog } from "./key-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { createPagesBrowserClient } from "@supabase/auth-helpers-nextjs";
-import { createClient, User } from "@supabase/supabase-js";
+import { User } from "@supabase/supabase-js";
 
 type AppProps = {
   projectId: string;
-  supabaseUrl: string;
-  supabaseKey: string;
 };
 
-export function App({ projectId, supabaseUrl, supabaseKey }: AppProps) {
-  const supabase = createClient(supabaseUrl, supabaseKey);
+export function App({ projectId }: AppProps) {
   const [supabaseClient] = useState(() => createPagesBrowserClient());
   const [keyDialog, setKeyDialog] = useState(false);
   const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
@@ -40,14 +37,14 @@ export function App({ projectId, supabaseUrl, supabaseKey }: AppProps) {
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    const initializeDevSession = async () => {
+    const initializeSession = async () => {
       // 1. Check for existing valid session first
       const {
         data: { user },
       } = await supabaseClient.auth.getUser();
       setUser(user);
     };
-    initializeDevSession();
+    initializeSession();
   }, [supabaseClient]);
 
   const queryClient = useRef(new QueryClient()).current;
@@ -100,7 +97,7 @@ export function App({ projectId, supabaseUrl, supabaseKey }: AppProps) {
         setIsLoading(false);
       }
     } else {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("assets") // Reemplaza con el nombre de tu tabla
         .select("*"); // Aquí puedes especificar las columnas que necesitas
 
@@ -126,7 +123,7 @@ export function App({ projectId, supabaseUrl, supabaseKey }: AppProps) {
             <Header openKeyDialog={() => setKeyDialog(true)} />
             <main className="flex overflow-hidden h-full">
               <LeftPanel
-                supabase={supabase}
+                supabase={supabaseClient}
                 mediaItems={mediaItems}
                 isLoading={isLoading}
                 fetchData={fetchData}
@@ -142,7 +139,7 @@ export function App({ projectId, supabaseUrl, supabaseKey }: AppProps) {
           <Toaster />
           <ProjectDialog
             open={projectDialogOpen}
-            supabase={supabase}
+            supabase={supabaseClient}
             user={user}
           />
           <ExportDialog
@@ -158,7 +155,7 @@ export function App({ projectId, supabaseUrl, supabaseKey }: AppProps) {
             onOpenChange={handleOnSheetOpenChange}
             media={selectedMedia ?? null}
             setSelectedMedia={setSelectedMedia}
-            supabase={supabase}
+            supabase={supabaseClient}
             mediaItems={mediaItems}
             setMediaItems={setMediaItems}
           />
