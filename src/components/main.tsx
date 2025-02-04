@@ -42,8 +42,10 @@ export function App({ projectId, supabaseUrl, supabaseKey }: AppProps) {
   useEffect(() => {
     const initializeDevSession = async () => {
       // 1. Check for existing valid session first
-      const { data: { user } } = await supabaseClient.auth.getUser();
-      setUser(user)
+      const {
+        data: { user },
+      } = await supabaseClient.auth.getUser();
+      setUser(user);
     };
     initializeDevSession();
   }, [supabaseClient]);
@@ -83,20 +85,20 @@ export function App({ projectId, supabaseUrl, supabaseKey }: AppProps) {
   async function fetchData() {
     setIsLoading(true);
 
-    if(user){
-      const {data, error} = await supabaseClient
+    if (user) {
+      const { data, error } = await supabaseClient
         .from("assets")
         .select("*")
         .eq("user_id", user.id);
 
-        if(error) {
-          console.error("Error fetching data:", error.message);
-          setIsLoading(false);
-          return;
-        } else {
-          setMediaItems(data)
-          setIsLoading(false);
-        }
+      if (error) {
+        console.error("Error fetching data:", error.message);
+        setIsLoading(false);
+        return;
+      } else {
+        setMediaItems(data);
+        setIsLoading(false);
+      }
     } else {
       const { data, error } = await supabase
         .from("assets") // Reemplaza con el nombre de tu tabla
@@ -138,9 +140,9 @@ export function App({ projectId, supabaseUrl, supabaseKey }: AppProps) {
             </main>
           </div>
           <Toaster />
-          <ProjectDialog 
-            open={projectDialogOpen} 
-            supabase={supabase} 
+          <ProjectDialog
+            open={projectDialogOpen}
+            supabase={supabase}
             user={user}
           />
           <ExportDialog
