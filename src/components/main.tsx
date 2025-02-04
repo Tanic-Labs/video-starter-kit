@@ -4,7 +4,7 @@ import BottomBar from "@/components/bottom-bar";
 import Header from "@/components/header";
 import RightPanel from "@/components/right-panel";
 import VideoPreview from "@/components/video-preview";
-import { type MediaItem, PROJECT_PLACEHOLDER } from "@/data/schema";
+import { type MediaItem, PROJECT_PLACEHOLDER, VideoProject } from "@/data/schema";
 import {
   VideoProjectStoreContext,
   createVideoProjectStore,
@@ -32,6 +32,7 @@ export function App({ projectId }: AppProps) {
   const [keyDialog, setKeyDialog] = useState(false);
   const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
   const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
+  const [project, setProject] = useState<VideoProject | null>(null)
   const [isLoading, setIsLoading] = useState(false);
 
   const [user, setUser] = useState<User | null>(null);
@@ -124,10 +125,12 @@ export function App({ projectId }: AppProps) {
             <main className="flex overflow-hidden h-full">
               <LeftPanel
                 supabase={supabaseClient}
+                user={user}
                 mediaItems={mediaItems}
                 isLoading={isLoading}
                 fetchData={fetchData}
                 setSelectedMedia={setSelectedMedia}
+                project={project}
               />
               <div className="flex flex-col flex-1">
                 <VideoPreview />
@@ -141,6 +144,8 @@ export function App({ projectId }: AppProps) {
             open={projectDialogOpen}
             supabase={supabaseClient}
             user={user}
+            project={project}
+            setProject={setProject}
           />
           <ExportDialog
             open={isExportDialogOpen}

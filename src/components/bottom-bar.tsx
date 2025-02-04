@@ -1,3 +1,4 @@
+// #region IMPORTS
 import { db } from "@/data/db";
 import {
   TRACK_TYPE_ORDER,
@@ -12,8 +13,11 @@ import { VideoControls } from "./video-controls";
 import { TimelineRuler } from "./video/timeline";
 import { VideoTrackRow } from "./video/track";
 import { queryKeys, refreshVideoCache } from "@/data/queries";
+// #endregion
 
+// #region MAIN
 export default function BottomBar() {
+  // #region Const
   const queryClient = useQueryClient();
   const projectId = useProjectId();
   const playerCurrentTimestamp = useVideoProjectStore(
@@ -24,7 +28,9 @@ export default function BottomBar() {
     playerCurrentTimestamp.toFixed(2);
   const minTrackWidth = `${((2 / 30) * 100).toFixed(2)}%`;
   const [dragOverTracks, setDragOverTracks] = useState(false);
+  // #endregion
 
+  // #region Drag Function
   const handleOnDragOver: DragEventHandler<HTMLDivElement> = (event) => {
     event.preventDefault();
     setDragOverTracks(true);
@@ -38,7 +44,9 @@ export default function BottomBar() {
     return jobComplete;
     //return job.metadata.status === "completed";
   };
+  // #endregion
 
+  // #region Add Track
   const addToTrack = useMutation({
     mutationFn: async (media: MediaItem) => {
       const tracks = await db.tracks.tracksByProject(media.projectId);
@@ -122,7 +130,9 @@ export default function BottomBar() {
       refreshVideoCache(queryClient, projectId);
     },
   });
+  // #endregion
 
+  // #region Fetch Tracks
   const { data: tracks = [] } = useQuery({
     queryKey: queryKeys.projectTracks(projectId),
     queryFn: async () => {
@@ -132,7 +142,9 @@ export default function BottomBar() {
       );
     },
   });
+  // #endregion
 
+  // #region Type Of Tracks
   const trackObj: Record<string, VideoTrack> = useMemo(() => {
     return {
       video:
@@ -167,7 +179,9 @@ export default function BottomBar() {
         } as VideoTrack),
     };
   }, [tracks, projectId]);
+  // #endregion 
 
+  // #region Drop Function
   const handleOnDrop: DragEventHandler<HTMLDivElement> = (event) => {
     event.preventDefault();
     setDragOverTracks(false);
@@ -177,7 +191,9 @@ export default function BottomBar() {
     addToTrack.mutate(job);
     return true;
   };
+  // #endregion
 
+  // #region JSX MAIN
   return (
     <div className="border-t pb-2 border-border flex flex-col bg-background-light ">
       <div className="border-b border-border bg-background-dark px-2 flex flex-row gap-8 py-2 justify-between items-center flex-1">
@@ -234,4 +250,6 @@ export default function BottomBar() {
       </div>
     </div>
   );
+  // #endregion
 }
+// #endregion

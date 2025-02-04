@@ -10,7 +10,7 @@ import { createProjectSuggestion } from "@/lib/project";
 import { cn, rememberLastProjectId } from "@/lib/utils";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { FileVideoIcon, FolderOpenIcon, WandSparklesIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { Logo } from "./logo";
 import { Button } from "./ui/button";
 import {
@@ -35,6 +35,8 @@ import { SupabaseClient, User } from "@supabase/supabase-js";
 type ProjectDialogProps = {
   supabase: SupabaseClient;
   user: User | null;
+  project: VideoProject | null;
+  setProject: Dispatch<SetStateAction<VideoProject | null>>;
 } & Parameters<typeof Dialog>[0];
 // #endregion
 
@@ -43,6 +45,8 @@ export function ProjectDialog({
   onOpenChange,
   supabase,
   user,
+  project,
+  setProject,
   ...props
 }: ProjectDialogProps) {
   // #region Const & Effects
@@ -167,7 +171,7 @@ export function ProjectDialog({
   );
 
   const handleSelectProject = (project: VideoProject) => {
-    setProjectId(project.id);
+    setProject(project);
     setProjectDialogOpen(false);
     rememberLastProjectId(project.id);
   };
@@ -221,7 +225,7 @@ export function ProjectDialog({
               />
             </div>
             <div className="flex-1 flex flex-row items-end justify-center gap-2">
-              <WithTooltip tooltip="Out of ideas? Generate a new random project.">
+              {/* <WithTooltip tooltip="Out of ideas? Generate a new random project.">
                 <Button
                   variant="secondary"
                   disabled={suggestProject.isPending}
@@ -234,7 +238,7 @@ export function ProjectDialog({
                   )}
                   Generate
                 </Button>
-              </WithTooltip>
+              </WithTooltip> */}
               <Button
                 /* onClick={() => createProject.mutate( { title, description, aspectRatio: "16:9", }, { onSuccess: (projectId) => { handleSelectProject({ id: projectId } as VideoProject); }, }, ) } */
                 onClick={handleCreateProject}

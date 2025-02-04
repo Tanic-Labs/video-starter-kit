@@ -1,10 +1,10 @@
 "use client";
 
 // #region IMPORTS
-import { SupabaseClient } from "@supabase/supabase-js";
+import { SupabaseClient, User } from "@supabase/supabase-js";
 import { useProjectUpdater } from "@/data/mutations";
 import { queryKeys, useProject, useProjectMediaItems } from "@/data/queries";
-import { type MediaItem, PROJECT_PLACEHOLDER } from "@/data/schema";
+import { type MediaItem, PROJECT_PLACEHOLDER, VideoProject } from "@/data/schema";
 import {
   type MediaType,
   useProjectId,
@@ -41,26 +41,38 @@ import { toast } from "@/hooks/use-toast";
 // #region TYPES
 type LeftPanelProps = {
   supabase: SupabaseClient;
+  user: User | null;
   mediaItems: MediaItem[];
   isLoading: boolean;
   fetchData: () => Promise<void>;
   setSelectedMedia: Dispatch<SetStateAction<MediaItem | null>>;
+  project: VideoProject | null;
 };
 // #endregion
 
+// #region MAIN
 export default function LeftPanel({
   supabase,
+  user,
   mediaItems,
   isLoading,
   fetchData,
   setSelectedMedia,
+  project
 }: LeftPanelProps) {
-  // #region CONSTANTS
-  const projectId = useProjectId();
-  const { data: project = PROJECT_PLACEHOLDER } = useProject(projectId);
-  const projectUpdate = useProjectUpdater(projectId);
+  // #region States and Effects
+  if (!project){
+    project = PROJECT_PLACEHOLDER
+  }
   const [mediaType, setMediaType] = useState("all");
   const [isUploading, setIsUploading] = useState(false);
+  const [title, setNewTitle] = useState(project.title)
+  const [description, setNewDescription] = useState(project.description)
+
+  useEffect(() => {
+    setNewTitle(project.title);
+    setNewDescription(project.description);
+  },[project])
 
   const setProjectDialogOpen = useVideoProjectStore(
     (s) => s.setProjectDialogOpen,
@@ -68,14 +80,13 @@ export default function LeftPanel({
   const openGenerateDialog = useVideoProjectStore((s) => s.openGenerateDialog);
   // #endregion
 
-  // #region UPLOAD FILE
+  // #region Upload Assets
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (!files) return;
+    if (!files || !user) return;
     setIsUploading(true);
 
     try {
-      const user = { id: "58e01467-2bbf-418f-9210-de8b76334dc4" };
       const file = files[0]; // Suponemos que solo subimos un archivo por vez (puedes ajustar esto)
       const fileExt = file.name.split(".").pop();
       const assetId = crypto.randomUUID();
@@ -141,6 +152,44 @@ export default function LeftPanel({
   };
   //#endregion
 
+  // #region Update Projects
+  const handleUpdateProject = async (
+    updates: { 
+      title?: string; 
+      description?: string
+    }
+  ) => {
+    if (!project.id || !user) {
+      toast({
+        title: "Cannot update project",
+        description: "Project or user not found",
+      });
+      return;
+    }
+    try {
+      const { error } = await supabase
+        .from('project')
+        .update(updates)
+        .eq('id', project.id)
+
+      if (error) throw error;
+
+      if (updates.title) setNewTitle(updates.title);
+      if (updates.description) setNewDescription(updates.description);
+
+      toast({
+        title: "Project updated successfully",
+        description: `New ${updates.title ? "title" : "description"}: ${updates.title ? updates.title : updates.description}`
+      })
+    } catch (error) {
+      console.error("Error updating project:", error);
+      toast({
+        title: "Failed to update project",
+        description: "Please try again",
+      });
+    }
+  }
+  // #endregion
   //#region JSX
   return (
     <div className="flex flex-col border-r border-border w-96">
@@ -163,11 +212,18 @@ export default function LeftPanel({
             id="projectName"
             name="name"
             placeholder="untitled"
-            value={project.title}
-            onChange={(e) => projectUpdate.mutate({ title: e.target.value })}
-            onBlur={(e) =>
-              projectUpdate.mutate({ title: e.target.value.trim() })
-            }
+            value={title}
+            onChange={(e) => {
+              setNewTitle(e.target.value);
+              handleUpdateProject({ title: e.target.value });
+            }}
+            onBlur={(e) => {
+              const trimmedValue = e.target.value.trim();
+              if (trimmedValue !== title) {
+                setNewTitle(trimmedValue);
+                handleUpdateProject({ title: trimmedValue });
+              }
+            }}
           />
 
           <Textarea
@@ -175,14 +231,19 @@ export default function LeftPanel({
             name="description"
             placeholder="Describe your video"
             className="resize-none"
-            value={project.description}
+            value={description}
             rows={6}
-            onChange={(e) =>
-              projectUpdate.mutate({ description: e.target.value })
-            }
-            onBlur={(e) =>
-              projectUpdate.mutate({ description: e.target.value.trim() })
-            }
+            onChange={(e) => {
+              setNewDescription(e.target.value);
+              handleUpdateProject({ description: e.target.value });
+            }}
+            onBlur={(e) => {
+              const trimmedValue = e.target.value.trim();
+              if (trimmedValue !== description) {
+                setNewDescription(trimmedValue);
+                handleUpdateProject({ description: trimmedValue });
+              }
+            }}
           />
         </div>
       </div>
