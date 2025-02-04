@@ -3,7 +3,7 @@
 // #region IMPORTS
 import { useProjectCreator } from "@/data/mutations";
 import { queryKeys, useProjects } from "@/data/queries";
-import type { VideoProject } from "@/data/schema";
+import type { VideoProject, AspectRatio } from "@/data/schema";
 import { useVideoProjectStore } from "@/data/store";
 import { useToast } from "@/hooks/use-toast";
 import { createProjectSuggestion } from "@/lib/project";
@@ -48,32 +48,67 @@ export function ProjectDialog({
   // #region Const & Effects
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [projects, setProjects] = useState<VideoProject[]>([]);
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  // #endregion
 
   // Fetch existing projects
-  const { data: projects = [], isLoading } = useProjects();
+  //const { data: projects = [], isLoading } = useProjects();
 
+  // #region Old Get Projects
   // Seed data with template project if empty
-  useEffect(() => {
+  /* useEffect(() => {
     if (projects.length === 0 && !isLoading) {
       seedDatabase().then(() => {
         queryClient.invalidateQueries({ queryKey: queryKeys.projects });
       });
     }
-  }, [projects, isLoading]);
+  }, [projects, isLoading]); */
+  // #endregion
+
+  // #region New Get Projects
+  useEffect(() => {
+    const getProjects = async () => {
+      setIsLoading(true);
+      if(user){
+        const { data , error } = await supabase
+          .from("projects")
+          .select(`id, title, description, dimensions`)
+          .eq('user_id', user.id)
+
+        if (error) {
+          console.error("Error fetching data:", error.message);
+          setIsLoading(false);
+        } else {
+          // Map Supabase response to VideoProject type
+          const projects: VideoProject[] = data.map((project) => ({
+            id: String(project.id),        // Explicitly convert to string
+            title: String(project.title),  // (even if Supabase returns them as strings)
+            description: String(project.description),
+            aspectRatio: project.dimensions as AspectRatio // Key fix: rename + type assertion
+          }));
+          setProjects(projects);
+          setIsLoading(false);
+        };
+      };
+    };
+    getProjects();
+  }, [user])
   // #endregion
 
   // #region Old Create Project
   // Create project mutation
-  /* const setProjectId = useVideoProjectStore((s) => s.setProjectId);
-  const createProject = useProjectCreator(); */
+  //const setProjectId = useVideoProjectStore((s) => s.setProjectId);
+  //const createProject = useProjectCreator();
   // #endregion
 
   //#region New Create Project
   const handleCreateProject = async () => {
     if (!title.trim() || !user) return;
 
+    setIsLoading(true);
     const { data, error } = await supabase
       .from("projects")
       .insert([
@@ -98,6 +133,7 @@ export function ProjectDialog({
     }
 
     handleSelectProject(data);
+    setIsLoading(false);
     toast({
       title: "Project Created",
       description: `Project "${data.title}" created successfully!`,
