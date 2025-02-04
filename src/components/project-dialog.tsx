@@ -1,5 +1,6 @@
 "use client";
 
+// #region IMPORTS
 import { useProjectCreator } from "@/data/mutations";
 import { queryKeys, useProjects } from "@/data/queries";
 import type { VideoProject } from "@/data/schema";
@@ -27,10 +28,18 @@ import { Skeleton } from "./ui/skeleton";
 import { Textarea } from "./ui/textarea";
 import { WithTooltip } from "./ui/tooltip";
 import { seedDatabase } from "@/data/seed";
+import { SupabaseClient } from "@supabase/supabase-js";
+// #endregion
 
-type ProjectDialogProps = {} & Parameters<typeof Dialog>[0];
+// #region TYPES
+type ProjectDialogProps = {
+  supabase: SupabaseClient
+} & Parameters<typeof Dialog>[0];
+// #endregion
 
-export function ProjectDialog({ onOpenChange, ...props }: ProjectDialogProps) {
+// #region MAIN
+export function ProjectDialog({ onOpenChange, supabase, ...props }: ProjectDialogProps) {
+  // #region Const & Effects
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const queryClient = useQueryClient();
@@ -47,11 +56,50 @@ export function ProjectDialog({ onOpenChange, ...props }: ProjectDialogProps) {
       });
     }
   }, [projects, isLoading]);
+  // #endregion
 
+  // #region Old Create Project
   // Create project mutation
-  const setProjectId = useVideoProjectStore((s) => s.setProjectId);
-  const createProject = useProjectCreator();
+  /* const setProjectId = useVideoProjectStore((s) => s.setProjectId);
+  const createProject = useProjectCreator(); */
+  // #endregion
 
+  //#region New Create Project
+  const handleCreateProject = async () => {
+    if(!title.trim) return;
+
+    const { data, error } = await supabase
+      .from('projects')
+      .insert([
+        {
+          user_id: '58e01467-2bbf-418f-9210-de8b76334dc4',
+          title: title,
+          description: description,
+          status: 'draft',
+          dimensions: "16:9",
+        }
+      ])
+      .select()
+      .single();
+    
+    if(error) {
+      console.error("Error creating project:", error)
+      toast({
+        title: "Error!",
+        description: "Could not create project. Try again."
+      });
+      return;
+    }
+
+    handleSelectProject(data);
+    toast({
+      title: "Project Created",
+      description: `Project "${data.title}" created successfully!`,
+    });
+  }
+  //#endregion
+
+  // #region Suggest Project
   const suggestProject = useMutation({
     mutationFn: async () => {
       return createProjectSuggestion();
@@ -69,7 +117,9 @@ export function ProjectDialog({ onOpenChange, ...props }: ProjectDialogProps) {
       });
     },
   });
+  // #endregion
 
+  // #region SelectProject
   const setProjectDialogOpen = useVideoProjectStore(
     (s) => s.setProjectDialogOpen,
   );
@@ -79,7 +129,9 @@ export function ProjectDialog({ onOpenChange, ...props }: ProjectDialogProps) {
     setProjectDialogOpen(false);
     rememberLastProjectId(project.id);
   };
+  // #endregion
 
+  // #region OpenProject
   const handleOnOpenChange = (isOpen: boolean) => {
     if (!isOpen) {
       setTitle("");
@@ -88,7 +140,9 @@ export function ProjectDialog({ onOpenChange, ...props }: ProjectDialogProps) {
     onOpenChange?.(isOpen);
     setProjectDialogOpen(isOpen);
   };
+  // #endregion
 
+  // #region MainJSX
   return (
     <Dialog {...props} onOpenChange={handleOnOpenChange}>
       <DialogContent className="flex flex-col max-w-4xl h-fit max-h-[520px] min-h-[380px]">
@@ -140,23 +194,11 @@ export function ProjectDialog({ onOpenChange, ...props }: ProjectDialogProps) {
                 </Button>
               </WithTooltip>
               <Button
-                onClick={() =>
-                  createProject.mutate(
-                    {
-                      title,
-                      description,
-                      aspectRatio: "16:9",
-                    },
-                    {
-                      onSuccess: (projectId) => {
-                        handleSelectProject({ id: projectId } as VideoProject);
-                      },
-                    },
-                  )
-                }
-                disabled={!title.trim() || createProject.isPending}
+                /* onClick={() => createProject.mutate( { title, description, aspectRatio: "16:9", }, { onSuccess: (projectId) => { handleSelectProject({ id: projectId } as VideoProject); }, }, ) } */
+                onClick={handleCreateProject}
+                disabled={!title.trim() || isLoading}
               >
-                {createProject.isPending ? "Creating..." : "Create Project"}
+                {isLoading ? "Creating..." : "Create Project"}
               </Button>
             </div>
           </div>
@@ -232,4 +274,6 @@ export function ProjectDialog({ onOpenChange, ...props }: ProjectDialogProps) {
       </DialogContent>
     </Dialog>
   );
+  //#endregion
 }
+//#endregion

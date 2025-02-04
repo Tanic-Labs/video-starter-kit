@@ -20,7 +20,8 @@ import { ExportDialog } from "./export-dialog";
 import LeftPanel from "./left-panel";
 import { KeyDialog } from "./key-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { createClient } from "@supabase/supabase-js";
+import { createPagesBrowserClient } from "@supabase/auth-helpers-nextjs";
+import { createClient, User } from "@supabase/supabase-js";
 
 type AppProps = {
   projectId: string;
@@ -30,13 +31,26 @@ type AppProps = {
 
 export function App({ projectId, supabaseUrl, supabaseKey }: AppProps) {
   const supabase = createClient(supabaseUrl, supabaseKey);
+  const [supabaseClient] = useState(() => createPagesBrowserClient());
   const [keyDialog, setKeyDialog] = useState(false);
   const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
   const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
-  useEffect(() => {
-    console.log(selectedMedia);
-  }, [selectedMedia]);
   const [isLoading, setIsLoading] = useState(false);
+
+  const [user, setUser] = useState<User | null>(null);
+  
+  useEffect(() => {
+    const fetchUser = async () => {
+      // Espera la respuesta del Promise de getSession()
+      const { data, error } = await supabaseClient.auth.getSession();
+      if (data?.session?.user) {
+        setUser(data.session.user);
+      } else {
+        console.error("No active session or error:", error?.message);
+      }
+    };
+    fetchUser();
+  }, []);
 
   const queryClient = useRef(new QueryClient()).current;
   const projectStore = useRef(
@@ -111,7 +125,7 @@ export function App({ projectId, supabaseUrl, supabaseKey }: AppProps) {
             </main>
           </div>
           <Toaster />
-          <ProjectDialog open={projectDialogOpen} />
+          <ProjectDialog open={projectDialogOpen} supabase={supabase} />
           <ExportDialog
             open={isExportDialogOpen}
             onOpenChange={setExportDialogOpen}

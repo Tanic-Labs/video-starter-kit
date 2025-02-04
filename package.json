@@ -31,6 +31,7 @@
     "@remotion/media-utils": "4.0.249",
     "@remotion/player": "4.0.249",
     "@remotion/preload": "4.0.249",
+    "@supabase/auth-helpers-nextjs": "^0.10.0",
     "@supabase/supabase-js": "^2.48.1",
     "@tanstack/react-query": "^5.62.7",
     "@uploadthing/react": "^7.1.5",
