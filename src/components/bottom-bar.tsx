@@ -179,7 +179,7 @@ export default function BottomBar() {
         } as VideoTrack),
     };
   }, [tracks, projectId]);
-  // #endregion 
+  // #endregion
 
   // #region Drop Function
   const handleOnDrop: DragEventHandler<HTMLDivElement> = (event) => {

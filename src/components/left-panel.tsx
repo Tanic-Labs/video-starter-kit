@@ -4,7 +4,11 @@
 import { SupabaseClient, User } from "@supabase/supabase-js";
 import { useProjectUpdater } from "@/data/mutations";
 import { queryKeys, useProject, useProjectMediaItems } from "@/data/queries";
-import { type MediaItem, PROJECT_PLACEHOLDER, VideoProject } from "@/data/schema";
+import {
+  type MediaItem,
+  PROJECT_PLACEHOLDER,
+  VideoProject,
+} from "@/data/schema";
 import {
   type MediaType,
   useProjectId,
@@ -58,21 +62,21 @@ export default function LeftPanel({
   isLoading,
   fetchData,
   setSelectedMedia,
-  project
+  project,
 }: LeftPanelProps) {
   // #region States and Effects
-  if (!project){
-    project = PROJECT_PLACEHOLDER
+  if (!project) {
+    project = PROJECT_PLACEHOLDER;
   }
   const [mediaType, setMediaType] = useState("all");
   const [isUploading, setIsUploading] = useState(false);
-  const [title, setNewTitle] = useState(project.title)
-  const [description, setNewDescription] = useState(project.description)
+  const [title, setNewTitle] = useState(project.title);
+  const [description, setNewDescription] = useState(project.description);
 
   useEffect(() => {
     setNewTitle(project.title);
     setNewDescription(project.description);
-  },[project])
+  }, [project]);
 
   const setProjectDialogOpen = useVideoProjectStore(
     (s) => s.setProjectDialogOpen,
@@ -153,12 +157,10 @@ export default function LeftPanel({
   //#endregion
 
   // #region Update Projects
-  const handleUpdateProject = async (
-    updates: { 
-      title?: string; 
-      description?: string
-    }
-  ) => {
+  const handleUpdateProject = async (updates: {
+    title?: string;
+    description?: string;
+  }) => {
     if (!project.id || !user) {
       toast({
         title: "Cannot update project",
@@ -168,9 +170,9 @@ export default function LeftPanel({
     }
     try {
       const { error } = await supabase
-        .from('project')
+        .from("project")
         .update(updates)
-        .eq('id', project.id)
+        .eq("id", project.id);
 
       if (error) throw error;
 
@@ -179,8 +181,8 @@ export default function LeftPanel({
 
       toast({
         title: "Project updated successfully",
-        description: `New ${updates.title ? "title" : "description"}: ${updates.title ? updates.title : updates.description}`
-      })
+        description: `New ${updates.title ? "title" : "description"}: ${updates.title ? updates.title : updates.description}`,
+      });
     } catch (error) {
       console.error("Error updating project:", error);
       toast({
@@ -188,7 +190,7 @@ export default function LeftPanel({
         description: "Please try again",
       });
     }
-  }
+  };
   // #endregion
   //#region JSX
   return (

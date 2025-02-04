@@ -4,7 +4,11 @@ import BottomBar from "@/components/bottom-bar";
 import Header from "@/components/header";
 import RightPanel from "@/components/right-panel";
 import VideoPreview from "@/components/video-preview";
-import { type MediaItem, PROJECT_PLACEHOLDER, VideoProject } from "@/data/schema";
+import {
+  type MediaItem,
+  PROJECT_PLACEHOLDER,
+  VideoProject,
+} from "@/data/schema";
 import {
   VideoProjectStoreContext,
   createVideoProjectStore,
@@ -32,7 +36,7 @@ export function App({ projectId }: AppProps) {
   const [keyDialog, setKeyDialog] = useState(false);
   const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
   const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
-  const [project, setProject] = useState<VideoProject | null>(null)
+  const [project, setProject] = useState<VideoProject | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const [user, setUser] = useState<User | null>(null);
