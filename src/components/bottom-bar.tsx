@@ -86,33 +86,33 @@ export default function BottomBar() {
             : 0,
           duration,
         });
-      } else if (media.metadata && "description" in media.metadata){
+      } else if (media.metadata && "description" in media.metadata) {
         newId = db.keyFrames.create({
           trackId: track.id,
           data: {
             mediaId: media.id,
             type: media.type ? "image" : "video",
-            prompt: media.metadata.description || '',
+            prompt: media.metadata.description || "",
             url: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/${media.file_path}`,
           },
           timestamp: lastKeyframe
             ? lastKeyframe.timestamp + 1 + lastKeyframe.duration
             : 0,
           duration,
-        })
+        });
       } else {
         newId = db.keyFrames.create({
-          trackId: '',
+          trackId: "",
           data: {
-            mediaId: '',
+            mediaId: "",
             type: "image",
             prompt: "",
             url: "",
           },
           timestamp: 0,
           duration,
-        })
-        console.error("Error inserting media")
+        });
+        console.error("Error inserting media");
       }
 
       return db.keyFrames.find(newId.toString());

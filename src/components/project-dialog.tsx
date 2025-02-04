@@ -33,12 +33,16 @@ import { SupabaseClient } from "@supabase/supabase-js";
 
 // #region TYPES
 type ProjectDialogProps = {
-  supabase: SupabaseClient
+  supabase: SupabaseClient;
 } & Parameters<typeof Dialog>[0];
 // #endregion
 
 // #region MAIN
-export function ProjectDialog({ onOpenChange, supabase, ...props }: ProjectDialogProps) {
+export function ProjectDialog({
+  onOpenChange,
+  supabase,
+  ...props
+}: ProjectDialogProps) {
   // #region Const & Effects
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -66,27 +70,27 @@ export function ProjectDialog({ onOpenChange, supabase, ...props }: ProjectDialo
 
   //#region New Create Project
   const handleCreateProject = async () => {
-    if(!title.trim) return;
+    if (!title.trim) return;
 
     const { data, error } = await supabase
-      .from('projects')
+      .from("projects")
       .insert([
         {
-          user_id: '58e01467-2bbf-418f-9210-de8b76334dc4',
+          user_id: "58e01467-2bbf-418f-9210-de8b76334dc4",
           title: title,
           description: description,
-          status: 'draft',
+          status: "draft",
           dimensions: "16:9",
-        }
+        },
       ])
       .select()
       .single();
-    
-    if(error) {
-      console.error("Error creating project:", error)
+
+    if (error) {
+      console.error("Error creating project:", error);
       toast({
         title: "Error!",
-        description: "Could not create project. Try again."
+        description: "Could not create project. Try again.",
       });
       return;
     }
@@ -96,7 +100,7 @@ export function ProjectDialog({ onOpenChange, supabase, ...props }: ProjectDialo
       title: "Project Created",
       description: `Project "${data.title}" created successfully!`,
     });
-  }
+  };
   //#endregion
 
   // #region Suggest Project

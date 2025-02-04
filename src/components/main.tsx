@@ -38,7 +38,7 @@ export function App({ projectId, supabaseUrl, supabaseKey }: AppProps) {
   const [isLoading, setIsLoading] = useState(false);
 
   const [user, setUser] = useState<User | null>(null);
-  
+
   useEffect(() => {
     const fetchUser = async () => {
       // Espera la respuesta del Promise de getSession()
