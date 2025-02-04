@@ -72,30 +72,30 @@ export function ProjectDialog({
   useEffect(() => {
     const getProjects = async () => {
       setIsLoading(true);
-      if(user){
-        const { data , error } = await supabase
+      if (user) {
+        const { data, error } = await supabase
           .from("projects")
           .select(`id, title, description, dimensions`)
-          .eq('user_id', user.id)
+          .eq("user_id", user.id);
 
-        if (error) {
+        if (error) {
           console.error("Error fetching data:", error.message);
           setIsLoading(false);
         } else {
           // Map Supabase response to VideoProject type
           const projects: VideoProject[] = data.map((project) => ({
-            id: String(project.id),        // Explicitly convert to string
-            title: String(project.title),  // (even if Supabase returns them as strings)
+            id: String(project.id), // Explicitly convert to string
+            title: String(project.title), // (even if Supabase returns them as strings)
             description: String(project.description),
-            aspectRatio: project.dimensions as AspectRatio // Key fix: rename + type assertion
+            aspectRatio: project.dimensions as AspectRatio, // Key fix: rename + type assertion
           }));
           setProjects(projects);
           setIsLoading(false);
-        };
-      };
+        }
+      }
     };
     getProjects();
-  }, [user])
+  }, [user]);
   // #endregion
 
   // #region Old Create Project
