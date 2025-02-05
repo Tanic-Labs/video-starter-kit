@@ -20,17 +20,14 @@ import { queryKeys, refreshVideoCache } from "@/data/queries";
 // #region TYPES
 type BottomBarProps = {
   project: VideoProject | null;
-}
+};
 // #endregion
 
 // #region MAIN
-export default function BottomBar({
-  project, 
-  ...props
-} : BottomBarProps) {
+export default function BottomBar({ project, ...props }: BottomBarProps) {
   // #region Const
-  if(!project) {
-    project = PROJECT_PLACEHOLDER
+  if (!project) {
+    project = PROJECT_PLACEHOLDER;
   }
   const queryClient = useQueryClient();
   const projectId = useProjectId();
