@@ -54,6 +54,17 @@ type LeftPanelProps = {
 };
 // #endregion
 
+// #region DEBOUNCE
+function useDebounce(value: string, delay: number) {
+  const [debounceValue, setDebounceValue] = useState<string>(value);
+  useEffect(() => {
+    const handler = setTimeout(() => setDebounceValue(value), delay)
+    return () => clearTimeout(handler)
+  },[value, delay])
+  return (debounceValue);
+}
+// #endregion
+
 // #region MAIN
 export default function LeftPanel({
   supabase,
@@ -77,6 +88,9 @@ export default function LeftPanel({
     setNewTitle(project.title);
     setNewDescription(project.description);
   }, [project]);
+
+  const deboounceTitle = useDebounce(title, 1000);
+  const debounceDescription = useDebounce(description, 1000);
 
   const setProjectDialogOpen = useVideoProjectStore(
     (s) => s.setProjectDialogOpen,
@@ -168,10 +182,14 @@ export default function LeftPanel({
       });
       return;
     }
+    
     try {
       const { error } = await supabase
-        .from("project")
-        .update(updates)
+        .from("projects")
+        .update({
+          title: updates.title,
+          description: updates.description,
+        })
         .eq("id", project.id);
 
       if (error) throw error;
@@ -180,8 +198,8 @@ export default function LeftPanel({
       if (updates.description) setNewDescription(updates.description);
 
       toast({
-        title: "Project updated successfully",
-        description: `New ${updates.title ? "title" : "description"}: ${updates.title ? updates.title : updates.description}`,
+        title: `Project: ${updates.title}`,
+        description: updates.description,
       });
     } catch (error) {
       console.error("Error updating project:", error);
@@ -191,6 +209,13 @@ export default function LeftPanel({
       });
     }
   };
+
+  useEffect(() => {
+    handleUpdateProject({
+      title: title, 
+      description: description,
+    })
+  }, [deboounceTitle, debounceDescription])
   // #endregion
   //#region JSX
   return (
@@ -217,13 +242,13 @@ export default function LeftPanel({
             value={title}
             onChange={(e) => {
               setNewTitle(e.target.value);
-              handleUpdateProject({ title: e.target.value });
+              //handleUpdateProject({ title: e.target.value });
             }}
             onBlur={(e) => {
               const trimmedValue = e.target.value.trim();
               if (trimmedValue !== title) {
                 setNewTitle(trimmedValue);
-                handleUpdateProject({ title: trimmedValue });
+                //handleUpdateProject({ title: trimmedValue });
               }
             }}
           />
@@ -237,13 +262,13 @@ export default function LeftPanel({
             rows={6}
             onChange={(e) => {
               setNewDescription(e.target.value);
-              handleUpdateProject({ description: e.target.value });
+              //handleUpdateProject({ description: e.target.value });
             }}
             onBlur={(e) => {
               const trimmedValue = e.target.value.trim();
               if (trimmedValue !== description) {
                 setNewDescription(trimmedValue);
-                handleUpdateProject({ description: trimmedValue });
+                //handleUpdateProject({ description: trimmedValue });
               }
             }}
           />
