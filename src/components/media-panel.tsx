@@ -218,12 +218,12 @@ export function MediaItemRow({
         onOpen(data);
       }}
       draggable={
-        draggable && (
-          data.source_type === "uploaded" || (
-            data.source_type === "generated" &&
-            data.metadata && "status" in data.metadata && data.metadata.status === "completed" 
-          )
-        )
+        draggable &&
+        (data.source_type === "uploaded" ||
+          (data.source_type === "generated" &&
+            data.metadata &&
+            "status" in data.metadata &&
+            data.metadata.status === "completed"))
       }
       onDragStart={handleOnDragStart}
     >
