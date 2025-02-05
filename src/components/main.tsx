@@ -155,7 +155,9 @@ export function App({ projectId }: AppProps) {
               />
               <div className="flex flex-col flex-1">
                 <VideoPreview />
-                <BottomBar />
+                <BottomBar
+                  project={project}
+                />
               </div>
               <RightPanel />
             </main>

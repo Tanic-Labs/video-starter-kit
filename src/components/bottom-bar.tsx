@@ -1,7 +1,9 @@
 // #region IMPORTS
 import { db } from "@/data/db";
 import {
+  PROJECT_PLACEHOLDER,
   TRACK_TYPE_ORDER,
+  VideoProject,
   type MediaItem,
   type VideoTrack,
 } from "@/data/schema";
@@ -15,9 +17,21 @@ import { VideoTrackRow } from "./video/track";
 import { queryKeys, refreshVideoCache } from "@/data/queries";
 // #endregion
 
+// #region TYPES
+type BottomBarProps = {
+  project: VideoProject | null;
+}
+// #endregion
+
 // #region MAIN
-export default function BottomBar() {
+export default function BottomBar({
+  project, 
+  ...props
+} : BottomBarProps) {
   // #region Const
+  if(!project) {
+    project = PROJECT_PLACEHOLDER
+  }
   const queryClient = useQueryClient();
   const projectId = useProjectId();
   const playerCurrentTimestamp = useVideoProjectStore(
@@ -49,12 +63,12 @@ export default function BottomBar() {
   // #region Add Track
   const addToTrack = useMutation({
     mutationFn: async (media: MediaItem) => {
-      const tracks = await db.tracks.tracksByProject(media.projectId);
+      const tracks = await db.tracks.tracksByProject(project.id);
       const trackType = media.type === "image" ? "video" : media.type;
       let track = tracks.find((t) => t.type === trackType);
       if (!track) {
         const id = await db.tracks.create({
-          projectId: media.projectId,
+          projectId: project.id,
           type: trackType,
           label: media.type,
           locked: true,
