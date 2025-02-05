@@ -28,7 +28,7 @@ import { fal } from "@/lib/fal";
 import { SupabaseClient, User } from "@supabase/supabase-js";
 // #endregion
 
-// #region TYPE VIDEO TRACK ROW 
+// #region TYPE VIDEO TRACK ROW
 type VideoTrackRowProps = {
   data: VideoTrack;
   supabase: SupabaseClient;
@@ -41,39 +41,40 @@ export function VideoTrackRow({
   data,
   supabase,
   user,
-  ...props 
+  ...props
 }: VideoTrackRowProps) {
   // #region Get Framses
   const { data: keyframes = [] } = useQuery({
     queryKey: ["frames", data],
     queryFn: async () => {
-      const {data: keyframesData, error} = await supabase
-        .from('keyframes')
-        .select('*')
+      const { data: keyframesData, error } = await supabase
+        .from("keyframes")
+        .select("*")
         .eq("track_id", data.id)
         .order("timestamp", { ascending: true });
-      
+
       if (error) {
-        console.log("Error fetchin track in VTR: ", error)
+        console.log("Error fetchin track in VTR: ", error);
         throw error;
       }
       return keyframesData;
     },
     enabled: Boolean(
-      data?.id && 
-      !["video", "audio", "voiceover"].includes(data.id)
-    )
+      data?.id && !["video", "audio", "voiceover"].includes(data.id),
+    ),
   });
 
   useEffect(() => {
-    if (keyframes && keyframes.length > 0){
+    if (keyframes && keyframes.length > 0) {
       console.log(data);
       console.log(keyframes);
     }
-  }, [keyframes])
+  }, [keyframes]);
 
   const mediaType = useMemo(() => keyframes[0]?.type, [keyframes]);
-  if (mediaType) { console.log(mediaType); };
+  if (mediaType) {
+    console.log(mediaType);
+  }
   // #endregion
 
   // #region Video Track Row JSX
@@ -114,9 +115,7 @@ type AudioWaveformProps = {
 // #endregion
 
 // #region AUDIO WAVEFORM
-function AudioWaveform({ 
-  data 
-}: AudioWaveformProps) {
+function AudioWaveform({ data }: AudioWaveformProps) {
   // #region Get Waveform
   const { data: waveform = [] } = useQuery({
     queryKey: ["media", "waveform", data.id],
@@ -204,7 +203,7 @@ export function VideoTrackView({
 }: VideoTrackViewProps) {
   // #region Const & Values
   const queryClient = useQueryClient();
-  const deleteKeyframe = useMutation({ 
+  const deleteKeyframe = useMutation({
     mutationFn: () => db.keyFrames.delete(frame.id), // Replace a delete en supabase
     onSuccess: () => refreshVideoCache(queryClient, track.projectId), // Corregir a real project id
   });
@@ -212,8 +211,10 @@ export function VideoTrackView({
     deleteKeyframe.mutate(); // Fusionar con deleteKeyFrame
   };
 
-  const isSelected = useVideoProjectStore((state) => //Crear estado de slected
-    state.selectedKeyframes.includes(frame.id),
+  const isSelected = useVideoProjectStore(
+    (
+      state, //Crear estado de slected
+    ) => state.selectedKeyframes.includes(frame.id),
   );
   const selectKeyframe = useVideoProjectStore((state) => state.selectKeyframe);
   const handleOnClick: MouseEventHandler = (e) => {
@@ -246,7 +247,7 @@ export function VideoTrackView({
       );
     } */
     return undefined;
-  }, [media, mediaUrl]); 
+  }, [media, mediaUrl]);
   // #endregion
 
   const label = media.type ?? "unknown"; // Mover
@@ -254,7 +255,8 @@ export function VideoTrackView({
   const trackRef = useRef<HTMLDivElement>(null); // Para que es esto?
 
   // #region Calculate Bounds
-  const calculateBounds = () => { // Checar como funciona
+  const calculateBounds = () => {
+    // Checar como funciona
     const timelineElement = document.querySelector(".timeline-container");
     const timelineRect = timelineElement?.getBoundingClientRect();
     const trackElement = trackRef.current;
@@ -283,7 +285,8 @@ export function VideoTrackView({
   // #endregion
 
   // #region Handle Mouse Down
-  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => { // verificar correcto funcionamiento de esta handler
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    // verificar correcto funcionamiento de esta handler
     const trackElement = trackRef.current;
     if (!trackElement) return;
     const bounds = calculateBounds();
@@ -325,7 +328,8 @@ export function VideoTrackView({
   // #endregion
 
   // #region Hande Resize
-  const handleResize = ( // verificar correcto funcionamiento de esta handler
+  const handleResize = (
+    // verificar correcto funcionamiento de esta handler
     e: React.MouseEvent<HTMLDivElement>,
     direction: "left" | "right",
   ) => {
@@ -409,7 +413,10 @@ export function VideoTrackView({
                 (typeof trackIcons)[typeof track.type]
               >)}
               <span className="line-clamp-1 truncate text-sm mb-[2px] w-full ">
-                {(media?.metadata && "input" in media.metadata && media.metadata.input?.prompt) || label}
+                {(media?.metadata &&
+                  "input" in media.metadata &&
+                  media.metadata.input?.prompt) ||
+                  label}
               </span>
             </div>
             <div className="flex flex-row shrink-0 flex-1 items-center justify-end">

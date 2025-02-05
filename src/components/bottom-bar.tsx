@@ -203,21 +203,21 @@ export default function BottomBar({
       if (!projectId || !user) return [];
       // Direct Supabase query with keyframes join
       const { data, error } = await supabase
-        .from('projects_assets')
-        .select('*, keyframes(*)')  // Include related keyframes
-        .eq('project_id', projectId);
-  
+        .from("projects_assets")
+        .select("*, keyframes(*)") // Include related keyframes
+        .eq("project_id", projectId);
+
       if (error) {
-        console.error('Error fetching tracks:', error);
+        console.error("Error fetching tracks:", error);
         throw error;
       }
-  
+
       // Sort tracks using the same logic
       return (data as VideoTrack[]).toSorted(
-        (a, b) => TRACK_TYPE_ORDER[a.type] - TRACK_TYPE_ORDER[b.type]
+        (a, b) => TRACK_TYPE_ORDER[a.type] - TRACK_TYPE_ORDER[b.type],
       );
     },
-    enabled: !!projectId
+    enabled: !!projectId,
   });
   // #endregio
 
@@ -258,7 +258,9 @@ export default function BottomBar({
   }, [tracks, projectId]);
   // #endregion
 
-  useEffect(() => {console.log(trackObj);}, [tracks])
+  useEffect(() => {
+    console.log(trackObj);
+  }, [tracks]);
 
   // #region Drop Function
   const handleOnDrop: DragEventHandler<HTMLDivElement> = (event) => {
@@ -326,7 +328,7 @@ export default function BottomBar({
                 />
               ),
             )}
-          </div> 
+          </div>
         </div>
       </div>
     </div>
