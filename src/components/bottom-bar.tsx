@@ -15,22 +15,31 @@ import { VideoControls } from "./video-controls";
 import { TimelineRuler } from "./video/timeline";
 import { VideoTrackRow } from "./video/track";
 import { queryKeys, refreshVideoCache } from "@/data/queries";
+import { SupabaseClient, User } from "@supabase/supabase-js";
+import { toast } from "@/hooks/use-toast";
 // #endregion
 
 // #region TYPES
 type BottomBarProps = {
   project: VideoProject | null;
+  supabase: SupabaseClient;
+  user: User | null;
 };
 // #endregion
 
 // #region MAIN
-export default function BottomBar({ project, ...props }: BottomBarProps) {
+export default function BottomBar({ 
+  project,
+  supabase,
+  user,
+  ...props 
+}: BottomBarProps) {
   // #region Const
   if (!project) {
     project = PROJECT_PLACEHOLDER;
   }
-  const queryClient = useQueryClient();
-  const projectId = useProjectId();
+  const queryClient = useQueryClient(); // Es sustituido por client
+  const projectId = useProjectId(); // Este debe sustiuirse por project.id
   const playerCurrentTimestamp = useVideoProjectStore(
     (s) => s.playerCurrentTimestamp,
   );
@@ -58,12 +67,26 @@ export default function BottomBar({ project, ...props }: BottomBarProps) {
   // #endregion
 
   // #region Add Track
-  const addToTrack = useMutation({
-    mutationFn: async (media: MediaItem) => {
-      const tracks = await db.tracks.tracksByProject(project.id);
+  const addToTrack = useMutation({ // Sustituir por una funcion asyncrona
+    mutationFn: async (media: MediaItem) => { 
+      if (!project.id || !user) {
+        toast({
+          title: "Cannot drop asset",
+          description: "Create or choose a project to continue",
+        });
+        return;
+      }
+      //const tracks = await db.tracks.tracksByProject(project.id); // Sustituir por un fetch de projects_assets
+      const {data: tracks, error: trakcsErr} = await supabase
+        .from('projects_assets')
+        .select('*')
+        .eq('project_id', project.id);
+      
+      if (trakcsErr) throw trakcsErr;
+      
       const trackType = media.type === "image" ? "video" : media.type;
       let track = tracks.find((t) => t.type === trackType);
-      if (!track) {
+      /* if (!track) { // sustiur por un insert & select a projects_assets
         const id = await db.tracks.create({
           projectId: project.id,
           type: trackType,
@@ -73,10 +96,37 @@ export default function BottomBar({ project, ...props }: BottomBarProps) {
         const newTrack = await db.tracks.find(id.toString());
         if (!newTrack) return;
         track = newTrack;
-      }
-      const keyframes = await db.keyFrames.keyFramesByTrack(track.id);
+      } */
+      if (!track) {
+        const {data: newTrack, error: newTrackErr} = await supabase
+          .from('projects_assets')
+          .insert([
+            {
+              project_id: project.id,
+              asset_id: media.id,
+              type: trackType,
+              label: media.type,
+              locked: true,
+            }
+          ])
+          .select()
 
-      const lastKeyframe = [...keyframes]
+          if (newTrackErr) throw newTrackErr;
+
+          track = newTrack;
+      }
+      
+      //const keyframes = await db.keyFrames.keyFramesByTrack(track.id);
+      const { data: keyframes, error: keyframesError } = await supabase
+        .from('keyframes')
+        .select('*')
+        .eq('track_id', track.id)
+        .order('timestamp', { ascending: true });
+
+      if (keyframesError) {console.log(keyframesError)};
+      
+
+      /* const lastKeyframe = [...keyframes]
         .sort((a, b) => a.timestamp - b.timestamp)
         .reduce(
           (acc, frame) => {
@@ -85,11 +135,18 @@ export default function BottomBar({ project, ...props }: BottomBarProps) {
             return acc;
           },
           { timestamp: 0, duration: 0 },
-        );
+        ); */
+      const lastKeyframe = keyframes?.reduce(
+        (acc, frame) => 
+          frame.timestamp + frame.duration > acc.timestamp + acc.duration 
+            ? frame 
+            : acc,
+        { timestamp: 0, duration: 0 }
+      );
 
-      const duration = resolveDuration(media) ?? 5000;
+      const duration = resolveDuration(media) ?? 5000; //gets media duration
 
-      let newId;
+      /* let newId;
 
       if (media?.metadata && "input" in media.metadata) {
         newId = await db.keyFrames.create({
@@ -120,21 +177,56 @@ export default function BottomBar({ project, ...props }: BottomBarProps) {
           duration,
         });
       } else {
-        newId = db.keyFrames.create({
-          trackId: "",
-          data: {
-            mediaId: "",
-            type: "image",
-            prompt: "",
-            url: "",
-          },
-          timestamp: 0,
-          duration,
+        toast({
+          title: "Cannot drop asset",
+          description: "Error inserting media",
         });
-        console.error("Error inserting media");
+        return;
       }
 
-      return db.keyFrames.find(newId.toString());
+      return db.keyFrames.find(newId.toString()); */
+      const baseData = {
+        track_id: track.id,
+        timestamp: lastKeyframe 
+          ? lastKeyframe.timestamp + lastKeyframe.duration + 1 
+          : 0,
+        duration,
+        asset_id: media.id,
+      };
+
+      let insertData;
+      if (media?.metadata && "input" in media.metadata) {
+        insertData = {
+          ...baseData,
+          type: media.metadata.input?.image_url ? "image" : "prompt",
+          prompt: media.metadata.input.prompt || '',
+          url: media.metadata.input.image_url?.url
+        };
+      } else if (media?.metadata && "description" in media.metadata) {
+        insertData = {
+          ...baseData,
+          type: media.type,
+          prompt: media.metadata.description || '',
+          url: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/${media.file_path}`
+        };
+      } else {
+        toast({
+          title: "Cannot drop asset",
+          description: "Error inserting media",
+        });
+        return;
+      }
+      console.log(insertData);
+      
+      const { data: newKeyframe, error: insertKeyframeError } = await supabase
+        .from('keyframes')
+        .insert(insertData)
+        .select()
+        .single();
+
+      if (insertKeyframeError) {console.log(insertKeyframeError)};
+
+      return newKeyframe;
     },
     onSuccess: (data) => {
       if (!data) return;
