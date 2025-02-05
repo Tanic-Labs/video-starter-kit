@@ -10,7 +10,7 @@ import {
 import { useProjectId, useVideoProjectStore } from "@/data/store";
 import { cn, resolveDuration } from "@/lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { type DragEventHandler, useMemo, useState } from "react";
+import { type DragEventHandler, useEffect, useMemo, useState } from "react";
 import { VideoControls } from "./video-controls";
 import { TimelineRuler } from "./video/timeline";
 import { VideoTrackRow } from "./video/track";
@@ -39,7 +39,7 @@ export default function BottomBar({
     project = PROJECT_PLACEHOLDER;
   }
   const queryClient = useQueryClient(); // Es sustituido por client
-  const projectId = useProjectId(); // Este debe sustiuirse por project.id
+  const projectId = project.id;
   const playerCurrentTimestamp = useVideoProjectStore(
     (s) => s.playerCurrentTimestamp,
   );
@@ -179,13 +179,13 @@ export default function BottomBar({
     },
     onSuccess: (data) => {
       if (!data) return;
-      refreshVideoCache(queryClient, project.id);
+      refreshVideoCache(queryClient, projectId);
     },
   });
   // #endregion
 
-  // #region Fetch Tracks
-  const { data: tracks = [] } = useQuery({
+  // #region Old Fetch Tracks
+  /* const { data: tracks = [] } = useQuery({
     queryKey: queryKeys.projectTracks(projectId),
     queryFn: async () => {
       const result = await db.tracks.tracksByProject(projectId);
@@ -193,8 +193,33 @@ export default function BottomBar({
         (a, b) => TRACK_TYPE_ORDER[a.type] - TRACK_TYPE_ORDER[b.type],
       );
     },
-  });
+  }); */
   // #endregion
+
+  // #region New Fetch Tracks
+  const { data: tracks = [] } = useQuery({
+    queryKey: queryKeys.projectTracks(projectId),
+    queryFn: async () => {
+      if (!projectId || !user) return [];
+      // Direct Supabase query with keyframes join
+      const { data, error } = await supabase
+        .from('projects_assets')
+        .select('*, keyframes(*)')  // Include related keyframes
+        .eq('project_id', projectId);
+  
+      if (error) {
+        console.error('Error fetching tracks:', error);
+        throw error;
+      }
+  
+      // Sort tracks using the same logic
+      return (data as VideoTrack[]).toSorted(
+        (a, b) => TRACK_TYPE_ORDER[a.type] - TRACK_TYPE_ORDER[b.type]
+      );
+    },
+    enabled: !!projectId
+  });
+  // #endregio
 
   // #region Type Of Tracks
   const trackObj: Record<string, VideoTrack> = useMemo(() => {
@@ -232,6 +257,8 @@ export default function BottomBar({
     };
   }, [tracks, projectId]);
   // #endregion
+
+  useEffect(() => {console.log(trackObj);}, [tracks])
 
   // #region Drop Function
   const handleOnDrop: DragEventHandler<HTMLDivElement> = (event) => {
@@ -286,6 +313,8 @@ export default function BottomBar({
                 <VideoTrackRow
                   key={track.id}
                   data={track}
+                  supabase={supabase}
+                  user={user}
                   style={{
                     minWidth: minTrackWidth,
                   }}
@@ -297,7 +326,7 @@ export default function BottomBar({
                 />
               ),
             )}
-          </div>
+          </div> 
         </div>
       </div>
     </div>

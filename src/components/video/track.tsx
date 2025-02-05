@@ -1,3 +1,4 @@
+// #region IMPORTS
 import { db } from "@/data/db";
 import {
   queryKeys,
@@ -17,25 +18,65 @@ import {
   type HTMLAttributes,
   type MouseEventHandler,
   createElement,
+  useEffect,
   useMemo,
   useRef,
 } from "react";
 import { WithTooltip } from "../ui/tooltip";
 import { useProjectId, useVideoProjectStore } from "@/data/store";
 import { fal } from "@/lib/fal";
+import { SupabaseClient, User } from "@supabase/supabase-js";
+// #endregion
 
+// #region TYPE VIDEO TRACK ROW 
 type VideoTrackRowProps = {
   data: VideoTrack;
+  supabase: SupabaseClient;
+  user: User | null;
 } & HTMLAttributes<HTMLDivElement>;
+// #endregion
 
-export function VideoTrackRow({ data, ...props }: VideoTrackRowProps) {
+// #region VIDEO TRACK ROW
+export function VideoTrackRow({
+  data,
+  supabase,
+  user,
+  ...props 
+}: VideoTrackRowProps) {
+  // #region Get Framses
   const { data: keyframes = [] } = useQuery({
     queryKey: ["frames", data],
-    queryFn: () => db.keyFrames.keyFramesByTrack(data.id),
+    queryFn: async () => {
+      const {data: keyframesData, error} = await supabase
+        .from('keyframes')
+        .select('*')
+        .eq("track_id", data.id)
+        .order("timestamp", { ascending: true });
+      
+      if (error) {
+        console.log("Error fetchin track in VTR: ", error)
+        throw error;
+      }
+      return keyframesData;
+    },
+    enabled: Boolean(
+      data?.id && 
+      !["video", "audio", "voiceover"].includes(data.id)
+    )
   });
 
-  const mediaType = useMemo(() => keyframes[0]?.data.type, [keyframes]);
+  useEffect(() => {
+    if (keyframes && keyframes.length > 0){
+      console.log(data);
+      console.log(keyframes);
+    }
+  }, [keyframes])
 
+  const mediaType = useMemo(() => keyframes[0]?.type, [keyframes]);
+  if (mediaType) { console.log(mediaType); };
+  // #endregion
+
+  // #region Video Track Row JSX
   return (
     <div
       className={cn(
@@ -62,13 +103,21 @@ export function VideoTrackRow({ data, ...props }: VideoTrackRowProps) {
       ))}
     </div>
   );
+  // #endregion
 }
+// #endregion
 
+// #region TYPE AUDIO WAVEFORM
 type AudioWaveformProps = {
   data: MediaItem;
 };
+// #endregion
 
-function AudioWaveform({ data }: AudioWaveformProps) {
+// #region AUDIO WAVEFORM
+function AudioWaveform({ 
+  data 
+}: AudioWaveformProps) {
+  // #region Get Waveform
   const { data: waveform = [] } = useQuery({
     queryKey: ["media", "waveform", data.id],
     queryFn: async () => {
@@ -97,10 +146,14 @@ function AudioWaveform({ data }: AudioWaveformProps) {
     placeholderData: keepPreviousData,
     staleTime: Number.POSITIVE_INFINITY,
   });
+  // #endregion
 
+  // #region Waveform Size
   const svgWidth = waveform.length * 3;
   const svgHeight = 100;
+  // #endregion
 
+  // #region Audio Waveform JSX
   return (
     <div className="h-full flex items-center">
       <svg
@@ -131,29 +184,35 @@ function AudioWaveform({ data }: AudioWaveformProps) {
       </svg>
     </div>
   );
+  // #endregion
 }
+// #endregion
 
+// #region TYPE VIDEO TRACK VIEW
 type VideoTrackViewProps = {
   track: VideoTrack;
   frame: VideoKeyFrame;
 } & HTMLAttributes<HTMLDivElement>;
+// #endregion
 
+// #region VIDEO TRACK VIEW
 export function VideoTrackView({
   className,
   track,
   frame,
   ...props
 }: VideoTrackViewProps) {
+  // #region Const & Values
   const queryClient = useQueryClient();
-  const deleteKeyframe = useMutation({
-    mutationFn: () => db.keyFrames.delete(frame.id),
-    onSuccess: () => refreshVideoCache(queryClient, track.projectId),
+  const deleteKeyframe = useMutation({ 
+    mutationFn: () => db.keyFrames.delete(frame.id), // Replace a delete en supabase
+    onSuccess: () => refreshVideoCache(queryClient, track.projectId), // Corregir a real project id
   });
   const handleOnDelete = () => {
-    deleteKeyframe.mutate();
+    deleteKeyframe.mutate(); // Fusionar con deleteKeyFrame
   };
 
-  const isSelected = useVideoProjectStore((state) =>
+  const isSelected = useVideoProjectStore((state) => //Crear estado de slected
     state.selectedKeyframes.includes(frame.id),
   );
   const selectKeyframe = useVideoProjectStore((state) => state.selectKeyframe);
@@ -164,34 +223,38 @@ export function VideoTrackView({
     selectKeyframe(frame.id);
   };
 
-  const projectId = useProjectId();
-  const { data: mediaItems = [] } = useProjectMediaItems(projectId);
+  const projectId = useProjectId(); // Usar project id real
+  const { data: mediaItems = [] } = useProjectMediaItems(projectId); // Que es esto?
 
   const media = mediaItems.find((item) => item.id === frame.data.mediaId);
   // TODO improve missing data
   if (!media) return null;
+  // #endregion
 
-  const mediaUrl = resolveMediaUrl(media);
+  // #region Get Media Url
+  const mediaUrl = resolveMediaUrl(media); // obtener url real del objeto en suapbase
 
   const imageUrl = useMemo(() => {
-    if (media.mediaType === "image") {
+    if (media.type === "image" || media.type === "video") {
       return mediaUrl;
     }
-    if (media.mediaType === "video") {
+    /* if (media.type === "video") { // Ver como obtener e insertar estos datos en video
       return (
         media.input?.image_url ||
         media.metadata?.start_frame_url ||
         media.metadata?.end_frame_url
       );
-    }
+    } */
     return undefined;
-  }, [media, mediaUrl]);
+  }, [media, mediaUrl]); 
+  // #endregion
 
-  const label = media.mediaType ?? "unknown";
+  const label = media.type ?? "unknown"; // Mover
 
-  const trackRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null); // Para que es esto?
 
-  const calculateBounds = () => {
+  // #region Calculate Bounds
+  const calculateBounds = () => { // Checar como funciona
     const timelineElement = document.querySelector(".timeline-container");
     const timelineRect = timelineElement?.getBoundingClientRect();
     const trackElement = trackRef.current;
@@ -217,8 +280,10 @@ export function VideoTrackView({
       right: rightBound,
     };
   };
+  // #endregion
 
-  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+  // #region Handle Mouse Down
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => { // verificar correcto funcionamiento de esta handler
     const trackElement = trackRef.current;
     if (!trackElement) return;
     const bounds = calculateBounds();
@@ -257,8 +322,10 @@ export function VideoTrackView({
     document.addEventListener("mousemove", handleMouseMove);
     document.addEventListener("mouseup", handleMouseUp);
   };
+  // #endregion
 
-  const handleResize = (
+  // #region Hande Resize
+  const handleResize = ( // verificar correcto funcionamiento de esta handler
     e: React.MouseEvent<HTMLDivElement>,
     direction: "left" | "right",
   ) => {
@@ -307,7 +374,9 @@ export function VideoTrackView({
     document.addEventListener("mousemove", handleMouseMove);
     document.addEventListener("mouseup", handleMouseUp);
   };
+  // #endregion
 
+  // #region Video Track View JSX
   return (
     <div
       ref={trackRef}
@@ -326,7 +395,7 @@ export function VideoTrackView({
           "flex flex-col select-none rounded overflow-hidden group h-full",
           {
             "bg-sky-600": track.type === "video",
-            "bg-teal-500": track.type === "music",
+            "bg-teal-500": track.type === "audio",
             "bg-indigo-500": track.type === "voiceover",
           },
         )}
@@ -340,7 +409,7 @@ export function VideoTrackView({
                 (typeof trackIcons)[typeof track.type]
               >)}
               <span className="line-clamp-1 truncate text-sm mb-[2px] w-full ">
-                {media.input?.prompt || label}
+                {(media?.metadata && "input" in media.metadata && media.metadata.input?.prompt) || label}
               </span>
             </div>
             <div className="flex flex-row shrink-0 flex-1 items-center justify-end">
@@ -367,7 +436,7 @@ export function VideoTrackView({
               : undefined
           }
         >
-          {(media.mediaType === "music" || media.mediaType === "voiceover") && (
+          {(media.type === "audio" || media.type === "voiceover") && (
             <AudioWaveform data={media} />
           )}
           <div
@@ -387,4 +456,6 @@ export function VideoTrackView({
       </div>
     </div>
   );
+  // #endregion
 }
+// #endregion
