@@ -28,11 +28,11 @@ type BottomBarProps = {
 // #endregion
 
 // #region MAIN
-export default function BottomBar({ 
+export default function BottomBar({
   project,
   supabase,
   user,
-  ...props 
+  ...props
 }: BottomBarProps) {
   // #region Const
   if (!project) {
@@ -67,8 +67,9 @@ export default function BottomBar({
   // #endregion
 
   // #region Add Track
-  const addToTrack = useMutation({ // Sustituir por una funcion asyncrona
-    mutationFn: async (media: MediaItem) => { 
+  const addToTrack = useMutation({
+    // Sustituir por una funcion asyncrona
+    mutationFn: async (media: MediaItem) => {
       if (!project.id || !user) {
         toast({
           title: "Cannot drop asset",
@@ -77,16 +78,16 @@ export default function BottomBar({
         return;
       }
       //const tracks = await db.tracks.tracksByProject(project.id); // Sustituir por un fetch de projects_assets
-      const {data: tracks, error: trakcsErr} = await supabase
-        .from('projects_assets')
-        .select('*')
-        .eq('project_id', project.id);
-      
+      const { data: tracks, error: trakcsErr } = await supabase
+        .from("projects_assets")
+        .select("*")
+        .eq("project_id", project.id);
+
       if (trakcsErr) throw trakcsErr;
-      
+
       const trackType = media.type === "image" ? "video" : media.type;
       let track = tracks.find((t) => t.type === trackType);
-      /* if (!track) { // sustiur por un insert & select a projects_assets
+      /* if (!track) {
         const id = await db.tracks.create({
           projectId: project.id,
           type: trackType,
@@ -98,8 +99,8 @@ export default function BottomBar({
         track = newTrack;
       } */
       if (!track) {
-        const {data: newTrack, error: newTrackErr} = await supabase
-          .from('projects_assets')
+        const { data: newTrack, error: newTrackErr } = await supabase
+          .from("projects_assets")
           .insert([
             {
               project_id: project.id,
@@ -107,24 +108,25 @@ export default function BottomBar({
               type: trackType,
               label: media.type,
               locked: true,
-            }
+            },
           ])
-          .select()
+          .select();
 
-          if (newTrackErr) throw newTrackErr;
+        if (newTrackErr) throw newTrackErr;
 
-          track = newTrack;
+        track = newTrack;
       }
-      
+
       //const keyframes = await db.keyFrames.keyFramesByTrack(track.id);
       const { data: keyframes, error: keyframesError } = await supabase
-        .from('keyframes')
-        .select('*')
-        .eq('track_id', track.id)
-        .order('timestamp', { ascending: true });
+        .from("keyframes")
+        .select("*")
+        .eq("track_id", track.id)
+        .order("timestamp", { ascending: true });
 
-      if (keyframesError) {console.log(keyframesError)};
-      
+      if (keyframesError) {
+        console.log(keyframesError);
+      }
 
       /* const lastKeyframe = [...keyframes]
         .sort((a, b) => a.timestamp - b.timestamp)
@@ -137,11 +139,11 @@ export default function BottomBar({
           { timestamp: 0, duration: 0 },
         ); */
       const lastKeyframe = keyframes?.reduce(
-        (acc, frame) => 
-          frame.timestamp + frame.duration > acc.timestamp + acc.duration 
-            ? frame 
+        (acc, frame) =>
+          frame.timestamp + frame.duration > acc.timestamp + acc.duration
+            ? frame
             : acc,
-        { timestamp: 0, duration: 0 }
+        { timestamp: 0, duration: 0 },
       );
 
       const duration = resolveDuration(media) ?? 5000; //gets media duration
@@ -187,8 +189,8 @@ export default function BottomBar({
       return db.keyFrames.find(newId.toString()); */
       const baseData = {
         track_id: track.id,
-        timestamp: lastKeyframe 
-          ? lastKeyframe.timestamp + lastKeyframe.duration + 1 
+        timestamp: lastKeyframe
+          ? lastKeyframe.timestamp + lastKeyframe.duration + 1
           : 0,
         duration,
         asset_id: media.id,
@@ -199,15 +201,15 @@ export default function BottomBar({
         insertData = {
           ...baseData,
           type: media.metadata.input?.image_url ? "image" : "prompt",
-          prompt: media.metadata.input.prompt || '',
-          url: media.metadata.input.image_url?.url
+          prompt: media.metadata.input.prompt || "",
+          url: media.metadata.input.image_url?.url,
         };
       } else if (media?.metadata && "description" in media.metadata) {
         insertData = {
           ...baseData,
           type: media.type,
-          prompt: media.metadata.description || '',
-          url: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/${media.file_path}`
+          prompt: media.metadata.description || "",
+          url: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/${media.file_path}`,
         };
       } else {
         toast({
@@ -217,14 +219,16 @@ export default function BottomBar({
         return;
       }
       console.log(insertData);
-      
+
       const { data: newKeyframe, error: insertKeyframeError } = await supabase
-        .from('keyframes')
+        .from("keyframes")
         .insert(insertData)
         .select()
         .single();
 
-      if (insertKeyframeError) {console.log(insertKeyframeError)};
+      if (insertKeyframeError) {
+        console.log(insertKeyframeError);
+      }
 
       return newKeyframe;
     },
