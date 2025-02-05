@@ -84,7 +84,7 @@ export default function BottomBar({
       if (trakcsErr) {
         console.log("Error fetching keyframes: ", trakcsErr);
         throw trakcsErr;
-      };
+      }
 
       const trackType = media.type === "image" ? "video" : media.type;
       let track = tracks.find((t) => t.type === trackType);
@@ -106,7 +106,7 @@ export default function BottomBar({
         if (newTrackErr) {
           console.log("Error adding track: ", newTrackErr);
           throw newTrackErr;
-        };
+        }
 
         track = newTrack;
       }
