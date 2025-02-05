@@ -58,10 +58,10 @@ type LeftPanelProps = {
 function useDebounce(value: string, delay: number) {
   const [debounceValue, setDebounceValue] = useState<string>(value);
   useEffect(() => {
-    const handler = setTimeout(() => setDebounceValue(value), delay)
-    return () => clearTimeout(handler)
-  },[value, delay])
-  return (debounceValue);
+    const handler = setTimeout(() => setDebounceValue(value), delay);
+    return () => clearTimeout(handler);
+  }, [value, delay]);
+  return debounceValue;
 }
 // #endregion
 
@@ -182,7 +182,7 @@ export default function LeftPanel({
       });
       return;
     }
-    
+
     try {
       const { error } = await supabase
         .from("projects")
@@ -212,10 +212,10 @@ export default function LeftPanel({
 
   useEffect(() => {
     handleUpdateProject({
-      title: title, 
+      title: title,
       description: description,
-    })
-  }, [deboounceTitle, debounceDescription])
+    });
+  }, [deboounceTitle, debounceDescription]);
   // #endregion
   //#region JSX
   return (
