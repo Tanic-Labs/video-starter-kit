@@ -60,7 +60,8 @@ export function resolveDuration(item: MediaItem): number | null {
     return metadata.duration * 1000;
   }
 
-  const data = item?.metadata && "output" in item.metadata ? item.metadata.output : null;
+  const data =
+    item?.metadata && "output" in item.metadata ? item.metadata.output : null;
   if (!data) return null;
   if ("seconds_total" in data) {
     return data.seconds_total * 1000;
@@ -82,7 +83,8 @@ export function resolveMediaUrl(item: MediaItem | undefined): string | null {
   if (item.source_type === "uploaded") {
     return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/${item.file_path}`;
   }
-  const data = item?.metadata && "output" in item.metadata ? item.metadata.output : null;
+  const data =
+    item?.metadata && "output" in item.metadata ? item.metadata.output : null;
   if (!data) return null;
   if (
     "images" in data &&
