@@ -214,30 +214,28 @@ export function VideoTrackView({
       console.log("Frmae.track_id guardado: ", trackID);
       console.log("borrando keyframe");
       const { data: deleteKeySuccess, error: deleteKeyError } = await supabase
-        .from('keyframes')
+        .from("keyframes")
         .delete()
-        .eq('id', frame.id);
+        .eq("id", frame.id);
 
       if (deleteKeyError) {
-        console.log("Error deleting keyframes: ", deleteKeyError)
+        console.log("Error deleting keyframes: ", deleteKeyError);
         throw deleteKeyError;
       }
-      console.log("keyframe borrado: ", deleteKeySuccess)
+      console.log("keyframe borrado: ", deleteKeySuccess);
 
-      const { data: deleteTrackSuccess, error: deleteTrackError } = await supabase
-        .from("projects_assets")
-        .delete()
-        .eq('id', trackID);
+      const { data: deleteTrackSuccess, error: deleteTrackError } =
+        await supabase.from("projects_assets").delete().eq("id", trackID);
 
       if (deleteTrackError) {
-        console.log("Error deleting Track: ", deleteTrackError)
+        console.log("Error deleting Track: ", deleteTrackError);
       }
       console.log("track borrado", deleteTrackSuccess);
     },
     onSuccess: () => refreshVideoCache(queryClient, track.projectId), // Corregir a real project id
   });
   const handleOnDelete = async () => {
-    deleteKeyframe.mutate(); 
+    deleteKeyframe.mutate();
   };
   // #endregion
 
