@@ -204,15 +204,18 @@ export default function VideoPreview({
   user,
   ...props
 }: VideoPreviewProps) {
-  // #region Const & States & Effects 
+  // #region Const & States & Effects
   if (!project) {
     project = PROJECT_PLACEHOLDER;
   }
   const projectId = project.id;
-  const [isCompositionLoading, setIsCompositionLoading] = useState<boolean | undefined>(false);
-  const [composition, setComposition] = useState<VideoCompositionData>(EMPTY_VIDEO_COMPOSITION);
+  const [isCompositionLoading, setIsCompositionLoading] = useState<
+    boolean | undefined
+  >(false);
+  const [composition, setComposition] = useState<VideoCompositionData>(
+    EMPTY_VIDEO_COMPOSITION,
+  );
   const setPlayer = useVideoProjectStore((s) => s.setPlayer);
-
 
   useEffect(() => {
     const getComposition = async () => {
@@ -220,7 +223,7 @@ export default function VideoPreview({
 
       setIsCompositionLoading(true);
       const { data: tracks, error: tracksError } = await supabase
-        .from('projects_assets')
+        .from("projects_assets")
         .select(`
           *, 
           keyframes(
@@ -228,46 +231,55 @@ export default function VideoPreview({
             assets(*)
           )
         `)
-        .eq('project_id', projectId);
-      
+        .eq("project_id", projectId);
+
       if (tracksError) {
-        console.log("Error fetching tracks: ", tracksError)
+        console.log("Error fetching tracks: ", tracksError);
         throw tracksError;
       }
 
-      const processed = tracks.reduce<VideoCompositionData>((acc, track) => {
-        const { keyframes, ...trackWithoutKeyframes } = track;
-        acc.tracks.push(trackWithoutKeyframes);
+      const processed = tracks.reduce<VideoCompositionData>(
+        (acc, track) => {
+          const { keyframes, ...trackWithoutKeyframes } = track;
+          acc.tracks.push(trackWithoutKeyframes);
 
-        const sortedKeyframes = keyframes?.sort((a: any, b: any) => a.timestamp - b.timestamp);
-        let frameIndex = Object.keys(acc.frames).length;
-  
-        sortedKeyframes?.forEach((keyframe: any) => {
-          const { assets, ...frameWithoutAssets } = keyframe;
-          acc.frames[frameIndex] = frameWithoutAssets; 
-          frameIndex++;
+          const sortedKeyframes = keyframes?.sort(
+            (a: any, b: any) => a.timestamp - b.timestamp,
+          );
+          let frameIndex = Object.keys(acc.frames).length;
 
-          if (assets) {
-            const assetsArray = Array.isArray(assets) ? assets : [assets];
+          sortedKeyframes?.forEach((keyframe: any) => {
+            const { assets, ...frameWithoutAssets } = keyframe;
+            acc.frames[frameIndex] = frameWithoutAssets;
+            frameIndex++;
+
+            if (assets) {
+              const assetsArray = Array.isArray(assets) ? assets : [assets];
               assetsArray.forEach((asset) => {
-              acc.mediaItems[asset.id] = asset;
-            });
-          }
-        });
-         
-        return acc;
-      }, { tracks: [], frames: {} , mediaItems: {} });
-  
+                acc.mediaItems[asset.id] = asset;
+              });
+            }
+          });
+
+          return acc;
+        },
+        { tracks: [], frames: {}, mediaItems: {} },
+      );
+
       setComposition(processed);
       setIsCompositionLoading(false);
     };
 
-    if (project && project !== PROJECT_PLACEHOLDER){
+    if (project && project !== PROJECT_PLACEHOLDER) {
       getComposition();
     }
   }, [projectId]);
   //const { tracks = [], frames = {}, mediaItems = {} } = composition;
-  const { tracks = [], frames = {} as Record<number, VideoKeyFrame>, mediaItems = {} } = composition;
+  const {
+    tracks = [],
+    frames = {} as Record<number, VideoKeyFrame>,
+    mediaItems = {},
+  } = composition;
   // Sustituir useVideoComposition por querries a supabase y agregar a composition
   // Antes de iniciar el querry a supabase set de isCompositionLoading
 
@@ -275,7 +287,7 @@ export default function VideoPreview({
     const mediaIds = Object.values(frames)
       /* .flat()
       .flatMap((f) => f.data.mediaId); */
-      .map(f => f.asset_id);
+      .map((f) => f.asset_id);
     for (const media of Object.values(mediaItems)) {
       if (media.source_type === "uploaded" && mediaIds.includes(media.id)) {
         const mediaUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/${media.file_path}`;
@@ -315,18 +327,18 @@ export default function VideoPreview({
   // #region New Calculate Duration
   const calculateDuration = useCallback(() => {
     let maxTimestamp = 0;
-    
+
     // Iterate directly over frame objects (not arrays)
     for (const frame of Object.values(frames)) {
       maxTimestamp = Math.max(maxTimestamp, Number(frame.timestamp));
     }
-  
+
     // Add 5 seconds padding after the last frame
     return Math.max(DEFAULT_DURATION, Math.ceil((maxTimestamp + 5000) / 1000));
   }, [frames]);
 
   const duration = calculateDuration();
-  // #endregion 
+  // #endregion
 
   // #region Player State
   const setPlayerCurrentTimestamp = useVideoProjectStore(
