@@ -1,3 +1,4 @@
+// #region IMPORTS
 import { db } from "@/data/db";
 import {
   EMPTY_VIDEO_COMPOSITION,
@@ -28,7 +29,9 @@ import {
 import { throttle } from "throttle-debounce";
 import { Button } from "./ui/button";
 import { DownloadIcon } from "lucide-react";
+// #endregion
 
+// #region INTERFACE VIDEOCOMP
 interface VideoCompositionProps {
   project: VideoProject;
   tracks: VideoTrack[];
@@ -40,7 +43,9 @@ const FPS = 30;
 const DEFAULT_DURATION = 5;
 const VIDEO_WIDTH = 1024;
 const VIDEO_HEIGHT = 720;
+// #endregion
 
+// #region VIDEO COMPOSITION
 export const VideoComposition: React.FC<VideoCompositionProps> = ({
   project,
   tracks,
@@ -68,7 +73,9 @@ export const VideoComposition: React.FC<VideoCompositionProps> = ({
     />
   );
 };
+// #endregion
 
+// #region MAIN COMPOSITION
 const MainComposition: React.FC<VideoCompositionProps> = ({
   tracks,
   frames,
@@ -97,13 +104,17 @@ const MainComposition: React.FC<VideoCompositionProps> = ({
     </AbsoluteFill>
   );
 };
+// #endregion
 
+// #region INTERFACE TRACKSEQUENCE
 interface TrackSequenceProps {
   track: VideoTrack;
   frames: VideoKeyFrame[];
   mediaItems: Record<string, MediaItem>;
 }
+// #endregon
 
+// #region VIDEO TRACK SEQUENCE
 const VideoTrackSequence: React.FC<TrackSequenceProps> = ({
   frames,
   mediaItems,
@@ -137,7 +148,9 @@ const VideoTrackSequence: React.FC<TrackSequenceProps> = ({
     </AbsoluteFill>
   );
 };
+// #endregion
 
+// #region AUDIO TRACK SEQUENCE
 const AudioTrackSequence: React.FC<TrackSequenceProps> = ({
   frames,
   mediaItems,
@@ -168,8 +181,11 @@ const AudioTrackSequence: React.FC<TrackSequenceProps> = ({
     </>
   );
 };
+// #endregion
 
+// #region MAIN
 export default function VideoPreview() {
+  // #region Const & Values
   const projectId = useProjectId();
   const setPlayer = useVideoProjectStore((s) => s.setPlayer);
 
@@ -179,7 +195,9 @@ export default function VideoPreview() {
     isLoading: isCompositionLoading,
   } = useVideoComposition(projectId);
   const { tracks = [], frames = {}, mediaItems = {} } = composition;
+  // #endregion
 
+  // #region States & Effects
   useEffect(() => {
     const mediaIds = Object.values(frames)
       .flat()
@@ -200,7 +218,9 @@ export default function VideoPreview() {
       }
     }
   }, [frames, mediaItems]);
+  // #endregion
 
+  // #region Calculate Duration
   // Calculate the effective duration based on the latest keyframe
   const calculateDuration = useCallback(() => {
     let maxTimestamp = 0;
@@ -218,7 +238,9 @@ export default function VideoPreview() {
   const setPlayerCurrentTimestamp = useVideoProjectStore(
     (s) => s.setPlayerCurrentTimestamp,
   );
+  // #endregion
 
+  // #region Player State
   const setPlayerState = useVideoProjectStore((s) => s.setPlayerState);
   // Frame updates are super frequent, so we throttle the updates to the timestamp
   const updatePlayerCurrentTimestamp = useCallback(
@@ -248,11 +270,15 @@ export default function VideoPreview() {
     },
     [setPlayer, setPlayerState, updatePlayerCurrentTimestamp],
   );
+  // #endregion
 
+  // #region Export Button
   const setExportDialogOpen = useVideoProjectStore(
     (s) => s.setExportDialogOpen,
   );
+  // #endregion
 
+  // #region Main JSX
   return (
     <div className="flex-grow flex-1 h-full flex items-center justify-center bg-background-dark dark:bg-background-light relative">
       <Button
@@ -292,4 +318,6 @@ export default function VideoPreview() {
       </div>
     </div>
   );
+  // #endregion
 }
+// #endregion
