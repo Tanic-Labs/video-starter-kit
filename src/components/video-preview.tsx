@@ -29,6 +29,7 @@ import {
 import { throttle } from "throttle-debounce";
 import { Button } from "./ui/button";
 import { DownloadIcon } from "lucide-react";
+import { SupabaseClient, User } from "@supabase/supabase-js";
 // #endregion
 
 // #region INTERFACE VIDEOCOMP
@@ -183,18 +184,34 @@ const AudioTrackSequence: React.FC<TrackSequenceProps> = ({
 };
 // #endregion
 
+// #region TYPES
+type VideoPreviewProps = {
+  project: VideoProject | null;
+  supabase: SupabaseClient;
+  user: User | null;
+}
+// #endregion
+
 // #region MAIN
-export default function VideoPreview() {
+export default function VideoPreview({
+  project,
+  supabase,
+  user,
+  ...props
+} : VideoPreviewProps) {
   // #region Const & Values
-  const projectId = useProjectId();
+  if (!project) {
+    project = PROJECT_PLACEHOLDER
+  }
+  const projectId = project.id
   const setPlayer = useVideoProjectStore((s) => s.setPlayer);
 
-  const { data: project = PROJECT_PLACEHOLDER } = useProject(projectId);
   const {
     data: composition = EMPTY_VIDEO_COMPOSITION,
     isLoading: isCompositionLoading,
   } = useVideoComposition(projectId);
   const { tracks = [], frames = {}, mediaItems = {} } = composition;
+  // Sustituir useVideoComposition por queries a supabase y agregar a composition
   // #endregion
 
   // #region States & Effects
@@ -203,10 +220,10 @@ export default function VideoPreview() {
       .flat()
       .flatMap((f) => f.data.mediaId);
     for (const media of Object.values(mediaItems)) {
-      if (/* media.status === "completed" && */ mediaIds.includes(media.id)) {
+      if ( media.source_type === "uploaded" &&  mediaIds.includes(media.id)) {
         const mediaUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/${media.file_path}`;
         if (!mediaUrl) continue;
-        if (media.type === "video") {
+        if (media.type === "video" || media.type === "image") {
           preloadVideo(mediaUrl);
         }
         if (

@@ -154,7 +154,11 @@ export function App({ projectId }: AppProps) {
                 project={project}
               />
               <div className="flex flex-col flex-1">
-                <VideoPreview />
+                <VideoPreview 
+                  project={project}
+                  supabase={supabaseClient}
+                  user={user}
+                />
                 <BottomBar
                   project={project}
                   supabase={supabaseClient}
