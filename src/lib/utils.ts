@@ -43,7 +43,7 @@ export const trackIcons: Record<
   FunctionComponent
 > = {
   video: VideoIcon,
-  music: MusicIcon,
+  audio: MusicIcon,
   voiceover: MicIcon,
   image: ImageIcon,
 };
@@ -60,7 +60,7 @@ export function resolveDuration(item: MediaItem): number | null {
     return metadata.duration * 1000;
   }
 
-  const data = item.output;
+  const data = item?.metadata && "output" in item.metadata ? item.metadata.output : null;
   if (!data) return null;
   if ("seconds_total" in data) {
     return data.seconds_total * 1000;
@@ -79,10 +79,10 @@ export function resolveDuration(item: MediaItem): number | null {
 export function resolveMediaUrl(item: MediaItem | undefined): string | null {
   if (!item) return null;
 
-  if (item.kind === "uploaded") {
-    return item.url;
+  if (item.source_type === "uploaded") {
+    return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/${item.file_path}`;
   }
-  const data = item.output;
+  const data = item?.metadata && "output" in item.metadata ? item.metadata.output : null;
   if (!data) return null;
   if (
     "images" in data &&

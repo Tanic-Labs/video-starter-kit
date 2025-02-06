@@ -93,7 +93,7 @@ export const useVideoComposition = (projectId: string) =>
         frames: Object.fromEntries(
           tracks.map((track) => [
             track.id,
-            frames.filter((f) => f.trackId === track.id),
+            frames.filter((f) => f.track_id === track.id),
           ]),
         ),
         mediaItems: Object.fromEntries(

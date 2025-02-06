@@ -222,7 +222,6 @@ export function VideoTrackView({
         console.log("Error deleting keyframes: ", deleteKeyError);
         throw deleteKeyError;
       }
-      console.log("keyframe borrado: ", deleteKeySuccess);
 
       const { data: deleteTrackSuccess, error: deleteTrackError } =
         await supabase.from("projects_assets").delete().eq("id", trackID);
@@ -230,7 +229,6 @@ export function VideoTrackView({
       if (deleteTrackError) {
         console.log("Error deleting Track: ", deleteTrackError);
       }
-      console.log("track borrado", deleteTrackSuccess);
     },
     onSuccess: () => refreshVideoCache(queryClient, track.projectId), // Corregir a real project id
   });
