@@ -189,7 +189,7 @@ type VideoPreviewProps = {
   project: VideoProject | null;
   supabase: SupabaseClient;
   user: User | null;
-}
+};
 // #endregion
 
 // #region MAIN
@@ -198,12 +198,12 @@ export default function VideoPreview({
   supabase,
   user,
   ...props
-} : VideoPreviewProps) {
+}: VideoPreviewProps) {
   // #region Const & Values
   if (!project) {
-    project = PROJECT_PLACEHOLDER
+    project = PROJECT_PLACEHOLDER;
   }
-  const projectId = project.id
+  const projectId = project.id;
   const setPlayer = useVideoProjectStore((s) => s.setPlayer);
 
   const {
@@ -220,7 +220,7 @@ export default function VideoPreview({
       .flat()
       .flatMap((f) => f.data.mediaId);
     for (const media of Object.values(mediaItems)) {
-      if ( media.source_type === "uploaded" &&  mediaIds.includes(media.id)) {
+      if (media.source_type === "uploaded" && mediaIds.includes(media.id)) {
         const mediaUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/${media.file_path}`;
         if (!mediaUrl) continue;
         if (media.type === "video" || media.type === "image") {
