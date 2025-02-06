@@ -228,7 +228,8 @@ export default function VideoPreview({
         }
         if (
           /* mediaUrl.indexOf("v2.") === -1 && */
-          media.type === "audio" || media.type === "voiceover"
+          media.type === "audio" ||
+          media.type === "voiceover"
         ) {
           preloadAudio(mediaUrl);
         }
