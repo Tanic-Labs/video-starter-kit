@@ -5,7 +5,7 @@ import {
   refreshVideoCache,
   useProjectMediaItems,
 } from "@/data/queries";
-import type { MediaItem, VideoKeyFrame, VideoTrack } from "@/data/schema";
+import type { MediaItem, VideoKeyFrame, VideoProject, VideoTrack } from "@/data/schema";
 import { cn, resolveDuration, resolveMediaUrl, trackIcons } from "@/lib/utils";
 import {
   keepPreviousData,
@@ -18,6 +18,7 @@ import {
   type HTMLAttributes,
   type MouseEventHandler,
   createElement,
+  useState,
   useEffect,
   useMemo,
   useRef,
@@ -63,18 +64,7 @@ export function VideoTrackRow({
       data?.id && !["video", "audio", "voiceover"].includes(data.id),
     ),
   });
-
-  useEffect(() => {
-    if (keyframes && keyframes.length > 0) {
-      console.log(data);
-      console.log(keyframes);
-    }
-  }, [keyframes]);
-
   const mediaType = useMemo(() => keyframes[0]?.type, [keyframes]);
-  if (mediaType) {
-    console.log(mediaType);
-  }
   // #endregion
 
   // #region Video Track Row JSX
@@ -100,6 +90,7 @@ export function VideoTrackRow({
           }}
           track={data}
           frame={frame}
+          supabase={supabase}
         />
       ))}
     </div>
@@ -191,7 +182,12 @@ function AudioWaveform({ data }: AudioWaveformProps) {
 type VideoTrackViewProps = {
   track: VideoTrack;
   frame: VideoKeyFrame;
+  supabase: SupabaseClient;
 } & HTMLAttributes<HTMLDivElement>;
+
+interface ProjectsAssetsResponse {
+  assets: MediaItem;
+}
 // #endregion
 
 // #region VIDEO TRACK VIEW
@@ -199,6 +195,7 @@ export function VideoTrackView({
   className,
   track,
   frame,
+  supabase,
   ...props
 }: VideoTrackViewProps) {
   // #region Const & Values
@@ -224,18 +221,50 @@ export function VideoTrackView({
     selectKeyframe(frame.id);
   };
 
-  const projectId = useProjectId(); // Usar project id real
-  const { data: mediaItems = [] } = useProjectMediaItems(projectId); // Que es esto?
+  //@ts-ignore
+  const projectId = track && track.project_id ? track.project_id : ""
+  const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
 
-  const media = mediaItems.find((item) => item.id === frame.data.mediaId);
-  // TODO improve missing data
-  if (!media) return null;
+  useEffect(() => {
+    const fetchMediaItems = async () => {
+      const { data, error } = await supabase
+        .from('projects_assets')
+        .select('assets(*)')
+        .eq('project_id', projectId)
+        .returns<ProjectsAssetsResponse[]>();
+      
+      if (error) {
+        console.log(error)
+        throw error
+      }
+
+      const mappedItems = data.map(item => ({
+        id: item.assets.id,
+        user_id: item.assets.user_id,
+        type: item.assets.type,
+        source_type: item.assets.source_type,
+        file_path: item.assets.file_path,
+        created_at: item.assets.created_at,
+        metadata: item.assets.metadata
+      } as MediaItem));
+    
+      setMediaItems(mappedItems);
+    };
+    if (projectId) fetchMediaItems();
+  }, [projectId]);
+  
+  const media = mediaItems.find((item) => item.id === frame.asset_id);
   // #endregion
 
   // #region Get Media Url
-  const mediaUrl = resolveMediaUrl(media); // obtener url real del objeto en suapbase
+  //const mediaUrl = resolveMediaUrl(media); // obtener url real del objeto en suapbase
+  const mediaUrl = 
+    media && media.source_type === "uploaded" 
+    ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/${media.file_path}` 
+    : `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/7f4041c4-c378-4c1e-a47f-8b5389a8a322/images/0406c906-9e24-4ec2-9e2e-95ce3aab039a.png` 
 
   const imageUrl = useMemo(() => {
+    if (!media) return;
     if (media.type === "image" || media.type === "video") {
       return mediaUrl;
     }
@@ -247,12 +276,14 @@ export function VideoTrackView({
       );
     } */
     return undefined;
-  }, [media, mediaUrl]);
+  }, [media]);
   // #endregion
 
-  const label = media.type ?? "unknown"; // Mover
-
+  const label = media?.type ?? "unknown"; // Mover
   const trackRef = useRef<HTMLDivElement>(null); // Para que es esto?
+
+  // TODO improve missing data
+  if (!media) return null;
 
   // #region Calculate Bounds
   const calculateBounds = () => {

@@ -258,10 +258,6 @@ export default function BottomBar({
   }, [tracks, projectId]);
   // #endregion
 
-  useEffect(() => {
-    console.log(trackObj);
-  }, [tracks]);
-
   // #region Drop Function
   const handleOnDrop: DragEventHandler<HTMLDivElement> = (event) => {
     event.preventDefault();

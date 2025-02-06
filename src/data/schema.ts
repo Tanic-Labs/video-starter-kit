@@ -42,7 +42,8 @@ export type VideoKeyFrame = {
   id: string;
   timestamp: number;
   duration: number;
-  trackId: string;
+  track_id: string;
+  asset_id: string;
   data: KeyFrameData;
 };
 
@@ -99,7 +100,7 @@ export type MediaItem = {
   type: "image" | "video" | "audio" | "voiceover";
   source_type: "generated" | "uploaded";
   file_path: string;
-  crated_at: number;
+  created_at: number;
   metadata?:
     | {
         // For "generated"
