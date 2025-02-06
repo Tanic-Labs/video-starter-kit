@@ -211,12 +211,10 @@ export function VideoTrackView({
     //mutationFn: () => db.kekyFrames.delete(frame.id), // Replace a delete en supabase
     mutationFn: async () => {
       const trackID = frame.track_id;
-      console.log("Frmae.track_id guardado: ", trackID);
-      console.log("borrando keyframe");
       const { data: deleteKeySuccess, error: deleteKeyError } = await supabase
         .from("keyframes")
         .delete()
-        .eq("id", frame.id);
+        .eq("track_id", trackID);
 
       if (deleteKeyError) {
         console.log("Error deleting keyframes: ", deleteKeyError);
