@@ -38,7 +38,7 @@ export default function BottomBar({
   if (!project) {
     project = PROJECT_PLACEHOLDER;
   }
-  const queryClient = useQueryClient(); // Es sustituido por client
+  const queryClient = useQueryClient();
   const projectId = project.id;
   const playerCurrentTimestamp = useVideoProjectStore(
     (s) => s.playerCurrentTimestamp,
@@ -62,7 +62,6 @@ export default function BottomBar({
       "status" in job.metadata &&
       job.metadata.status === "completed";
     return jobComplete;
-    //return job.metadata.status === "completed";
   };
   // #endregion
 
@@ -184,27 +183,15 @@ export default function BottomBar({
   });
   // #endregion
 
-  // #region Old Fetch Tracks
-  /* const { data: tracks = [] } = useQuery({
-    queryKey: queryKeys.projectTracks(projectId),
-    queryFn: async () => {
-      const result = await db.tracks.tracksByProject(projectId);
-      return result.toSorted(
-        (a, b) => TRACK_TYPE_ORDER[a.type] - TRACK_TYPE_ORDER[b.type],
-      );
-    },
-  }); */
-  // #endregion
-
   // #region New Fetch Tracks
   const { data: tracks = [] } = useQuery({
     queryKey: queryKeys.projectTracks(projectId),
     queryFn: async () => {
       if (!projectId || !user) return [];
-      // Direct Supabase query with keyframes join
+
       const { data, error } = await supabase
         .from("projects_assets")
-        .select("*, keyframes(*)") // Include related keyframes
+        .select("*, keyframes(*)")
         .eq("project_id", projectId);
 
       if (error) {
@@ -212,7 +199,6 @@ export default function BottomBar({
         throw error;
       }
 
-      // Sort tracks using the same logic
       return (data as VideoTrack[]).toSorted(
         (a, b) => TRACK_TYPE_ORDER[a.type] - TRACK_TYPE_ORDER[b.type],
       );

@@ -205,13 +205,41 @@ export function VideoTrackView({
 }: VideoTrackViewProps) {
   // #region Const & Values
   const queryClient = useQueryClient();
+
+  // #region Delete Function
   const deleteKeyframe = useMutation({
-    mutationFn: () => db.keyFrames.delete(frame.id), // Replace a delete en supabase
+    //mutationFn: () => db.kekyFrames.delete(frame.id), // Replace a delete en supabase
+    mutationFn: async () => {
+      const trackID = frame.track_id;
+      console.log("Frmae.track_id guardado: ", trackID);
+      console.log("borrando keyframe");
+      const { data: deleteKeySuccess, error: deleteKeyError } = await supabase
+        .from('keyframes')
+        .delete()
+        .eq('id', frame.id);
+
+      if (deleteKeyError) {
+        console.log("Error deleting keyframes: ", deleteKeyError)
+        throw deleteKeyError;
+      }
+      console.log("keyframe borrado: ", deleteKeySuccess)
+
+      const { data: deleteTrackSuccess, error: deleteTrackError } = await supabase
+        .from("projects_assets")
+        .delete()
+        .eq('id', trackID);
+
+      if (deleteTrackError) {
+        console.log("Error deleting Track: ", deleteTrackError)
+      }
+      console.log("track borrado", deleteTrackSuccess);
+    },
     onSuccess: () => refreshVideoCache(queryClient, track.projectId), // Corregir a real project id
   });
-  const handleOnDelete = () => {
-    deleteKeyframe.mutate(); // Fusionar con deleteKeyFrame
+  const handleOnDelete = async () => {
+    deleteKeyframe.mutate(); 
   };
+  // #endregion
 
   const isSelected = useVideoProjectStore(
     (
