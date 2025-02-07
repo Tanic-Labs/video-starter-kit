@@ -37,7 +37,6 @@ import { SupabaseClient, User } from "@supabase/supabase-js";
 interface VideoCompositionProps {
   project: VideoProject;
   tracks: VideoTrack[];
-  //frames: Record<string, VideoKeyFrame[]>;
   frames: Record<number, VideoKeyFrame>;
   mediaItems: Record<string, MediaItem>;
 }
@@ -70,7 +69,6 @@ export const VideoComposition: React.FC<VideoCompositionProps> = ({
       defaultProps={{
         project,
         tracks: sortedTracks,
-        //frames,
         frames: Object.values(frames),
         mediaItems,
       }}
@@ -92,7 +90,6 @@ const MainComposition: React.FC<VideoCompositionProps> = ({
           {track.type === "video" && (
             <VideoTrackSequence
               track={track}
-              //frames={frames[track.id] || []}
               frames={Object.values(frames)}
               mediaItems={mediaItems}
             />
@@ -100,7 +97,6 @@ const MainComposition: React.FC<VideoCompositionProps> = ({
           {(track.type === "audio" || track.type === "voiceover") && (
             <AudioTrackSequence
               track={track}
-              //frames={frames[track.id] || []}
               frames={Object.values(frames)}
               mediaItems={mediaItems}
             />
@@ -204,19 +200,17 @@ export default function VideoPreview({
   user,
   ...props
 }: VideoPreviewProps) {
-  // #region Const & States & Effects
+  // #region setStates
   if (!project) {
     project = PROJECT_PLACEHOLDER;
   }
   const projectId = project.id;
-  const [isCompositionLoading, setIsCompositionLoading] = useState<
-    boolean | undefined
-  >(false);
-  const [composition, setComposition] = useState<VideoCompositionData>(
-    EMPTY_VIDEO_COMPOSITION,
-  );
+  const [isCompositionLoading, setIsCompositionLoading] = useState<boolean | undefined>(false);
+  const [composition, setComposition] = useState<VideoCompositionData>(EMPTY_VIDEO_COMPOSITION,);
   const setPlayer = useVideoProjectStore((s) => s.setPlayer);
+  // #endregion
 
+  // #region Get Compositon
   useEffect(() => {
     const getComposition = async () => {
       if (!projectId || !user) return;
@@ -274,20 +268,12 @@ export default function VideoPreview({
       getComposition();
     }
   }, [projectId]);
-  //const { tracks = [], frames = {}, mediaItems = {} } = composition;
-  const {
-    tracks = [],
-    frames = {} as Record<number, VideoKeyFrame>,
-    mediaItems = {},
-  } = composition;
-  // Sustituir useVideoComposition por querries a supabase y agregar a composition
-  // Antes de iniciar el querry a supabase set de isCompositionLoading
+  const { tracks = [], frames = {} as Record<number, VideoKeyFrame>, mediaItems = {} } = composition;
+  // #endregion
 
+  // #region Get Media URL
   useEffect(() => {
-    const mediaIds = Object.values(frames)
-      /* .flat()
-      .flatMap((f) => f.data.mediaId); */
-      .map((f) => f.asset_id);
+    const mediaIds = Object.values(frames).map((f) => f.asset_id);
     for (const media of Object.values(mediaItems)) {
       if (media.source_type === "uploaded" && mediaIds.includes(media.id)) {
         const mediaUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/${media.file_path}`;
@@ -307,24 +293,7 @@ export default function VideoPreview({
   }, [frames, mediaItems]);
   // #endregion
 
-  // #region Old Calculate Duration
-  // Calculate the effective duration based on the latest keyframe
-  /* const calculateDuration = useCallback(() => {
-    let maxTimestamp = 0;
-    console.log(frames);
-    for (const trackFrames of Object.values(frames)) {
-      for (const frame of trackFrames) {
-        maxTimestamp = Math.max(maxTimestamp, frame.timestamp);
-      }
-    }
-    // Add 5 seconds padding after the last frame
-    return Math.max(DEFAULT_DURATION, Math.ceil((maxTimestamp + 5000) / 1000));
-  }, [frames]);
-
-  const duration = calculateDuration(); */
-  // #endregion
-
-  // #region New Calculate Duration
+  // #region Calculate Duration
   const calculateDuration = useCallback(() => {
     let maxTimestamp = 0;
 

@@ -111,6 +111,9 @@ export type MediaItem = {
         output: Record<string, any>;
         endpointId: string;
         requestId: string;
+        waveform?: any;
+        start_frame_url?: number;
+        end_frame_url?: number;
       }
     | {
         // For "uploaded"
@@ -119,5 +122,8 @@ export type MediaItem = {
         type: string;
         description: string;
         original_name: string;
+        waveform?: any;
+        start_frame_url?: number;
+        end_frame_url?: number;
       };
 };

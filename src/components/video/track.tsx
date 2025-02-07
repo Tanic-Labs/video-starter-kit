@@ -295,16 +295,16 @@ export function VideoTrackView({
 
   const imageUrl = useMemo(() => {
     if (!media) return;
-    if (media.type === "image" || media.type === "video") {
+    if (media.type === "image") {
       return mediaUrl;
     }
-    /* if (media.type === "video") { // Ver como obtener e insertar estos datos en video
+    if (media.type === "video") { // Ver como obtener e insertar estos datos en video
       return (
-        media.input?.image_url ||
+        mediaUrl ||
         media.metadata?.start_frame_url ||
         media.metadata?.end_frame_url
       );
-    } */
+    } 
     return undefined;
   }, [media]);
   // #endregion

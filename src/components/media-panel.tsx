@@ -109,13 +109,19 @@ export function MediaItemRow({
                   : "",
             },
           );
-          /* media = {
+          media = {
             ...data,
-            output: result.data,
-            status: "completed",
+            metadata: data.metadata && data.source_type === "generated" 
+              ? {
+                ...data.metadata,
+                output: result.data,
+                status: "completed",
+              }
+              : data.metadata,
           };
 
-          await db.media.update(data.id, media); */
+          // update to sapabe in future
+          await db.media.update(data.id, media);
 
           const { data: completedData, error: completedError } = await supabase
             .from("assets")
@@ -140,10 +146,15 @@ export function MediaItemRow({
             description: `Your ${data.type} has been generated successfully.`,
           });
         } catch {
-          /* await db.media.update(data.id, {
+           await db.media.update(data.id, {
             ...data,
-            status: "failed",
-          }); */
+            metadata: data.metadata && data.source_type === "generated"
+              ? {
+                ...data.metadata,
+                status: "failed"
+              }
+              : data.metadata,
+          }); // update tu supabase in futere
 
           const { data: failData, error: failError } = await supabase
             .from("assets")
