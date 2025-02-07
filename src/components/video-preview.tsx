@@ -205,8 +205,12 @@ export default function VideoPreview({
     project = PROJECT_PLACEHOLDER;
   }
   const projectId = project.id;
-  const [isCompositionLoading, setIsCompositionLoading] = useState<boolean | undefined>(false);
-  const [composition, setComposition] = useState<VideoCompositionData>(EMPTY_VIDEO_COMPOSITION,);
+  const [isCompositionLoading, setIsCompositionLoading] = useState<
+    boolean | undefined
+  >(false);
+  const [composition, setComposition] = useState<VideoCompositionData>(
+    EMPTY_VIDEO_COMPOSITION,
+  );
   const setPlayer = useVideoProjectStore((s) => s.setPlayer);
   // #endregion
 
@@ -268,7 +272,11 @@ export default function VideoPreview({
       getComposition();
     }
   }, [projectId]);
-  const { tracks = [], frames = {} as Record<number, VideoKeyFrame>, mediaItems = {} } = composition;
+  const {
+    tracks = [],
+    frames = {} as Record<number, VideoKeyFrame>,
+    mediaItems = {},
+  } = composition;
   // #endregion
 
   // #region Get Media URL

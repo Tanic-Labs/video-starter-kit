@@ -298,13 +298,14 @@ export function VideoTrackView({
     if (media.type === "image") {
       return mediaUrl;
     }
-    if (media.type === "video") { // Ver como obtener e insertar estos datos en video
+    if (media.type === "video") {
+      // Ver como obtener e insertar estos datos en video
       return (
         mediaUrl ||
         media.metadata?.start_frame_url ||
         media.metadata?.end_frame_url
       );
-    } 
+    }
     return undefined;
   }, [media]);
   // #endregion

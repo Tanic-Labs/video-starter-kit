@@ -111,13 +111,14 @@ export function MediaItemRow({
           );
           media = {
             ...data,
-            metadata: data.metadata && data.source_type === "generated" 
-              ? {
-                ...data.metadata,
-                output: result.data,
-                status: "completed",
-              }
-              : data.metadata,
+            metadata:
+              data.metadata && data.source_type === "generated"
+                ? {
+                    ...data.metadata,
+                    output: result.data,
+                    status: "completed",
+                  }
+                : data.metadata,
           };
 
           // update to sapabe in future
@@ -146,14 +147,15 @@ export function MediaItemRow({
             description: `Your ${data.type} has been generated successfully.`,
           });
         } catch {
-           await db.media.update(data.id, {
+          await db.media.update(data.id, {
             ...data,
-            metadata: data.metadata && data.source_type === "generated"
-              ? {
-                ...data.metadata,
-                status: "failed"
-              }
-              : data.metadata,
+            metadata:
+              data.metadata && data.source_type === "generated"
+                ? {
+                    ...data.metadata,
+                    status: "failed",
+                  }
+                : data.metadata,
           }); // update tu supabase in futere
 
           const { data: failData, error: failError } = await supabase
