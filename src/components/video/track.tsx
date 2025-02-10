@@ -210,22 +210,14 @@ export function VideoTrackView({
   const deleteKeyframe = useMutation({
     //mutationFn: () => db.kekyFrames.delete(frame.id), // Replace a delete en supabase
     mutationFn: async () => {
-      const trackID = frame.track_id;
       const { data: deleteKeySuccess, error: deleteKeyError } = await supabase
         .from("keyframes")
         .delete()
-        .eq("track_id", trackID);
+        .eq("id", frame.id);
 
       if (deleteKeyError) {
         console.log("Error deleting keyframes: ", deleteKeyError);
         throw deleteKeyError;
-      }
-
-      const { data: deleteTrackSuccess, error: deleteTrackError } =
-        await supabase.from("projects_assets").delete().eq("id", trackID);
-
-      if (deleteTrackError) {
-        console.log("Error deleting Track: ", deleteTrackError);
       }
     },
     onSuccess: () => refreshVideoCache(queryClient, track.projectId), // Corregir a real project id
@@ -250,31 +242,32 @@ export function VideoTrackView({
 
   //@ts-ignore
   const projectId = track && track.project_id ? track.project_id : "";
+  const assetId = frame && frame.asset_id ? frame.asset_id : "";
   const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
 
   useEffect(() => {
     const fetchMediaItems = async () => {
       const { data, error } = await supabase
-        .from("projects_assets")
-        .select("assets(*)")
-        .eq("project_id", projectId)
-        .returns<ProjectsAssetsResponse[]>();
+        .from("assets")
+        .select("*")
+        .eq("id", assetId);
 
       if (error) {
         console.log(error);
         throw error;
       }
 
+      console.log("mediaItems: ", data)
       const mappedItems = data.map(
         (item) =>
           ({
-            id: item.assets.id,
-            user_id: item.assets.user_id,
-            type: item.assets.type,
-            source_type: item.assets.source_type,
-            file_path: item.assets.file_path,
-            created_at: item.assets.created_at,
-            metadata: item.assets.metadata,
+            id: item.id,
+            user_id: item.user_id,
+            type: item.type,
+            source_type: item.source_type,
+            file_path: item.file_path,
+            created_at: item.created_at,
+            metadata: item.metadata,
           }) as MediaItem,
       );
 
@@ -283,7 +276,7 @@ export function VideoTrackView({
     if (projectId) fetchMediaItems();
   }, [projectId]);
 
-  const media = mediaItems.find((item) => item.id === frame.asset_id);
+  const media = mediaItems[0];
   // #endregion
 
   // #region Get Media Url
