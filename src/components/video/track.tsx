@@ -257,7 +257,7 @@ export function VideoTrackView({
         throw error;
       }
 
-      console.log("mediaItems: ", data)
+      console.log("mediaItems: ", data);
       const mappedItems = data.map(
         (item) =>
           ({
