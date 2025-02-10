@@ -10,7 +10,14 @@ import {
 import { useProjectId, useVideoProjectStore } from "@/data/store";
 import { cn, resolveDuration } from "@/lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Dispatch, type DragEventHandler, SetStateAction, useEffect, useMemo, useState } from "react";
+import {
+  Dispatch,
+  type DragEventHandler,
+  SetStateAction,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { VideoControls } from "./video-controls";
 import { TimelineRuler } from "./video/timeline";
 import { VideoTrackRow } from "./video/track";
@@ -182,8 +189,8 @@ export default function BottomBar({
     },
     onSuccess: (data) => {
       if (!data) return;
-      setRealtime(!realtime)
-      refreshVideoCache(queryClient, projectId)
+      setRealtime(!realtime);
+      refreshVideoCache(queryClient, projectId);
     },
   });
   // #endregion

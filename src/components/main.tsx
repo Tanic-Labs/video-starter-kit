@@ -44,7 +44,7 @@ export function App({ projectId }: AppProps) {
   const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
   const [project, setProject] = useState<VideoProject | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [realtime, setRealtime] = useState<boolean>(false)
+  const [realtime, setRealtime] = useState<boolean>(false);
 
   const [user, setUser] = useState<User | null>(null);
 
