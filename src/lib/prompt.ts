@@ -2,7 +2,7 @@ import type { VideoProject } from "@/data/schema";
 import { fal } from "./fal";
 
 type EnhancePromptOptions = {
-  type: "image" | "video" | "music" | "voiceover";
+  type: "image" | "video" | "audio" | "voiceover";
   project?: VideoProject;
 };
 

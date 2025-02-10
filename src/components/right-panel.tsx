@@ -54,6 +54,7 @@ import { Label } from "./ui/label";
 import { VoiceSelector } from "./playht/voice-selector";
 import { LoadingIcon } from "./ui/icons";
 import { getMediaMetadata } from "@/lib/ffmpeg";
+import { SupabaseClient, User } from "@supabase/supabase-js";
 
 type ModelEndpointPickerProps = {
   mediaType: string;
@@ -87,11 +88,18 @@ function ModelEndpointPicker({
   );
 }
 
-export default function RightPanel({
-  onOpenChange,
-}: {
+type RightPanelProps ={
+  supabase: SupabaseClient;
+  user: User | null;
   onOpenChange?: (open: boolean) => void;
-}) {
+}
+
+export default function RightPanel({ 
+  supabase, 
+  user,
+  onOpenChange,
+  ...props
+} : RightPanelProps) {
   const videoProjectStore = useVideoProjectStore((s) => s);
   const {
     generateData,
@@ -258,11 +266,11 @@ export default function RightPanel({
 
       if (
         assetType === "audio" &&
-        (media.mediaType === "voiceover" || media.mediaType === "music")
+        (media.type === "voiceover" || media.type === "audio")
       ) {
         return true;
       }
-      return assetType === media.mediaType;
+      return assetType === media.type;
     });
 
     if (!asset) {
@@ -302,11 +310,11 @@ export default function RightPanel({
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       const mediaType = file.type.split("/")[0];
-      const outputType = mediaType === "audio" ? "music" : mediaType;
+      const outputType = mediaType === "audio" ? "audio" : mediaType;
 
       const data: Omit<MediaItem, "id"> = {
         projectId,
-        kind: "uploaded",
+        source_type: "uploaded",
         createdAt: Date.now(),
         mediaType: outputType as MediaType,
         status: "completed",
@@ -321,7 +329,7 @@ export default function RightPanel({
       const mediaId = await db.media.create(data);
       const media = await db.media.find(mediaId as string);
 
-      if (media && media.mediaType !== "image") {
+      if (media && media.type !== "image") {
         const mediaMetadata = await getMediaMetadata(media as MediaItem);
 
         await db.media
@@ -396,14 +404,14 @@ export default function RightPanel({
             </Button>
             <Button
               variant="ghost"
-              onClick={() => handleMediaTypeChange("music")}
+              onClick={() => handleMediaTypeChange("audio")}
               className={cn(
-                mediaType === "music" && "bg-white/10",
+                mediaType === "audio" && "bg-white/10",
                 "h-14 flex flex-col justify-center w-1/4 rounded-md gap-2 items-center",
               )}
             >
               <MusicIcon className="w-4 h-4 opacity-50" />
-              <span className="text-[10px]">Music</span>
+              <span className="text-[10px]">Audio</span>
             </Button>
           </div>
           <div className="flex flex-col gap-2 mt-2 justify-start font-medium text-base">
@@ -516,11 +524,11 @@ export default function RightPanel({
                         if (assetMediaType === "all") return true;
                         if (
                           assetMediaType === "audio" &&
-                          (media.mediaType === "voiceover" ||
-                            media.mediaType === "music")
+                          (media.type === "voiceover" ||
+                            media.type === "audio")
                         )
                           return true;
-                        return media.mediaType === assetMediaType;
+                        return media.type === assetMediaType;
                       })
                       .map((job) => (
                         <MediaItemRow
@@ -529,6 +537,7 @@ export default function RightPanel({
                           data={job}
                           onOpen={handleSelectMedia}
                           className="cursor-pointer"
+                          supabase={supabase}
                         />
                       ))}
                   </div>
@@ -566,9 +575,9 @@ export default function RightPanel({
 
         {tab === "generation" && (
           <div className="flex flex-col gap-2 mb-2">
-            {mediaType === "music" && endpointId === "fal-ai/playht/tts/v3" && (
+            {mediaType === "audio" && endpointId === "fal-ai/playht/tts/v3" && (
               <div className="flex-1 flex flex-row gap-2">
-                {mediaType === "music" && (
+                {mediaType === "audio" && (
                   <div className="flex flex-row items-center gap-1">
                     <Label>Duration</Label>
                     <Input

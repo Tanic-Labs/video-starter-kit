@@ -162,7 +162,10 @@ export function App({ projectId }: AppProps) {
                   setRealtime={setRealtime}
                 />
               </div>
-              <RightPanel />
+              <RightPanel 
+                supabase={supabaseClient}
+                user={user}
+              />
             </main>
           </div>
           <Toaster />

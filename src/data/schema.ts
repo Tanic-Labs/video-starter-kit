@@ -48,7 +48,7 @@ export type VideoKeyFrame = {
 };
 
 export type KeyFrameData = {
-  type: "prompt" | "image" | "video" | "voiceover" | "music";
+  type: "prompt" | "image" | "video" | "voiceover" | "audio";
   mediaId: string;
 } & (
   | {

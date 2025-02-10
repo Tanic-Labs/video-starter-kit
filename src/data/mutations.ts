@@ -29,7 +29,7 @@ export const useProjectCreator = () => {
 type JobCreatorParams = {
   projectId: string;
   endpointId: string;
-  mediaType: "video" | "image" | "voiceover" | "music";
+  mediaType: "video" | "image" | "voiceover" | "audio";
   input: Record<string, any>;
 };
 
