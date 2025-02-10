@@ -441,7 +441,7 @@ export function VideoTrackView({
         .select();
 
       if (error) {
-        console.log("Error updating timestapm: ", error);
+        console.log("Error updating duration: ", error);
         throw error;
       }
 
