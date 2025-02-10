@@ -2,18 +2,12 @@
 
 // #region IMPORTS
 import { SupabaseClient, User } from "@supabase/supabase-js";
-import { useProjectUpdater } from "@/data/mutations";
-import { queryKeys, useProject, useProjectMediaItems } from "@/data/queries";
 import {
   type MediaItem,
   PROJECT_PLACEHOLDER,
   VideoProject,
 } from "@/data/schema";
-import {
-  type MediaType,
-  useProjectId,
-  useVideoProjectStore,
-} from "@/data/store";
+import { useVideoProjectStore} from "@/data/store";
 import {
   ChevronDown,
   FilmIcon,
@@ -105,17 +99,15 @@ export default function LeftPanel({
     setIsUploading(true);
 
     try {
-      const file = files[0]; // Suponemos que solo subimos un archivo por vez (puedes ajustar esto)
+      const file = files[0]; // One file by time (can be updated)
       const fileExt = file.name.split(".").pop();
       const assetId = crypto.randomUUID();
-      // Insertar el archivo en la base de datos de 'assets'
-      const mediaType = file.type.split("/")[0]; // Ajustar según sea necesario
+      const mediaType = file.type.split("/")[0];
 
       const filePath = `${user.id}/${mediaType}s/${assetId}.${fileExt}`;
 
-      // Subir el archivo a Supabase Storage
       const { data, error } = await supabase.storage
-        .from("assets") // Asegúrate de reemplazarlo con tu bucket de Supabase Storage
+        .from("assets")
         .upload(filePath, file, {
           cacheControl: "3600",
           upsert: false,
@@ -131,14 +123,14 @@ export default function LeftPanel({
       }
 
       const { data: assetData, error: assetError } = await supabase
-        .from("assets") // Asegúrate de que el nombre de tu tabla sea 'assets'
+        .from("assets")
         .insert([
           {
             id: assetId,
             user_id: user.id,
             type: mediaType,
             source_type: "uploaded",
-            file_path: filePath, // La URL del archivo en Supabase Storage
+            file_path: filePath,
             metadata: {
               name: "",
               size: file.size,
@@ -155,7 +147,6 @@ export default function LeftPanel({
           assetError.message,
         );
       } else {
-        // Actualizamos los elementos de media
         fetchData();
         setIsUploading(false);
       }
@@ -217,6 +208,7 @@ export default function LeftPanel({
     });
   }, [deboounceTitle, debounceDescription]);
   // #endregion
+  
   //#region JSX
   return (
     <div className="flex flex-col border-r border-border w-96">
@@ -242,13 +234,11 @@ export default function LeftPanel({
             value={title}
             onChange={(e) => {
               setNewTitle(e.target.value);
-              //handleUpdateProject({ title: e.target.value });
             }}
             onBlur={(e) => {
               const trimmedValue = e.target.value.trim();
               if (trimmedValue !== title) {
                 setNewTitle(trimmedValue);
-                //handleUpdateProject({ title: trimmedValue });
               }
             }}
           />
@@ -262,13 +252,11 @@ export default function LeftPanel({
             rows={6}
             onChange={(e) => {
               setNewDescription(e.target.value);
-              //handleUpdateProject({ description: e.target.value });
             }}
             onBlur={(e) => {
               const trimmedValue = e.target.value.trim();
               if (trimmedValue !== description) {
                 setNewDescription(trimmedValue);
-                //handleUpdateProject({ description: trimmedValue });
               }
             }}
           />

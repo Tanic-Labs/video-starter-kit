@@ -1,9 +1,6 @@
 // #region IMPORTS
-import { db } from "@/data/db";
 import {
   EMPTY_VIDEO_COMPOSITION,
-  useProject,
-  useVideoComposition,
   VideoCompositionData,
 } from "@/data/queries";
 import {
@@ -14,8 +11,8 @@ import {
   type VideoProject,
   type VideoTrack,
 } from "@/data/schema";
-import { useProjectId, useVideoProjectStore } from "@/data/store";
-import { resolveDuration, resolveMediaUrl } from "@/lib/utils";
+import { useVideoProjectStore } from "@/data/store";
+import { resolveDuration } from "@/lib/utils";
 import { Player, type PlayerRef } from "@remotion/player";
 import { preloadVideo, preloadAudio } from "@remotion/preload";
 import { useCallback, useEffect, useState } from "react";
@@ -381,7 +378,6 @@ export default function VideoPreview({
           inputProps={{
             project,
             tracks,
-            //frames,
             frames: Object.values(frames),
             mediaItems,
           }}

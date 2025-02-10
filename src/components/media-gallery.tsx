@@ -18,12 +18,7 @@ import {
   SheetPortal,
   SheetTitle,
 } from "./ui/sheet";
-import {
-  queryKeys,
-  refreshVideoCache,
-  useProjectMediaItems,
-} from "@/data/queries";
-import { useProjectId, useVideoProjectStore } from "@/data/store";
+import { useVideoProjectStore } from "@/data/store";
 import { cn, resolveMediaUrl } from "@/lib/utils";
 import { MediaItem } from "@/data/schema";
 import {
@@ -35,13 +30,9 @@ import {
   TrashIcon,
 } from "lucide-react";
 import { Button } from "./ui/button";
-import { Separator } from "./ui/separator";
-import { formatDuration } from "date-fns";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { db } from "@/data/db";
+import { useQueryClient } from "@tanstack/react-query";
 import { LoadingIcon } from "./ui/icons";
 import { AVAILABLE_ENDPOINTS } from "@/lib/fal";
-import { metadata } from "@/app/layout";
 import { SupabaseClient } from "@supabase/supabase-js";
 // #endregion
 
@@ -127,7 +118,7 @@ const MEDIA_PLACEHOLDER: MediaItem = {
   type: "image",
   source_type: "generated",
   file_path: "placeholder",
-  crated_at: 0,
+  created_at: 0,
   metadata: undefined,
 };
 // #endregion
@@ -142,11 +133,8 @@ export function MediaGallerySheet({
   ...props
 }: MediaGallerySheetProps) {
   // #region CONST
-  //const projectId = useProjectId();
-  //const { data: mediaItems = [] } = useProjectMediaItems(projectId);
   const selectedMedia = media ?? MEDIA_PLACEHOLDER;
   const [isDeleting, setIsDeleting] = useState(false);
-  //const setSelectedMediaId = useVideoProjectStore((s) => s.setSelectedMediaId);
   const setGenerateData = useVideoProjectStore((s) => s.setGenerateData);
   const setEndpointId = useVideoProjectStore((s) => s.setEndpointId);
   const setGenerateMediaType = useVideoProjectStore(

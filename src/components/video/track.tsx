@@ -1,14 +1,12 @@
 // #region IMPORTS
-import { db } from "@/data/db";
+import { db } from "@/data/db"; // in waveform
 import {
   queryKeys,
   refreshVideoCache,
-  useProjectMediaItems,
 } from "@/data/queries";
 import type {
   MediaItem,
   VideoKeyFrame,
-  VideoProject,
   VideoTrack,
 } from "@/data/schema";
 import { cn, resolveDuration, resolveMediaUrl, trackIcons } from "@/lib/utils";
@@ -31,10 +29,10 @@ import {
   SetStateAction,
 } from "react";
 import { WithTooltip } from "../ui/tooltip";
-import { useProjectId, useVideoProjectStore } from "@/data/store";
+import { useVideoProjectStore } from "@/data/store";
 import { fal } from "@/lib/fal";
 import { SupabaseClient, User } from "@supabase/supabase-js";
-import { timeStamp } from "console";
+//import { timeStamp } from "console";
 // #endregion
 
 // #region TYPE VIDEO TRACK ROW
@@ -120,7 +118,9 @@ type AudioWaveformProps = {
 // #endregion
 
 // #region AUDIO WAVEFORM
-function AudioWaveform({ data }: AudioWaveformProps) {
+function AudioWaveform({ 
+  data
+}: AudioWaveformProps) {
   // #region Get Waveform
   const { data: waveform = [] } = useQuery({
     queryKey: ["media", "waveform", data.id],
@@ -200,10 +200,6 @@ type VideoTrackViewProps = {
   realtime: boolean;
   setRealtime: Dispatch<SetStateAction<boolean>>;
 } & HTMLAttributes<HTMLDivElement>;
-
-interface ProjectsAssetsResponse {
-  assets: MediaItem;
-}
 // #endregion
 
 // #region VIDEO TRACK VIEW
@@ -221,7 +217,6 @@ export function VideoTrackView({
 
   // #region Delete Function
   const deleteKeyframe = useMutation({
-    //mutationFn: () => db.kekyFrames.delete(frame.id), // Replace a delete en supabase
     mutationFn: async () => {
       const { data: deleteKeySuccess, error: deleteKeyError } = await supabase
         .from("keyframes")
@@ -295,7 +290,6 @@ export function VideoTrackView({
   // #endregion
 
   // #region Get Media Url
-  //const mediaUrl = resolveMediaUrl(media); // obtener url real del objeto en suapbase
   const mediaUrl =
     media && media.source_type === "uploaded"
       ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/${media.file_path}`
@@ -307,7 +301,6 @@ export function VideoTrackView({
       return mediaUrl;
     }
     if (media.type === "video") {
-      // Ver como obtener e insertar estos datos en video
       return (
         mediaUrl ||
         media.metadata?.start_frame_url ||
@@ -318,8 +311,8 @@ export function VideoTrackView({
   }, [media]);
   // #endregion
 
-  const label = media?.type ?? "unknown"; // Mover
-  const trackRef = useRef<HTMLDivElement>(null); // Para que es esto?
+  const label = media?.type ?? "unknown";
+  const trackRef = useRef<HTMLDivElement>(null);
 
   // TODO improve missing data
   if (!media) return null;
@@ -356,7 +349,6 @@ export function VideoTrackView({
 
   // #region Handle Mouse Down
   const handleMouseDown = async (e: React.MouseEvent<HTMLDivElement>) => {
-    // verificar correcto funcionamiento de esta handler
     const trackElement = trackRef.current;
     if (!trackElement) return;
     const bounds = calculateBounds();
@@ -412,7 +404,6 @@ export function VideoTrackView({
 
   // #region Hande Resize
   const handleResize = async (
-    // verificar correcto funcionamiento de esta handler
     e: React.MouseEvent<HTMLDivElement>,
     direction: "left" | "right",
   ) => {

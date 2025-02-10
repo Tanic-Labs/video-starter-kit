@@ -1,8 +1,6 @@
 "use client";
 
 // #region IMPORTS
-import { useProjectCreator } from "@/data/mutations";
-import { queryKeys, useProjects } from "@/data/queries";
 import type { VideoProject, AspectRatio } from "@/data/schema";
 import { useVideoProjectStore } from "@/data/store";
 import { useToast } from "@/hooks/use-toast";
@@ -21,13 +19,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "./ui/dialog";
-import { LoadingIcon } from "./ui/icons";
 import { Input } from "./ui/input";
 import { Separator } from "./ui/separator";
 import { Skeleton } from "./ui/skeleton";
 import { Textarea } from "./ui/textarea";
-import { WithTooltip } from "./ui/tooltip";
-import { seedDatabase } from "@/data/seed";
 import { SupabaseClient, User } from "@supabase/supabase-js";
 // #endregion
 
@@ -54,22 +49,8 @@ export function ProjectDialog({
   const [description, setDescription] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [projects, setProjects] = useState<VideoProject[]>([]);
-  const queryClient = useQueryClient();
+  //const queryClient = useQueryClient();
   const { toast } = useToast();
-  // #endregion
-
-  // Fetch existing projects
-  //const { data: projects = [], isLoading } = useProjects();
-
-  // #region Old Get Projects
-  // Seed data with template project if empty
-  /* useEffect(() => {
-    if (projects.length === 0 && !isLoading) {
-      seedDatabase().then(() => {
-        queryClient.invalidateQueries({ queryKey: queryKeys.projects });
-      });
-    }
-  }, [projects, isLoading]); */
   // #endregion
 
   // #region New Get Projects
@@ -86,12 +67,11 @@ export function ProjectDialog({
           console.error("Error fetching data:", error.message);
           setIsLoading(false);
         } else {
-          // Map Supabase response to VideoProject type
           const projects: VideoProject[] = data.map((project) => ({
-            id: String(project.id), // Explicitly convert to string
-            title: String(project.title), // (even if Supabase returns them as strings)
+            id: String(project.id),
+            title: String(project.title),
             description: String(project.description),
-            aspectRatio: project.dimensions as AspectRatio, // Key fix: rename + type assertion
+            aspectRatio: project.dimensions as AspectRatio,
           }));
           setProjects(projects);
           setIsLoading(false);
@@ -100,12 +80,6 @@ export function ProjectDialog({
     };
     getProjects();
   }, [user]);
-  // #endregion
-
-  // #region Old Create Project
-  // Create project mutation
-  //const setProjectId = useVideoProjectStore((s) => s.setProjectId);
-  //const createProject = useProjectCreator();
   // #endregion
 
   //#region New Create Project

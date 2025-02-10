@@ -27,14 +27,19 @@ export function VideoControls() {
   const onSeekToEnd = () => {
     if (!player) return;
     // player.seekTo(player.);
+    // all keyframes duration multiplied by 0.03
   };
   const onSeekBackward = () => {
     if (!player) return;
     // player.seekTo(player.getCurrentTime() - 5);
+    // prev keyframe timestamp + duration multiplied by 0.03
+    // if no prev keyframe then 0
   };
   const onSeekForward = () => {
     if (!player) return;
     // player.seekTo(player.getCurrentTime() + 5);
+    // next keyframe timestap multiplied by 0.03
+    // if no next keyframe then onSeekToEnd
   };
 
   return (

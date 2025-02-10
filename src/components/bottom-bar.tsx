@@ -1,5 +1,4 @@
 // #region IMPORTS
-import { db } from "@/data/db";
 import {
   PROJECT_PLACEHOLDER,
   TRACK_TYPE_ORDER,
@@ -7,14 +6,13 @@ import {
   type MediaItem,
   type VideoTrack,
 } from "@/data/schema";
-import { useProjectId, useVideoProjectStore } from "@/data/store";
+import { useVideoProjectStore } from "@/data/store";
 import { cn, resolveDuration } from "@/lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Dispatch,
   type DragEventHandler,
   SetStateAction,
-  useEffect,
   useMemo,
   useState,
 } from "react";

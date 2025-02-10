@@ -7,7 +7,6 @@ import RightPanel from "@/components/right-panel";
 import VideoPreview from "@/components/video-preview";
 import {
   type MediaItem,
-  PROJECT_PLACEHOLDER,
   VideoProject,
 } from "@/data/schema";
 import {
@@ -50,7 +49,6 @@ export function App({ projectId }: AppProps) {
 
   useEffect(() => {
     const initializeSession = async () => {
-      // 1. Check for existing valid session first
       const {
         data: { user },
       } = await supabaseClient.auth.getUser();
@@ -119,8 +117,8 @@ export function App({ projectId }: AppProps) {
       }
     } else {
       const { data, error } = await supabaseClient
-        .from("assets") // Reemplaza con el nombre de tu tabla
-        .select("*"); // Aquí puedes especificar las columnas que necesitas
+        .from("assets")
+        .select("*");
 
       if (error) {
         console.error("Error fetching data:", error.message);
