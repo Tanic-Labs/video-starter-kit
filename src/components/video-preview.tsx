@@ -1,8 +1,5 @@
 // #region IMPORTS
-import {
-  EMPTY_VIDEO_COMPOSITION,
-  VideoCompositionData,
-} from "@/data/queries";
+import { EMPTY_VIDEO_COMPOSITION, VideoCompositionData } from "@/data/queries";
 import {
   type MediaItem,
   PROJECT_PLACEHOLDER,

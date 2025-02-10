@@ -5,10 +5,7 @@ import BottomBar from "@/components/bottom-bar";
 import Header from "@/components/header";
 import RightPanel from "@/components/right-panel";
 import VideoPreview from "@/components/video-preview";
-import {
-  type MediaItem,
-  VideoProject,
-} from "@/data/schema";
+import { type MediaItem, VideoProject } from "@/data/schema";
 import {
   VideoProjectStoreContext,
   createVideoProjectStore,
@@ -116,9 +113,7 @@ export function App({ projectId }: AppProps) {
         setIsLoading(false);
       }
     } else {
-      const { data, error } = await supabaseClient
-        .from("assets")
-        .select("*");
+      const { data, error } = await supabaseClient.from("assets").select("*");
 
       if (error) {
         console.error("Error fetching data:", error.message);

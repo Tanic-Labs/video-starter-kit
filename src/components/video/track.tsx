@@ -1,14 +1,7 @@
 // #region IMPORTS
 import { db } from "@/data/db"; // in waveform
-import {
-  queryKeys,
-  refreshVideoCache,
-} from "@/data/queries";
-import type {
-  MediaItem,
-  VideoKeyFrame,
-  VideoTrack,
-} from "@/data/schema";
+import { queryKeys, refreshVideoCache } from "@/data/queries";
+import type { MediaItem, VideoKeyFrame, VideoTrack } from "@/data/schema";
 import { cn, resolveDuration, resolveMediaUrl, trackIcons } from "@/lib/utils";
 import {
   keepPreviousData,
@@ -118,9 +111,7 @@ type AudioWaveformProps = {
 // #endregion
 
 // #region AUDIO WAVEFORM
-function AudioWaveform({ 
-  data
-}: AudioWaveformProps) {
+function AudioWaveform({ data }: AudioWaveformProps) {
   // #region Get Waveform
   const { data: waveform = [] } = useQuery({
     queryKey: ["media", "waveform", data.id],

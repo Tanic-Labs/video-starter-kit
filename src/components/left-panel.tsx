@@ -7,7 +7,7 @@ import {
   PROJECT_PLACEHOLDER,
   VideoProject,
 } from "@/data/schema";
-import { useVideoProjectStore} from "@/data/store";
+import { useVideoProjectStore } from "@/data/store";
 import {
   ChevronDown,
   FilmIcon,
@@ -208,7 +208,7 @@ export default function LeftPanel({
     });
   }, [deboounceTitle, debounceDescription]);
   // #endregion
-  
+
   //#region JSX
   return (
     <div className="flex flex-col border-r border-border w-96">
