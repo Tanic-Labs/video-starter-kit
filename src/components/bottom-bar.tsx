@@ -134,7 +134,7 @@ export default function BottomBar({
       const baseData = {
         track_id: track.id,
         timestamp: lastKeyframe
-          ? lastKeyframe.timestamp + lastKeyframe.duration + 1
+          ? lastKeyframe.timestamp + lastKeyframe.duration
           : 0,
         duration,
         asset_id: media.id,

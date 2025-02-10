@@ -32,6 +32,7 @@ import { WithTooltip } from "../ui/tooltip";
 import { useProjectId, useVideoProjectStore } from "@/data/store";
 import { fal } from "@/lib/fal";
 import { SupabaseClient, User } from "@supabase/supabase-js";
+import { timeStamp } from "console";
 // #endregion
 
 // #region TYPE VIDEO TRACK ROW
@@ -257,7 +258,6 @@ export function VideoTrackView({
         throw error;
       }
 
-      console.log("mediaItems: ", data);
       const mappedItems = data.map(
         (item) =>
           ({
@@ -340,7 +340,7 @@ export function VideoTrackView({
   // #endregion
 
   // #region Handle Mouse Down
-  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleMouseDown = async (e: React.MouseEvent<HTMLDivElement>) => {
     // verificar correcto funcionamiento de esta handler
     const trackElement = trackRef.current;
     if (!trackElement) return;
@@ -348,7 +348,7 @@ export function VideoTrackView({
     const startX = e.clientX;
     const startLeft = trackElement.offsetLeft;
 
-    const handleMouseMove = (moveEvent: MouseEvent) => {
+    const handleMouseMove = async (moveEvent: MouseEvent) => {
       const deltaX = moveEvent.clientX - startX;
       let newLeft = startLeft + deltaX;
 
@@ -363,15 +363,25 @@ export function VideoTrackView({
         ? (timelineElement as HTMLElement).offsetWidth
         : 1;
       const newTimestamp = (newLeft / parentWidth) * 30;
-      frame.timestamp = (newTimestamp < 0 ? 0 : newTimestamp) * 1000;
+      frame.timestamp = Math.round((newTimestamp < 0 ? 0 : newTimestamp) * 1000);
 
       trackElement.style.left = `${((frame.timestamp / 30) * 100) / 1000}%`;
-      db.keyFrames.update(frame.id, { timestamp: frame.timestamp });
     };
 
-    const handleMouseUp = () => {
+    const handleMouseUp = async () => {
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
+      const {data, error} = await supabase
+        .from("keyframes")
+        .update({ timestamp: frame.timestamp})
+        .eq('id', frame.id)
+        .select()
+
+      if (error) {
+        console.log("Error updating timestapm: ", error);
+        throw error;
+      }
+
       queryClient.invalidateQueries({
         queryKey: queryKeys.projectPreview(projectId),
       });
@@ -383,7 +393,7 @@ export function VideoTrackView({
   // #endregion
 
   // #region Hande Resize
-  const handleResize = (
+  const handleResize = async (
     // verificar correcto funcionamiento de esta handler
     e: React.MouseEvent<HTMLDivElement>,
     direction: "left" | "right",
@@ -394,7 +404,7 @@ export function VideoTrackView({
     const startX = e.clientX;
     const startWidth = trackElement.offsetWidth;
 
-    const handleMouseMove = (moveEvent: MouseEvent) => {
+    const handleMouseMove = async (moveEvent: MouseEvent) => {
       const deltaX = moveEvent.clientX - startX;
       let newWidth = startWidth + (direction === "right" ? deltaX : -deltaX);
 
@@ -419,10 +429,20 @@ export function VideoTrackView({
       trackElement.style.width = `${((frame.duration / 30) * 100) / 1000}%`;
     };
 
-    const handleMouseUp = () => {
+    const handleMouseUp = async () => {
       frame.duration = Math.round(frame.duration / 100) * 100;
       trackElement.style.width = `${((frame.duration / 30) * 100) / 1000}%`;
-      db.keyFrames.update(frame.id, { duration: frame.duration });
+      const {data, error} = await supabase
+        .from("keyframes")
+        .update({ duration: frame.duration})
+        .eq('id', frame.id)
+        .select()
+
+      if (error) {
+        console.log("Error updating timestapm: ", error);
+        throw error;
+      }
+
       queryClient.invalidateQueries({
         queryKey: queryKeys.projectPreview(projectId),
       });
