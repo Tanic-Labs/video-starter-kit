@@ -44,6 +44,7 @@ export function App({ projectId }: AppProps) {
   const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
   const [project, setProject] = useState<VideoProject | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [realtime, setRealtime] = useState<boolean>(false)
 
   const [user, setUser] = useState<User | null>(null);
 
@@ -158,11 +159,14 @@ export function App({ projectId }: AppProps) {
                   project={project}
                   supabase={supabaseClient}
                   user={user}
+                  realtime={realtime}
                 />
                 <BottomBar
                   project={project}
                   supabase={supabaseClient}
                   user={user}
+                  realtime={realtime}
+                  setRealtime={setRealtime}
                 />
               </div>
               <RightPanel />

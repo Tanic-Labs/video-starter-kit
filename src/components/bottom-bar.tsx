@@ -10,7 +10,7 @@ import {
 import { useProjectId, useVideoProjectStore } from "@/data/store";
 import { cn, resolveDuration } from "@/lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { type DragEventHandler, useEffect, useMemo, useState } from "react";
+import { Dispatch, type DragEventHandler, SetStateAction, useEffect, useMemo, useState } from "react";
 import { VideoControls } from "./video-controls";
 import { TimelineRuler } from "./video/timeline";
 import { VideoTrackRow } from "./video/track";
@@ -24,6 +24,8 @@ type BottomBarProps = {
   project: VideoProject | null;
   supabase: SupabaseClient;
   user: User | null;
+  realtime: boolean;
+  setRealtime: Dispatch<SetStateAction<boolean>>;
 };
 // #endregion
 
@@ -32,6 +34,8 @@ export default function BottomBar({
   project,
   supabase,
   user,
+  realtime,
+  setRealtime,
   ...props
 }: BottomBarProps) {
   // #region Const
@@ -178,7 +182,8 @@ export default function BottomBar({
     },
     onSuccess: (data) => {
       if (!data) return;
-      refreshVideoCache(queryClient, projectId);
+      setRealtime(!realtime)
+      refreshVideoCache(queryClient, projectId)
     },
   });
   // #endregion
@@ -299,6 +304,8 @@ export default function BottomBar({
                   data={track}
                   supabase={supabase}
                   user={user}
+                  realtime={realtime}
+                  setRealtime={setRealtime}
                   style={{
                     minWidth: minTrackWidth,
                   }}

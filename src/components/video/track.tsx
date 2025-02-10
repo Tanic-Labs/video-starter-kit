@@ -27,6 +27,8 @@ import {
   useEffect,
   useMemo,
   useRef,
+  Dispatch,
+  SetStateAction,
 } from "react";
 import { WithTooltip } from "../ui/tooltip";
 import { useProjectId, useVideoProjectStore } from "@/data/store";
@@ -40,6 +42,8 @@ type VideoTrackRowProps = {
   data: VideoTrack;
   supabase: SupabaseClient;
   user: User | null;
+  realtime: boolean;
+  setRealtime: Dispatch<SetStateAction<boolean>>;
 } & HTMLAttributes<HTMLDivElement>;
 // #endregion
 
@@ -48,6 +52,8 @@ export function VideoTrackRow({
   data,
   supabase,
   user,
+  realtime,
+  setRealtime,
   ...props
 }: VideoTrackRowProps) {
   // #region Get Framses
@@ -97,6 +103,8 @@ export function VideoTrackRow({
           track={data}
           frame={frame}
           supabase={supabase}
+          realtime={realtime}
+          setRealtime={setRealtime}
         />
       ))}
     </div>
@@ -189,6 +197,8 @@ type VideoTrackViewProps = {
   track: VideoTrack;
   frame: VideoKeyFrame;
   supabase: SupabaseClient;
+  realtime: boolean;
+  setRealtime: Dispatch<SetStateAction<boolean>>;
 } & HTMLAttributes<HTMLDivElement>;
 
 interface ProjectsAssetsResponse {
@@ -202,6 +212,8 @@ export function VideoTrackView({
   track,
   frame,
   supabase,
+  realtime,
+  setRealtime,
   ...props
 }: VideoTrackViewProps) {
   // #region Const & Values
@@ -221,7 +233,10 @@ export function VideoTrackView({
         throw deleteKeyError;
       }
     },
-    onSuccess: () => refreshVideoCache(queryClient, track.projectId), // Corregir a real project id
+    onSuccess: () => {
+      setRealtime(!realtime);
+      refreshVideoCache(queryClient, track.projectId);
+    }, // Corregir a real project id
   });
   const handleOnDelete = async () => {
     deleteKeyframe.mutate();
@@ -384,6 +399,7 @@ export function VideoTrackView({
         throw error;
       }
 
+      setRealtime(!realtime);
       queryClient.invalidateQueries({
         queryKey: queryKeys.projectPreview(projectId),
       });
@@ -445,6 +461,7 @@ export function VideoTrackView({
         throw error;
       }
 
+      setRealtime(!realtime);
       queryClient.invalidateQueries({
         queryKey: queryKeys.projectPreview(projectId),
       });

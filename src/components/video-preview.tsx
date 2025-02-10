@@ -190,6 +190,7 @@ type VideoPreviewProps = {
   project: VideoProject | null;
   supabase: SupabaseClient;
   user: User | null;
+  realtime: boolean;
 };
 // #endregion
 
@@ -198,6 +199,7 @@ export default function VideoPreview({
   project,
   supabase,
   user,
+  realtime,
   ...props
 }: VideoPreviewProps) {
   // #region setStates
@@ -271,7 +273,7 @@ export default function VideoPreview({
     if (project && project !== PROJECT_PLACEHOLDER) {
       getComposition();
     }
-  }, [projectId]);
+  }, [projectId, realtime]);
   const {
     tracks = [],
     frames = {} as Record<number, VideoKeyFrame>,
