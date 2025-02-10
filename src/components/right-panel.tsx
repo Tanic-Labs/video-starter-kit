@@ -88,18 +88,18 @@ function ModelEndpointPicker({
   );
 }
 
-type RightPanelProps ={
+type RightPanelProps = {
   supabase: SupabaseClient;
   user: User | null;
   onOpenChange?: (open: boolean) => void;
-}
+};
 
-export default function RightPanel({ 
-  supabase, 
+export default function RightPanel({
+  supabase,
   user,
   onOpenChange,
   ...props
-} : RightPanelProps) {
+}: RightPanelProps) {
   const videoProjectStore = useVideoProjectStore((s) => s);
   const {
     generateData,
@@ -524,8 +524,7 @@ export default function RightPanel({
                         if (assetMediaType === "all") return true;
                         if (
                           assetMediaType === "audio" &&
-                          (media.type === "voiceover" ||
-                            media.type === "audio")
+                          (media.type === "voiceover" || media.type === "audio")
                         )
                           return true;
                         return media.type === assetMediaType;
