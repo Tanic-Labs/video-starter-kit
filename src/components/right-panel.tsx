@@ -324,8 +324,8 @@ export default function RightPanel({
           size: 1200000,
           type: outputType as MediaType,
           description: "prompt",
-          original_name: "original_string"
-        }
+          original_name: "original_string",
+        },
       };
 
       setGenerateData({
