@@ -14,11 +14,11 @@ export default async function IndexPage() {
 
   // Obtener el último proyecto visitado de las cookies
   const cookieStore = cookies();
-  const lastProjectId = cookieStore.get("__aivs_lastProjectId");
+  //const lastProjectId = cookieStore.get("__aivs_lastProjectId");
 
   return (
     <App
-      projectId={lastProjectId?.value ?? PROJECT_PLACEHOLDER.id}
+      //projectId={lastProjectId?.value ?? PROJECT_PLACEHOLDER.id}
       session={session}
     />
   );

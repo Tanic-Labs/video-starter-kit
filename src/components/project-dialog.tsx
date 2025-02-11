@@ -1,7 +1,7 @@
 "use client";
 
 // #region IMPORTS
-import type { VideoProject, AspectRatio } from "@/data/schema";
+import type { VideoProject, AspectRatio, MediaItem } from "@/data/schema";
 import { useVideoProjectStore } from "@/data/store";
 import { useToast } from "@/hooks/use-toast";
 import { createProjectSuggestion } from "@/lib/project";
@@ -32,6 +32,8 @@ type ProjectDialogProps = {
   user: User | null;
   project: VideoProject | null;
   setProject: Dispatch<SetStateAction<VideoProject | null>>;
+  newProjectItem: MediaItem | null; 
+  setNewProjectItem:  Dispatch<SetStateAction<MediaItem | null>>;
 } & Parameters<typeof Dialog>[0];
 // #endregion
 
@@ -42,6 +44,8 @@ export function ProjectDialog({
   user,
   project,
   setProject,
+  newProjectItem,
+  setNewProjectItem,
   ...props
 }: ProjectDialogProps) {
   // #region Const & Effects
@@ -109,6 +113,73 @@ export function ProjectDialog({
       });
       return;
     }
+
+    if ( newProjectItem ) {
+      const newTrackType = newProjectItem.type === "image" ? "video" : newProjectItem.type
+      let track
+
+      const { data: newTrack, error: errorTrack } = await supabase
+        .from("projects_assets")
+        .insert([
+          {
+            project_id: data.id,
+            asset_id: newProjectItem.id,
+            type: newTrackType,
+            label: newProjectItem.type,
+            locked: true,
+          }
+        ])
+        .select()
+        .single();
+
+      if ( errorTrack ) {
+        console.log("Error adding track to new project: ", errorTrack);
+        throw errorTrack;
+      }
+
+      track = newTrack;
+      const baseData = {
+        track_id: track.id,
+        timestamp: 0,
+        duration: 5000,
+        asset_id: newProjectItem.id
+      };
+      let insertData;
+      if ( newProjectItem?.metadata && "input" in newProjectItem.metadata) {
+        insertData = {
+          ...baseData,
+          type: newProjectItem.metadata.input?.image_url ? "image" : "prompt",
+          prompt: newProjectItem.metadata.input.prommpt || "",
+          url: newProjectItem.metadata.input.image_url?.url,
+        };
+      } else if ( newProjectItem?.metadata && "description" in newProjectItem.metadata ) {
+        insertData = {
+          ...baseData,
+          type: newProjectItem.type,
+          prompt: newProjectItem.metadata.description || "",
+          url: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/${newProjectItem.file_path}`
+        };
+      } else {
+        toast({
+          title: "Cannot drop asset",
+          description: "Error inserting media",
+        });
+        return;
+      }
+
+      const { data: newKeyframe, error: noNewKeyframe } = await supabase
+        .from("keyframes")
+        .insert(insertData)
+        .select()
+        .single();
+
+      if ( noNewKeyframe ) {
+        console.log("Error inserting keyframes: ", noNewKeyframe);
+        throw noNewKeyframe;
+      }
+
+      setNewProjectItem(null);
+    } 
 
     handleSelectProject(data);
     setIsLoading(false);

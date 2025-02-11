@@ -31,6 +31,7 @@ type BottomBarProps = {
   user: User | null;
   realtime: boolean;
   setRealtime: Dispatch<SetStateAction<boolean>>;
+  setNewProjectItem:  Dispatch<SetStateAction<MediaItem | null>>;
 };
 // #endregion
 
@@ -41,6 +42,7 @@ export default function BottomBar({
   user,
   realtime,
   setRealtime,
+  setNewProjectItem,
   ...props
 }: BottomBarProps) {
   // #region Const
@@ -57,6 +59,10 @@ export default function BottomBar({
     playerCurrentTimestamp.toFixed(2);
   const minTrackWidth = `${((2 / 30) * 100).toFixed(2)}%`;
   const [dragOverTracks, setDragOverTracks] = useState(false);
+  
+  const setProjectDialogOpen = useVideoProjectStore(
+    (s) => s.setProjectDialogOpen,
+  );
   // #endregion
 
   // #region Drag Function
@@ -77,13 +83,20 @@ export default function BottomBar({
   // #region Add Track
   const addToTrack = useMutation({
     mutationFn: async (media: MediaItem) => {
-      if (!project.id || !user) {
+      if (!user) {
         toast({
           title: "Cannot drop asset",
           description: "Create or choose a project to continue",
         });
         return;
       }
+      
+      if (!project.id) {
+        setProjectDialogOpen(true);
+        setNewProjectItem(media);
+        return;
+      }
+
       const { data: tracks, error: trakcsErr } = await supabase
         .from("projects_assets")
         .select("*")

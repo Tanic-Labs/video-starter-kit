@@ -30,13 +30,13 @@ import { useRouter } from "next/navigation";
 
 // #region TYPE
 type AppProps = {
-  projectId: string;
+  //projectId: string;
   session: any;
 };
 // #endregion
 
 // #region MIAN
-export function App({ projectId, session }: AppProps) {
+export function App({ /* projectId, */ session }: AppProps) {
   // #region States & Effects
   const supabase = createClientComponentClient();
   const [supabaseClient] = useState(() => createPagesBrowserClient());
@@ -46,6 +46,7 @@ export function App({ projectId, session }: AppProps) {
   const [project, setProject] = useState<VideoProject | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [realtime, setRealtime] = useState<boolean>(false);
+  const [newProjectItem, setNewProjectItem] = useState<MediaItem | null>(null);
 
   const [user, setUser] = useState<User | null>(null);
   const router = useRouter();
@@ -64,8 +65,8 @@ export function App({ projectId, session }: AppProps) {
   // #region Other
   const queryClient = useRef(new QueryClient()).current;
   const projectStore = useRef(
-    createVideoProjectStore({
-      projectId,
+    createVideoProjectStore({ 
+      //projectId
     }),
   ).current;
   // #endregion
@@ -198,6 +199,7 @@ export function App({ projectId, session }: AppProps) {
                   user={user}
                   realtime={realtime}
                   setRealtime={setRealtime}
+                  setNewProjectItem={setNewProjectItem}
                 />
               </div>
               <RightPanel supabase={supabaseClient} user={user} />
@@ -210,6 +212,8 @@ export function App({ projectId, session }: AppProps) {
             user={user}
             project={project}
             setProject={setProject}
+            newProjectItem={newProjectItem}
+            setNewProjectItem={setNewProjectItem}
           />
           <ExportDialog
             open={isExportDialogOpen}
