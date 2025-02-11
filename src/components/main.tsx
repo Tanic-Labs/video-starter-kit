@@ -61,7 +61,6 @@ export function App({ projectId, session }: AppProps) {
   }, [supabaseClient]);
   // #endregion
 
-
   // #region Other
   const queryClient = useRef(new QueryClient()).current;
   const projectStore = useRef(
