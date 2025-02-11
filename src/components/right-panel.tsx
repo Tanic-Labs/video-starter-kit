@@ -653,8 +653,11 @@ export default function RightPanel({
       </div>
     </div>
   );
+  // #endregion
 }
+// #endregion
 
+// #region SELEECT ASSEST PREVIEW
 const SelectedAssetPreview = ({
   data,
   asset,
@@ -703,6 +706,5 @@ const SelectedAssetPreview = ({
       )}
     </>
   );
-  // #endregion
 };
 // #endregion
