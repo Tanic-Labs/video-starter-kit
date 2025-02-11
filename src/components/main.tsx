@@ -65,7 +65,7 @@ export function App({ /* projectId, */ session }: AppProps) {
   // #region Other
   const queryClient = useRef(new QueryClient()).current;
   const projectStore = useRef(
-    createVideoProjectStore({ 
+    createVideoProjectStore({
       //projectId
     }),
   ).current;

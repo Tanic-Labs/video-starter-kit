@@ -31,7 +31,7 @@ type BottomBarProps = {
   user: User | null;
   realtime: boolean;
   setRealtime: Dispatch<SetStateAction<boolean>>;
-  setNewProjectItem:  Dispatch<SetStateAction<MediaItem | null>>;
+  setNewProjectItem: Dispatch<SetStateAction<MediaItem | null>>;
 };
 // #endregion
 
@@ -59,7 +59,7 @@ export default function BottomBar({
     playerCurrentTimestamp.toFixed(2);
   const minTrackWidth = `${((2 / 30) * 100).toFixed(2)}%`;
   const [dragOverTracks, setDragOverTracks] = useState(false);
-  
+
   const setProjectDialogOpen = useVideoProjectStore(
     (s) => s.setProjectDialogOpen,
   );
@@ -90,7 +90,7 @@ export default function BottomBar({
         });
         return;
       }
-      
+
       if (!project.id) {
         setProjectDialogOpen(true);
         setNewProjectItem(media);

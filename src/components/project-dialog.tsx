@@ -32,8 +32,8 @@ type ProjectDialogProps = {
   user: User | null;
   project: VideoProject | null;
   setProject: Dispatch<SetStateAction<VideoProject | null>>;
-  newProjectItem: MediaItem | null; 
-  setNewProjectItem:  Dispatch<SetStateAction<MediaItem | null>>;
+  newProjectItem: MediaItem | null;
+  setNewProjectItem: Dispatch<SetStateAction<MediaItem | null>>;
 } & Parameters<typeof Dialog>[0];
 // #endregion
 
@@ -114,9 +114,10 @@ export function ProjectDialog({
       return;
     }
 
-    if ( newProjectItem ) {
-      const newTrackType = newProjectItem.type === "image" ? "video" : newProjectItem.type
-      let track
+    if (newProjectItem) {
+      const newTrackType =
+        newProjectItem.type === "image" ? "video" : newProjectItem.type;
+      let track;
 
       const { data: newTrack, error: errorTrack } = await supabase
         .from("projects_assets")
@@ -127,12 +128,12 @@ export function ProjectDialog({
             type: newTrackType,
             label: newProjectItem.type,
             locked: true,
-          }
+          },
         ])
         .select()
         .single();
 
-      if ( errorTrack ) {
+      if (errorTrack) {
         console.log("Error adding track to new project: ", errorTrack);
         throw errorTrack;
       }
@@ -142,22 +143,25 @@ export function ProjectDialog({
         track_id: track.id,
         timestamp: 0,
         duration: 5000,
-        asset_id: newProjectItem.id
+        asset_id: newProjectItem.id,
       };
       let insertData;
-      if ( newProjectItem?.metadata && "input" in newProjectItem.metadata) {
+      if (newProjectItem?.metadata && "input" in newProjectItem.metadata) {
         insertData = {
           ...baseData,
           type: newProjectItem.metadata.input?.image_url ? "image" : "prompt",
           prompt: newProjectItem.metadata.input.prommpt || "",
           url: newProjectItem.metadata.input.image_url?.url,
         };
-      } else if ( newProjectItem?.metadata && "description" in newProjectItem.metadata ) {
+      } else if (
+        newProjectItem?.metadata &&
+        "description" in newProjectItem.metadata
+      ) {
         insertData = {
           ...baseData,
           type: newProjectItem.type,
           prompt: newProjectItem.metadata.description || "",
-          url: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/${newProjectItem.file_path}`
+          url: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/${newProjectItem.file_path}`,
         };
       } else {
         toast({
@@ -173,13 +177,13 @@ export function ProjectDialog({
         .select()
         .single();
 
-      if ( noNewKeyframe ) {
+      if (noNewKeyframe) {
         console.log("Error inserting keyframes: ", noNewKeyframe);
         throw noNewKeyframe;
       }
 
       setNewProjectItem(null);
-    } 
+    }
 
     handleSelectProject(data);
     setIsLoading(false);
