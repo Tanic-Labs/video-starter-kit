@@ -142,7 +142,7 @@ export default function RightPanel({
     onOpenChange?.(isOpen);
     openGenerateDialog();
   };
-  // #endregion 
+  // #endregion
 
   // #region Enhace
   const enhance = useMutation({
@@ -199,7 +199,7 @@ export default function RightPanel({
   };
   // #endregion
 
-  // #region Input Type 
+  // #region Input Type
   // TODO improve model-specific parameters
   type InputType = {
     prompt: string;
