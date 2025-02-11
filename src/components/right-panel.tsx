@@ -1,5 +1,5 @@
 "use client";
-
+// #region IMPORTS
 import { useJobCreator } from "@/data/mutations";
 import { queryKeys, useProject, useProjectMediaItems } from "@/data/queries";
 import type { MediaItem } from "@/data/schema";
@@ -55,12 +55,16 @@ import { VoiceSelector } from "./playht/voice-selector";
 import { LoadingIcon } from "./ui/icons";
 import { getMediaMetadata } from "@/lib/ffmpeg";
 import { SupabaseClient, User } from "@supabase/supabase-js";
+// #endregion
 
+// #region TYPE MODEL ENDPOINT PICKER
 type ModelEndpointPickerProps = {
   mediaType: string;
   onValueChange: (value: MediaType) => void;
 } & Parameters<typeof Select>[0];
+// #endregion
 
+// #region MODEL ENDPOINT PICKER
 function ModelEndpointPicker({
   mediaType,
   ...props
@@ -87,19 +91,24 @@ function ModelEndpointPicker({
     </Select>
   );
 }
+// #endregion
 
+// #region TYPE RIGHT PANEL
 type RightPanelProps = {
   supabase: SupabaseClient;
   user: User | null;
   onOpenChange?: (open: boolean) => void;
 };
+// #endregion
 
+// #region MAIN RIGHT PANEL
 export default function RightPanel({
   supabase,
   user,
   onOpenChange,
   ...props
 }: RightPanelProps) {
+  // #region Const
   const videoProjectStore = useVideoProjectStore((s) => s);
   const {
     generateData,
@@ -118,7 +127,12 @@ export default function RightPanel({
     (s) => s.closeGenerateDialog,
   );
   const queryClient = useQueryClient();
+  const { data: project } = useProject(projectId);
 
+  const { toast } = useToast();
+  // #endregion
+
+  // #region Handle Open Change
   const handleOnOpenChange = (isOpen: boolean) => {
     if (!isOpen) {
       closeGenerateDialog();
@@ -128,10 +142,9 @@ export default function RightPanel({
     onOpenChange?.(isOpen);
     openGenerateDialog();
   };
+  // #endregion 
 
-  const { data: project } = useProject(projectId);
-
-  const { toast } = useToast();
+  // #region Enhace
   const enhance = useMutation({
     mutationFn: async () => {
       return enhancePrompt(generateData.prompt, {
@@ -150,7 +163,9 @@ export default function RightPanel({
       });
     },
   });
+  // #endregion
 
+  // #region Set media
   const { data: mediaItems = [] } = useProjectMediaItems(projectId);
   const mediaType = useVideoProjectStore((s) => s.generateMediaType);
   const setMediaType = useVideoProjectStore((s) => s.setGenerateMediaType);
@@ -182,6 +197,9 @@ export default function RightPanel({
 
     setEndpointId(endpoint?.endpointId ?? AVAILABLE_ENDPOINTS[0].endpointId);
   };
+  // #endregion
+
+  // #region Input Type 
   // TODO improve model-specific parameters
   type InputType = {
     prompt: string;
@@ -245,7 +263,9 @@ export default function RightPanel({
       ...extraInput,
     },
   });
+  // #endregion
 
+  // #region Handle Generate
   const handleOnGenerate = async () => {
     await createJob.mutateAsync({} as any, {
       onSuccess: async () => {
@@ -259,7 +279,9 @@ export default function RightPanel({
   useEffect(() => {
     videoProjectStore.onGenerate = handleOnGenerate;
   }, [handleOnGenerate]);
+  // #endregion
 
+  // #region Select Media
   const handleSelectMedia = (media: MediaItem) => {
     const asset = endpoint?.inputAsset?.find((item) => {
       const assetType = getAssetType(item);
@@ -281,7 +303,9 @@ export default function RightPanel({
     setGenerateData({ [getAssetKey(asset)]: resolveMediaUrl(media) });
     setTab("generation");
   };
+  // #endregion
 
+  // #region Upload data
   const { startUpload, isUploading } = useUploadThing("fileUploader");
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -352,7 +376,9 @@ export default function RightPanel({
       }
     }
   };
+  // #endregion
 
+  // #region Right Panel JSX Main
   return (
     <div
       className={cn(
@@ -677,4 +703,6 @@ const SelectedAssetPreview = ({
       )}
     </>
   );
+  // #endregion
 };
+// #endregion
