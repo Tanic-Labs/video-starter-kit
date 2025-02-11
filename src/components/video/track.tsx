@@ -113,7 +113,7 @@ type AudioWaveformProps = {
 // #region AUDIO WAVEFORM
 function AudioWaveform({ data }: AudioWaveformProps) {
   // #region Get Waveform
-  const { data: waveform = [] } = useQuery({
+  /* const { data: waveform = [] } = useQuery({
     queryKey: ["media", "waveform", data.id],
     queryFn: async () => {
       if (data.metadata?.waveform && Array.isArray(data.metadata.waveform)) {
@@ -140,18 +140,19 @@ function AudioWaveform({ data }: AudioWaveformProps) {
     },
     placeholderData: keepPreviousData,
     staleTime: Number.POSITIVE_INFINITY,
-  });
+  }); */
   // #endregion
 
   // #region Waveform Size
-  const svgWidth = waveform.length * 3;
-  const svgHeight = 100;
+  /* const svgWidth = waveform.length * 3;
+  const svgHeight = 100; */
   // #endregion
 
   // #region Audio Waveform JSX
   return (
     <div className="h-full flex items-center">
-      <svg
+      Audio!!
+      {/* <svg
         width="100%"
         height="80%"
         viewBox={`0 0 ${svgWidth} ${svgHeight}`}
@@ -176,7 +177,7 @@ function AudioWaveform({ data }: AudioWaveformProps) {
             />
           );
         })}
-      </svg>
+      </svg> */}
     </div>
   );
   // #endregion

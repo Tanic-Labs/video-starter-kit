@@ -154,7 +154,7 @@ const AudioTrackSequence: React.FC<TrackSequenceProps> = ({
   return (
     <>
       {frames.map((frame) => {
-        const media = mediaItems[frame.data.mediaId];
+        const media = mediaItems[frame.asset_id];
         if (!media /* || media.status !== "completed" */) return null;
 
         const audioUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/${media.file_path}`;
