@@ -313,12 +313,19 @@ export default function RightPanel({
       const outputType = mediaType === "audio" ? "audio" : mediaType;
 
       const data: Omit<MediaItem, "id"> = {
-        projectId,
+        //projectId,
+        user_id: user ? user.id : "",
         source_type: "uploaded",
-        createdAt: Date.now(),
-        mediaType: outputType as MediaType,
-        status: "completed",
-        url: file.url,
+        created_at: Date.now(),
+        type: outputType as MediaType,
+        file_path: file.url,
+        metadata: {
+          name: "string",
+          size: 1200000,
+          type: outputType as MediaType,
+          description: "prompt",
+          original_name: "original_string"
+        }
       };
 
       setGenerateData({
