@@ -25,39 +25,33 @@ import { ExportDialog } from "./export-dialog";
 import LeftPanel from "./left-panel";
 import { KeyDialog } from "./key-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { createPagesBrowserClient } from "@supabase/auth-helpers-nextjs";
+import {
+  createClientComponentClient,
+  createPagesBrowserClient,
+} from "@supabase/auth-helpers-nextjs";
 import { User } from "@supabase/supabase-js";
-// #endregion
+import { useRouter } from "next/navigation";
 
 // #region TYPE
 type AppProps = {
   projectId: string;
+  session: any;
 };
 // #endregion
 
 // #region MIAN
-export function App({ projectId }: AppProps) {
+export function App({ projectId, session }: AppProps) {
   // #region States & Effects
+  const supabase = createClientComponentClient();
   const [supabaseClient] = useState(() => createPagesBrowserClient());
   const [keyDialog, setKeyDialog] = useState(false);
   const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
   const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
   const [project, setProject] = useState<VideoProject | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-
   const [user, setUser] = useState<User | null>(null);
 
-  useEffect(() => {
-    const initializeSession = async () => {
-      // 1. Check for existing valid session first
-      const {
-        data: { user },
-      } = await supabaseClient.auth.getUser();
-      setUser(user);
-    };
-    initializeSession();
-  }, [supabaseClient]);
-  // #endregion
+  const router = useRouter();
 
   // #region Other
   const queryClient = useRef(new QueryClient()).current;
@@ -134,15 +128,47 @@ export function App({ projectId }: AppProps) {
   useEffect(() => {
     fetchData();
   }, [user]);
-  // #endregion
 
-  // #region JSX
+  useEffect(() => {
+    const hash = window.location.hash;
+    const params = new URLSearchParams(hash.replace("#", "?"));
+    const access_token = params.get("access_token");
+    const refresh_token = params.get("refresh_token");
+
+    if (access_token) {
+      const signInWithToken = async () => {
+        try {
+          const { error } = await supabase.auth.setSession({
+            access_token,
+            refresh_token,
+          });
+
+          if (error) {
+            console.error("Error setting session:", error);
+            return;
+          }
+
+          // Limpiar la URL después de iniciar sesión
+          window.location.hash = "";
+          router.push("/");
+        } catch (error) {
+          console.error("Error al iniciar sesión:", error);
+        }
+      };
+
+      signInWithToken();
+    }
+  }, []);
+
   return (
     <ToastProvider>
       <QueryClientProvider client={queryClient}>
         <VideoProjectStoreContext.Provider value={projectStore}>
           <div className="flex flex-col h-screen bg-background">
-            <Header openKeyDialog={() => setKeyDialog(true)} />
+            <Header
+              openKeyDialog={() => setKeyDialog(true)}
+              session={session}
+            />
             <main className="flex overflow-hidden h-full">
               <LeftPanel
                 supabase={supabaseClient}
