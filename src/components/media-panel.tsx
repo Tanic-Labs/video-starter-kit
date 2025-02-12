@@ -215,7 +215,7 @@ export function MediaItemRow({
 
   //const coverImage = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/${data.file_path}`;
   const coverImage =
-    data.type === "video" 
+    data.type === "video"
       ? data.metadata?.start_frame_url || data?.metadata?.end_frame_url
       : mediaUrl;
 
