@@ -121,7 +121,7 @@ function AudioWaveform({ data, supabase }: AudioWaveformProps) {
         return data.metadata.waveform;
       }
       return [];
-      const { data: waveformInfo } = await fal.subscribe(
+      /* const { data: waveformInfo } = await fal.subscribe(
         "fal-ai/ffmpeg-api/waveform",
         {
           input: {
@@ -149,11 +149,11 @@ function AudioWaveform({ data, supabase }: AudioWaveformProps) {
         throw waveformError;
       }
 
-      return waveformInfo.waveform as number[];
+      return waveformInfo.waveform as number[]; */
     },
     placeholderData: keepPreviousData,
     staleTime: Number.POSITIVE_INFINITY,
-  }); /**/
+  });
   // #endregion
 
   // #region Waveform Size

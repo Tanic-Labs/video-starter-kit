@@ -1,6 +1,6 @@
 import { db } from "@/data/db";
 import { queryKeys } from "@/data/queries";
-import type { MediaItem } from "@/data/schema";
+import type { MediaItem, VideoProject } from "@/data/schema";
 import { useProjectId, useVideoProjectStore } from "@/data/store";
 import { fal } from "@/lib/fal";
 import { cn, resolveMediaUrl, trackIcons } from "@/lib/utils";
@@ -37,6 +37,7 @@ type MediaItemRowProps = {
   data: MediaItem;
   onOpen: (data: MediaItem) => void;
   draggable?: boolean;
+  project: VideoProject;
 } & HTMLAttributes<HTMLDivElement>;
 
 export function MediaItemRow({
@@ -45,6 +46,7 @@ export function MediaItemRow({
   className,
   onOpen,
   draggable = true,
+  project,
   ...props
 }: MediaItemRowProps) {
   const isDone =
@@ -52,7 +54,7 @@ export function MediaItemRow({
     "status" in data.metadata &&
     (data.metadata.status === "completed" || data.metadata.status === "failed");
   const queryClient = useQueryClient();
-  const projectId = useProjectId();
+  const projectId = project.id
   const { toast } = useToast();
   useQuery({
     queryKey: queryKeys.projectMedia(projectId, data.id),
@@ -180,24 +182,11 @@ export function MediaItemRow({
             description: `Failed to generate ${data.type}.`,
           });
         }
-        /* finally {
+        finally {
           await queryClient.invalidateQueries({
-            queryKey: queryKeys.projectMediaItems(data.projectId),
+            queryKey: queryKeys.projectMediaItems(projectId),
           });
         }
-          
-        if (media.type !== "image") {
-          const mediaMetadata = await getMediaMetadata(media as MediaItem);
-
-          await db.media.update(data.id, {
-            ...media,
-            metadata: mediaMetadata?.media || {},
-          });
-
-          await queryClient.invalidateQueries({
-            queryKey: queryKeys.projectMediaItems(data.projectId),
-          });
-        } */
       }
 
       return null;
@@ -387,6 +376,7 @@ type MediaItemsPanelProps = {
   data: MediaItem[];
   mediaType: string;
   setSelectedMedia: Dispatch<SetStateAction<MediaItem | null>>;
+  project: VideoProject;
 } & HTMLAttributes<HTMLDivElement>;
 
 export function MediaItemPanel({
@@ -395,6 +385,7 @@ export function MediaItemPanel({
   mediaType,
   supabase,
   setSelectedMedia,
+  project
 }: MediaItemsPanelProps) {
   const setSelectedMediaId = useVideoProjectStore((s) => s.setSelectedMediaId);
   //const [selectedMedia, setSelectedMedia] = useState<MediaItem[]>();
@@ -420,6 +411,7 @@ export function MediaItemPanel({
               data={media}
               onOpen={handleOnOpen}
               supabase={supabase}
+              project={project}
             />
           </Fragment>
         ))}
