@@ -107,7 +107,7 @@ export function VideoTrackRow({
 // #region TYPE AUDIO WAVEFORM
 type AudioWaveformProps = {
   data: MediaItem;
-  supabase: SupabaseClient
+  supabase: SupabaseClient;
 };
 // #endregion
 
@@ -132,19 +132,19 @@ function AudioWaveform({ data, supabase }: AudioWaveformProps) {
         },
       );
 
-      const {data: waveformInsert, error: waveformError} = await supabase
-        .from('assets')
+      const { data: waveformInsert, error: waveformError } = await supabase
+        .from("assets")
         .update({
-            metadata:{
-              ...data.metadata,
-              waveform: waveformInfo.waveform,
-            }
+          metadata: {
+            ...data.metadata,
+            waveform: waveformInfo.waveform,
+          },
         })
-        .eq('id', data.id)
+        .eq("id", data.id)
         .select();
 
       if (waveformError) {
-        console.log(waveformError)
+        console.log(waveformError);
         throw waveformError;
       }
 
@@ -193,7 +193,6 @@ function AudioWaveform({ data, supabase }: AudioWaveformProps) {
       ) : (
         <div> Audio!! </div>
       )}
-      
     </div>
   );
   // #endregion
@@ -552,10 +551,7 @@ export function VideoTrackView({
           }
         >
           {(media.type === "audio" || media.type === "voiceover") && (
-            <AudioWaveform 
-              data={media} 
-              supabase={supabase}
-            />
+            <AudioWaveform data={media} supabase={supabase} />
           )}
           <div
             className={cn(
