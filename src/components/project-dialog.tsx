@@ -142,7 +142,9 @@ export function ProjectDialog({
       const baseData = {
         track_id: track.id,
         timestamp: 0,
-        duration: newProjectItem.metadata?.duration ? Math.ceil(newProjectItem.metadata.duration * 1000) : 5000,
+        duration: newProjectItem.metadata?.duration
+          ? Math.ceil(newProjectItem.metadata.duration * 1000)
+          : 5000,
         asset_id: newProjectItem.id,
       };
       let insertData;

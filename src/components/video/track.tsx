@@ -309,10 +309,7 @@ export function VideoTrackView({
       return mediaUrl;
     }
     if (media.type === "video") {
-      return (
-        media.metadata?.start_frame_url ||
-        media.metadata?.end_frame_url
-      );
+      return media.metadata?.start_frame_url || media.metadata?.end_frame_url;
     }
     return undefined;
   }, [media]);

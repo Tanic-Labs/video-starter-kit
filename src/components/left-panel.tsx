@@ -151,19 +151,19 @@ export default function LeftPanel({
         );
       } else {
         if (mediaType === "audio" || mediaType === "voiceover") {
-          const {data: waveformInfo = []} = await fal.subscribe(
+          const { data: waveformInfo = [] } = await fal.subscribe(
             "fal-ai/ffmpeg-api/waveform",
             {
-              input:{
+              input: {
                 media_url: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/${filePath}`,
                 points_per_second: 5,
                 precision: 3,
-              }
-            }
+              },
+            },
           );
 
           if (!waveformInfo) {
-            throw new Error("Waveform Inf is no available")
+            throw new Error("Waveform Inf is no available");
           }
 
           const { data: waveformInsert, error: waveformError } = await supabase
@@ -183,7 +183,7 @@ export default function LeftPanel({
             throw waveformError;
           }
         } else if (mediaType === "video") {
-          const {data: mediaMetadata = []} = await fal.subscribe(
+          const { data: mediaMetadata = [] } = await fal.subscribe(
             "fal-ai/ffmpeg-api/metadata",
             {
               input: {
@@ -206,12 +206,12 @@ export default function LeftPanel({
                 duration: mediaMetadata.media.duration,
                 start_frame_url: mediaMetadata.media.start_frame_url,
                 end_frame_url: mediaMetadata.media.end_frame_url,
-              }
+              },
             })
             .eq("id", assetData.id)
             .select();
 
-          if( primeFramesError ) {
+          if (primeFramesError) {
             console.log(primeFramesError);
             throw primeFramesError;
           }
