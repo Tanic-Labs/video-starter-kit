@@ -34,6 +34,7 @@ import {
 } from "./ui/dropdown-menu";
 import { useState, useEffect, Dispatch, SetStateAction } from "react";
 import { toast } from "@/hooks/use-toast";
+import { fal } from "@/lib/fal";
 // #endregion
 
 // #region TYPES
@@ -139,7 +140,9 @@ export default function LeftPanel({
               orignalName: file.name,
             },
           },
-        ]);
+        ])
+        .select()
+        .single();
 
       if (assetError) {
         console.error(
@@ -147,6 +150,72 @@ export default function LeftPanel({
           assetError.message,
         );
       } else {
+        if (mediaType === "audio" || mediaType === "voiceover") {
+          const {data: waveformInfo = []} = await fal.subscribe(
+            "fal-ai/ffmpeg-api/waveform",
+            {
+              input:{
+                media_url: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/${filePath}`,
+                points_per_second: 5,
+                precision: 3,
+              }
+            }
+          );
+
+          if (!waveformInfo) {
+            throw new Error("Waveform Inf is no available")
+          }
+
+          const { data: waveformInsert, error: waveformError } = await supabase
+            .from("assets")
+            .update({
+              metadata: {
+                ...assetData.metadata,
+                waveform: waveformInfo.waveform,
+                duration: waveformInfo.duration,
+              },
+            })
+            .eq("id", assetData.id)
+            .select();
+
+          if (waveformError) {
+            console.log(waveformError);
+            throw waveformError;
+          }
+        } else if (mediaType === "video") {
+          const {data: mediaMetadata = []} = await fal.subscribe(
+            "fal-ai/ffmpeg-api/metadata",
+            {
+              input: {
+                media_url: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/${filePath}`,
+                extract_frames: true,
+              },
+              mode: "streaming",
+            },
+          );
+
+          if (!mediaMetadata.media) {
+            throw new Error("Media metadata is not available");
+          }
+
+          const { data: primeFrames, error: primeFramesError } = await supabase
+            .from("assets")
+            .update({
+              metadata: {
+                ...assetData.metadata,
+                duration: mediaMetadata.media.duration,
+                start_frame_url: mediaMetadata.media.start_frame_url,
+                end_frame_url: mediaMetadata.media.end_frame_url,
+              }
+            })
+            .eq("id", assetData.id)
+            .select();
+
+          if( primeFramesError ) {
+            console.log(primeFramesError);
+            throw primeFramesError;
+          }
+        }
         fetchData();
         setIsUploading(false);
       }

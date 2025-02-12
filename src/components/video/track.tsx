@@ -138,6 +138,7 @@ function AudioWaveform({ data, supabase }: AudioWaveformProps) {
           metadata: {
             ...data.metadata,
             waveform: waveformInfo.waveform,
+            duration: waveformInfo.duration,
           },
         })
         .eq("id", data.id)
@@ -309,7 +310,6 @@ export function VideoTrackView({
     }
     if (media.type === "video") {
       return (
-        mediaUrl ||
         media.metadata?.start_frame_url ||
         media.metadata?.end_frame_url
       );
