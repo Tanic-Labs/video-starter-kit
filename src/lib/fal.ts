@@ -31,7 +31,7 @@ export type ApiInfo = {
   inputMap?: Record<string, string>;
   inputAsset?: InputAsset[];
   initialInput?: Record<string, unknown>;
-  category: "image" | "video" | "music" | "voiceover";
+  category: "image" | "video" | "audio" | "voiceover";
 };
 
 export const AVAILABLE_ENDPOINTS: ApiInfo[] = [
@@ -100,7 +100,7 @@ export const AVAILABLE_ENDPOINTS: ApiInfo[] = [
     description:
       "Advanced AI techniques to create high-quality, diverse musical compositions",
     cost: "",
-    category: "music",
+    category: "audio",
     inputAsset: [
       {
         type: "audio",
@@ -131,7 +131,7 @@ export const AVAILABLE_ENDPOINTS: ApiInfo[] = [
     label: "Stable Audio",
     description: "Stable Diffusion music creation with high-quality tracks",
     cost: "",
-    category: "music",
+    category: "audio",
   },
   {
     endpointId: "fal-ai/playht/tts/v3",

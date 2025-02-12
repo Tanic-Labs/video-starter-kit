@@ -218,7 +218,7 @@ export default function BottomBar({
         .eq("project_id", projectId);
 
       if (error) {
-        console.error("Error fetching tracks:", error);
+        console.log("Error fetching tracks:", error);
         throw error;
       }
 
@@ -243,7 +243,7 @@ export default function BottomBar({
           keyframes: [],
           projectId: projectId,
         } as VideoTrack),
-      music:
+      audio:
         tracks.find((t) => t.type === "audio") ||
         ({
           id: "audio",

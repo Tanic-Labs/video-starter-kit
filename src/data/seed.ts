@@ -20,7 +20,7 @@ const TEMPLATE_PROJECT_SEED: ProjectSeed = {
     {
       projectId: "433685b7-3494-4a56-9657-c1522686139d",
       createdAt: 1737486876353,
-      mediaType: "music",
+      mediaType: "audio",
       kind: "generated",
       endpointId: "fal-ai/stable-audio",
       requestId: "7d2d12f8-41d8-4e20-87a1-d4fdf8a7a28b",
@@ -373,8 +373,8 @@ const TEMPLATE_PROJECT_SEED: ProjectSeed = {
     },
     {
       projectId: "433685b7-3494-4a56-9657-c1522686139d",
-      type: "music",
-      label: "music",
+      type: "audio",
+      label: "audio",
       locked: true,
       id: "dc875d02-e09c-4d57-9d71-1c152e1a5798",
     },

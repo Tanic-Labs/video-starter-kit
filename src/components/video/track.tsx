@@ -418,9 +418,23 @@ export function VideoTrackView({
         : 1;
       let newDuration = (newWidth / parentWidth) * 30 * 1000;
 
+      const nextFrameElement = trackElement.nextElementSibling as HTMLElement | null;
+
+      let nextFrameTimestamp: number | null;
+      let maxAllowedDuration = Infinity;
+      if ( nextFrameElement ) {
+        const nextFrameLeft = parseFloat(nextFrameElement.style.left);
+        nextFrameTimestamp = (nextFrameLeft/ 100 ) * 30 * 1000;
+
+        maxAllowedDuration= nextFrameTimestamp - frame.timestamp
+      }
+
       if (newDuration < minDuration) {
         newWidth = (minDuration / 1000 / 30) * parentWidth;
         newDuration = minDuration;
+      } else if (newDuration > maxAllowedDuration) {
+        newWidth = (maxAllowedDuration/100/30) * parentWidth;
+        newDuration = maxAllowedDuration
       } else if (newDuration > maxDuration) {
         newWidth = (maxDuration / 1000 / 30) * parentWidth;
         newDuration = maxDuration;
