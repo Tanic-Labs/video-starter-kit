@@ -54,12 +54,19 @@ export function MediaItemRow({
     "status" in data.metadata &&
     (data.metadata.status === "completed" || data.metadata.status === "failed");
   const queryClient = useQueryClient();
-  const projectId = project.id
+  const projectId = project.id;
   const { toast } = useToast();
   useQuery({
     queryKey: queryKeys.projectMedia(projectId, data.id),
     queryFn: async () => {
-      if (data.source_type === "uploaded") return null;
+      if (
+        data.source_type === "uploaded" 
+        || (
+          data.metadata 
+          && "status" in data.metadata 
+          && data.metadata.status === "completed"
+        )
+      ) return null;
       const queueStatus = await fal.queue.status(
         data?.metadata && "endpointId" in data.metadata
           ? data.metadata.endpointId
@@ -181,8 +188,7 @@ export function MediaItemRow({
             title: "Generation failed",
             description: `Failed to generate ${data.type}.`,
           });
-        }
-        finally {
+        } finally {
           await queryClient.invalidateQueries({
             queryKey: queryKeys.projectMediaItems(projectId),
           });
@@ -385,7 +391,7 @@ export function MediaItemPanel({
   mediaType,
   supabase,
   setSelectedMedia,
-  project
+  project,
 }: MediaItemsPanelProps) {
   const setSelectedMediaId = useVideoProjectStore((s) => s.setSelectedMediaId);
   //const [selectedMedia, setSelectedMedia] = useState<MediaItem[]>();
