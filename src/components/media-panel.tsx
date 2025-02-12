@@ -60,13 +60,12 @@ export function MediaItemRow({
     queryKey: queryKeys.projectMedia(projectId, data.id),
     queryFn: async () => {
       if (
-        data.source_type === "uploaded" 
-        || (
-          data.metadata 
-          && "status" in data.metadata 
-          && data.metadata.status === "completed"
-        )
-      ) return null;
+        data.source_type === "uploaded" ||
+        (data.metadata &&
+          "status" in data.metadata &&
+          data.metadata.status === "completed")
+      )
+        return null;
       const queueStatus = await fal.queue.status(
         data?.metadata && "endpointId" in data.metadata
           ? data.metadata.endpointId
