@@ -215,9 +215,9 @@ export function MediaItemRow({
 
   //const coverImage = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/${data.file_path}`;
   const coverImage =
-    data.type === "video"
+    data.type === "video" 
       ? data.metadata?.start_frame_url || data?.metadata?.end_frame_url
-      : `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/${data.file_path}`; /* */
+      : mediaUrl;
 
   return (
     <div
@@ -264,7 +264,7 @@ export function MediaItemRow({
               (coverImage ? (
                 <div className="w-full h-full flex items-center justify-center top-0 left-0 absolute p-2 z-50">
                   <img
-                    src={coverImage}
+                    src={coverImage as string}
                     alt="Generated media"
                     className="h-full w-full object-cover"
                   />
@@ -312,7 +312,7 @@ export function MediaItemRow({
               (coverImage ? (
                 <div className="w-full h-full flex items-center justify-center top-0 left-0 absolute p-2 z-50">
                   <img
-                    src={coverImage}
+                    src={coverImage as string}
                     alt="Generated media"
                     className="h-full w-full object-cover"
                   />
