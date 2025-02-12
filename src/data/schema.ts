@@ -111,6 +111,7 @@ export type MediaItem = {
         output: Record<string, any>;
         endpointId: string;
         requestId: string;
+        duration?: number;
         waveform?: any;
         start_frame_url?: number;
         end_frame_url?: number;
@@ -122,6 +123,7 @@ export type MediaItem = {
         type: string;
         description: string;
         original_name: string;
+        duration?: number;
         waveform?: any;
         start_frame_url?: number;
         end_frame_url?: number;

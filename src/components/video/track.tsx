@@ -107,18 +107,20 @@ export function VideoTrackRow({
 // #region TYPE AUDIO WAVEFORM
 type AudioWaveformProps = {
   data: MediaItem;
+  supabase: SupabaseClient
 };
 // #endregion
 
 // #region AUDIO WAVEFORM
-function AudioWaveform({ data }: AudioWaveformProps) {
+function AudioWaveform({ data, supabase }: AudioWaveformProps) {
   // #region Get Waveform
-  /* const { data: waveform = [] } = useQuery({
+  const { data: waveform = [] } = useQuery({
     queryKey: ["media", "waveform", data.id],
     queryFn: async () => {
       if (data.metadata?.waveform && Array.isArray(data.metadata.waveform)) {
         return data.metadata.waveform;
       }
+      return [];
       const { data: waveformInfo } = await fal.subscribe(
         "fal-ai/ffmpeg-api/waveform",
         {
@@ -129,55 +131,69 @@ function AudioWaveform({ data }: AudioWaveformProps) {
           },
         },
       );
-      await db.media.update(data.id, {
-        ...data,
-        metadata: {
-          ...data.metadata,
-          waveform: waveformInfo.waveform,
-        },
-      });
+
+      const {data: waveformInsert, error: waveformError} = await supabase
+        .from('assets')
+        .update({
+            metadata:{
+              ...data.metadata,
+              waveform: waveformInfo.waveform,
+            }
+        })
+        .eq('id', data.id)
+        .select();
+
+      if (waveformError) {
+        console.log(waveformError)
+        throw waveformError;
+      }
+
       return waveformInfo.waveform as number[];
     },
     placeholderData: keepPreviousData,
     staleTime: Number.POSITIVE_INFINITY,
-  }); */
+  }); /**/
   // #endregion
 
   // #region Waveform Size
-  /* const svgWidth = waveform.length * 3;
-  const svgHeight = 100; */
+  const svgWidth = waveform.length * 3;
+  const svgHeight = 100;
   // #endregion
 
   // #region Audio Waveform JSX
   return (
     <div className="h-full flex items-center">
-      Audio!!
-      {/* <svg
-        width="100%"
-        height="80%"
-        viewBox={`0 0 ${svgWidth} ${svgHeight}`}
-        preserveAspectRatio="none"
-      >
-        <title>Audio Waveform</title>
-        {waveform.map((v, index) => {
-          const amplitude = Math.abs(v);
-          const height = Math.max(amplitude * svgHeight, 2);
-          const x = index * 3;
-          const y = (svgHeight - height) / 2;
+      {waveform && waveform.length > 0 ? (
+        <svg
+          width="100%"
+          height="80%"
+          viewBox={`0 0 ${svgWidth} ${svgHeight}`}
+          preserveAspectRatio="none"
+        >
+          <title>Audio Waveform</title>
+          {waveform.map((v, index) => {
+            const amplitude = Math.abs(v);
+            const height = Math.max(amplitude * svgHeight, 2);
+            const x = index * 3;
+            const y = (svgHeight - height) / 2;
 
-          return (
-            <rect
-              key={index}
-              x={x}
-              y={y}
-              width="2"
-              height={height}
-              className="fill-black/40"
-              rx="4"
-            />
-          );
-        })}
-      </svg> */}
+            return (
+              <rect
+                key={index}
+                x={x}
+                y={y}
+                width="2"
+                height={height}
+                className="fill-black/40"
+                rx="4"
+              />
+            );
+          })}
+        </svg>
+      ) : (
+        <div> Audio!! </div>
+      )}
+      
     </div>
   );
   // #endregion
@@ -410,7 +426,7 @@ export function VideoTrackView({
       let newWidth = startWidth + (direction === "right" ? deltaX : -deltaX);
 
       const minDuration = 1000;
-      const maxDuration: number = resolveDuration(media) ?? 5000;
+      const maxDuration: number = resolveDuration(media) ?? 15000;
 
       const timelineElement = trackElement.closest(".timeline-container");
       const parentWidth = timelineElement
@@ -536,7 +552,10 @@ export function VideoTrackView({
           }
         >
           {(media.type === "audio" || media.type === "voiceover") && (
-            <AudioWaveform data={media} />
+            <AudioWaveform 
+              data={media} 
+              supabase={supabase}
+            />
           )}
           <div
             className={cn(

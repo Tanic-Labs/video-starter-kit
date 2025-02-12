@@ -57,7 +57,7 @@ export function resolveDuration(item: MediaItem): number | null {
     "duration" in metadata &&
     typeof metadata.duration === "number"
   ) {
-    return metadata.duration * 1000;
+    return Math.ceil(metadata.duration * 1000);
   }
 
   const data =
@@ -67,7 +67,7 @@ export function resolveDuration(item: MediaItem): number | null {
     return data.seconds_total * 1000;
   }
   if ("audio" in data && "duration" in data.audio) {
-    return data.audio.duration * 1000;
+    return Math.ceil(data.audio.duration * 1000);
   }
   return null;
 }
