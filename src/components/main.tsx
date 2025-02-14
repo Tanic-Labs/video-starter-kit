@@ -119,7 +119,7 @@ export function App({ /* projectId, */ session }: AppProps) {
         setMediaItems(data);
         setIsLoading(false);
       }
-    } else {
+    } /* else {
       const { data, error } = await supabaseClient.from("assets").select("*");
 
       if (error) {
@@ -129,7 +129,7 @@ export function App({ /* projectId, */ session }: AppProps) {
         setMediaItems(data);
         setIsLoading(false);
       }
-    }
+    } */
   }
 
   useEffect(() => {

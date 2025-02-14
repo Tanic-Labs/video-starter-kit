@@ -47,13 +47,14 @@ type MediaGallerySheetProps = ComponentProps<typeof Sheet> & {
 
 type AudioPlayerProps = {
   media: MediaItem;
+  mediaUrl: string
 } & HTMLAttributes<HTMLAudioElement>;
 // #endregion
 
 // #region AUDIOPLAYER
-function AudioPlayer({ media, ...props }: AudioPlayerProps) {
-  const src = resolveMediaUrl(media);
-  if (!src) return null;
+function AudioPlayer({ media, mediaUrl, ...props }: AudioPlayerProps) {
+  /* const src = resolveMediaUrl(media);
+  if (!src) return null; */
 
   return (
     <div className="flex flex-col gap-4">
@@ -62,7 +63,7 @@ function AudioPlayer({ media, ...props }: AudioPlayerProps) {
         {media.type === "voiceover" && <MicIcon className="w-1/2 h-1/2" />}
       </div>
       <div>
-        <audio src={src} {...props} controls className="rounded" />
+        <audio src={mediaUrl} {...props} controls className="rounded" />
       </div>
     </div>
   );
@@ -249,7 +250,7 @@ export function MediaGallerySheet({
           className="pointer-events-auto fixed inset-0 z-[51] mr-[42rem] flex flex-col items-center justify-center gap-4 px-32 py-16"
           onClick={close}
         >
-          {!!mediaUrl && (
+          {mediaUrl && (
             <>
               {selectedMedia.type === "image" && (
                 <img
@@ -268,7 +269,10 @@ export function MediaGallerySheet({
               )}
               {(selectedMedia.type === "audio" ||
                 selectedMedia.type === "voiceover") && (
-                <AudioPlayer media={selectedMedia} />
+                <AudioPlayer 
+                  media={selectedMedia} 
+                  mediaUrl={mediaUrl}
+                />
               )}
             </>
           )}

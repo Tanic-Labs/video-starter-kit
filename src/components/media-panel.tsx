@@ -56,16 +56,20 @@ export function MediaItemRow({
   const queryClient = useQueryClient();
   const projectId = project.id;
   const { toast } = useToast();
+  
   useQuery({
     queryKey: queryKeys.projectMedia(projectId, data.id),
     queryFn: async () => {
       if (
         data.source_type === "uploaded" ||
-        (data.metadata &&
+        (
+          data.metadata &&
           "status" in data.metadata &&
-          data.metadata.status === "completed")
-      )
+          data.metadata.status === "completed"
+        )
+      ) {
         return null;
+      }
       const queueStatus = await fal.queue.status(
         data?.metadata && "endpointId" in data.metadata
           ? data.metadata.endpointId
@@ -130,7 +134,7 @@ export function MediaItemRow({
           };
 
           // update to sapabe in future
-          await db.media.update(data.id, media);
+          //await db.media.update(data.id, media);
 
           const { data: completedData, error: completedError } = await supabase
             .from("assets")
@@ -155,7 +159,7 @@ export function MediaItemRow({
             description: `Your ${data.type} has been generated successfully.`,
           });
         } catch {
-          await db.media.update(data.id, {
+          /* await db.media.update(data.id, {
             ...data,
             metadata:
               data.metadata && data.source_type === "generated"
@@ -164,7 +168,7 @@ export function MediaItemRow({
                     status: "failed",
                   }
                 : data.metadata,
-          }); // update tu supabase in futere
+          }); */ // update tu supabase in futere
 
           const { data: failData, error: failError } = await supabase
             .from("assets")
