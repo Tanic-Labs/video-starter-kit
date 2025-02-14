@@ -53,10 +53,18 @@ export function App({ /* projectId, */ session }: AppProps) {
 
   useEffect(() => {
     const initializeSession = async () => {
-      const {
-        data: { user },
-      } = await supabaseClient.auth.getUser();
-      setUser(user);
+      try {
+        const {
+          data: { user },
+        } = await supabaseClient.auth.getUser();
+        setUser(user);
+      } catch (error) {
+        console.error("Error fetching user session: ", error);
+        toast({
+          title: "Error",
+          description: "Unable to fetch user session. Please try again.",
+        });
+      }
     };
     initializeSession();
   }, [supabaseClient]);
@@ -103,33 +111,42 @@ export function App({ /* projectId, */ session }: AppProps) {
 
   // #region FetchData
   async function fetchData() {
-    setIsLoading(true);
+    try {
+      setIsLoading(true);
+      if (user) {
+        const { data, error } = await supabaseClient
+          .from("assets")
+          .select("*")
+          .eq("user_id", user.id);
 
-    if (user) {
-      const { data, error } = await supabaseClient
-        .from("assets")
-        .select("*")
-        .eq("user_id", user.id);
+        if (error) {
+          console.error("Error fetching data:", error.message);
+          setIsLoading(false);
+          return;
+        } else {
+          setMediaItems(data);
+          setIsLoading(false);
+        }
+      } /* else {
+        const { data, error } = await supabaseClient.from("assets").select("*");
 
-      if (error) {
-        console.error("Error fetching data:", error.message);
-        setIsLoading(false);
-        return;
-      } else {
-        setMediaItems(data);
-        setIsLoading(false);
-      }
-    } /* else {
-      const { data, error } = await supabaseClient.from("assets").select("*");
-
-      if (error) {
-        console.error("Error fetching data:", error.message);
-        setIsLoading(false);
-      } else {
-        setMediaItems(data);
-        setIsLoading(false);
-      }
-    } */
+        if (error) {
+          console.error("Error fetching data:", error.message);
+          setIsLoading(false);
+        } else {
+          setMediaItems(data);
+          setIsLoading(false);
+        }
+      } */
+    } catch (error) {
+      console.error("An error occurred while fetching data: ", error);
+      toast({
+        title: "Error",
+        description: "Unable to fetch data. Please try again.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   useEffect(() => {
