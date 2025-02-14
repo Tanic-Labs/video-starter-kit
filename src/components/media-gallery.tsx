@@ -53,9 +53,6 @@ type AudioPlayerProps = {
 
 // #region AUDIOPLAYER
 function AudioPlayer({ media, mediaUrl, ...props }: AudioPlayerProps) {
-  /* const src = resolveMediaUrl(media);
-  if (!src) return null; */
-
   return (
     <div className="flex flex-col gap-4">
       <div className="aspect-square bg-accent text-muted-foreground flex flex-col items-center justify-center">
@@ -292,6 +289,7 @@ export function MediaGallerySheet({
         <SheetPanel
           className="flex h-screen max-h-screen min-h-screen flex-col overflow-hidden sm:max-w-2xl"
           onPointerDownOutside={preventClose as any}
+          onClose={close}
         >
           <SheetHeader>
             <SheetTitle>Media Gallery</SheetTitle>
