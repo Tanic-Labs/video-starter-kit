@@ -85,7 +85,7 @@ export function ProjectDialog({
           console.error("Unexpected error:", error);
         } finally {
           setIsLoading(false);
-        };
+        }
       }
     };
     getProjects();
@@ -160,7 +160,9 @@ export function ProjectDialog({
           if (newProjectItem?.metadata && "input" in newProjectItem.metadata) {
             insertData = {
               ...baseData,
-              type: newProjectItem.metadata.input?.image_url ? "image" : "prompt",
+              type: newProjectItem.metadata.input?.image_url
+                ? "image"
+                : "prompt",
               prompt: newProjectItem.metadata.input.prommpt || "",
               url: newProjectItem.metadata.input.image_url?.url,
             };
@@ -193,10 +195,14 @@ export function ProjectDialog({
             throw noNewKeyframe;
           }
         } catch (error) {
-          console.error("An error occurred while processing newProjectItem:", error);
+          console.error(
+            "An error occurred while processing newProjectItem:",
+            error,
+          );
           toast({
             title: "Error!",
-            description: "An error occurred while processing the asset. Please try again.",
+            description:
+              "An error occurred while processing the asset. Please try again.",
           });
         } finally {
           setNewProjectItem(null);
