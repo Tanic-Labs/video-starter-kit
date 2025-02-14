@@ -159,7 +159,7 @@ export function App({ /* projectId, */ session }: AppProps) {
     const access_token = params.get("access_token");
     const refresh_token = params.get("refresh_token");
 
-    if (access_token) {
+    if (access_token && refresh_token) {
       const signInWithToken = async () => {
         try {
           const { error } = await supabase.auth.setSession({
