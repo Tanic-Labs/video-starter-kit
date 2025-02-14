@@ -83,7 +83,7 @@ export default function BottomBar({
   // #region Add Track
   const addToTrack = useMutation({
     mutationFn: async (media: MediaItem) => {
-      try{
+      try {
         if (!user) {
           toast({
             title: "Cannot drop asset",
@@ -98,7 +98,6 @@ export default function BottomBar({
           return;
         }
 
-        
         const { data: tracks, error: trakcsErr } = await supabase
           .from("projects_assets")
           .select("*")
@@ -199,7 +198,7 @@ export default function BottomBar({
         }
 
         return newKeyframe;
-      } catch (error){
+      } catch (error) {
         console.error("An error occurred: ", error);
         toast({
           title: "Error",
