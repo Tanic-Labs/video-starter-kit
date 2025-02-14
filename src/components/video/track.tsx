@@ -253,7 +253,7 @@ export function VideoTrackView({
           title: "Error!",
           description: "An unexpected error occurred. Please try again.",
         });
-      } 
+      }
     },
     onSuccess: () => {
       setRealtime(!realtime);
@@ -316,7 +316,7 @@ export function VideoTrackView({
           title: "Error!",
           description: "An unexpected error occurred. Please try again.",
         });
-        setMediaItems([])
+        setMediaItems([]);
       }
     };
     if (projectId) fetchMediaItems();
@@ -518,7 +518,6 @@ export function VideoTrackView({
           description: "An unexpected error occurred. Please try again.",
         });
       }
-      
     };
 
     document.addEventListener("mousemove", handleMouseMove);
