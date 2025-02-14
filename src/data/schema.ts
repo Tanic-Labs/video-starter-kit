@@ -113,8 +113,8 @@ export type MediaItem = {
         requestId: string;
         duration?: number;
         waveform?: any;
-        start_frame_url?: number;
-        end_frame_url?: number;
+        start_frame_url?: string;
+        end_frame_url?: string;
       }
     | {
         // For "uploaded"
@@ -125,7 +125,7 @@ export type MediaItem = {
         original_name: string;
         duration?: number;
         waveform?: any;
-        start_frame_url?: number;
-        end_frame_url?: number;
+        start_frame_url?: string;
+        end_frame_url?: string;
       };
 };
