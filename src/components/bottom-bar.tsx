@@ -83,120 +83,130 @@ export default function BottomBar({
   // #region Add Track
   const addToTrack = useMutation({
     mutationFn: async (media: MediaItem) => {
-      if (!user) {
-        toast({
-          title: "Cannot drop asset",
-          description: "Create or choose a project to continue",
-        });
-        return;
-      }
+      try{
+        if (!user) {
+          toast({
+            title: "Cannot drop asset",
+            description: "Create or choose a project to continue",
+          });
+          return;
+        }
 
-      if (!project.id) {
-        setProjectDialogOpen(true);
-        setNewProjectItem(media);
-        return;
-      }
+        if (!project.id) {
+          setProjectDialogOpen(true);
+          setNewProjectItem(media);
+          return;
+        }
 
-      const { data: tracks, error: trakcsErr } = await supabase
-        .from("projects_assets")
-        .select("*")
-        .eq("project_id", project.id);
-
-      if (trakcsErr) {
-        console.log("Error fetching keyframes: ", trakcsErr);
-        throw trakcsErr;
-      }
-
-      const trackType = media.type === "image" ? "video" : media.type;
-      let track = tracks.find((t) => t.type === trackType);
-      if (!track) {
-        const { data: newTrack, error: newTrackErr } = await supabase
+        
+        const { data: tracks, error: trakcsErr } = await supabase
           .from("projects_assets")
-          .insert([
-            {
-              project_id: project.id,
-              asset_id: media.id,
-              type: trackType,
-              label: media.type,
-              locked: true,
-            },
-          ])
+          .select("*")
+          .eq("project_id", project.id);
+
+        if (trakcsErr) {
+          console.log("Error fetching keyframes: ", trakcsErr);
+          throw trakcsErr;
+        }
+
+        const trackType = media.type === "image" ? "video" : media.type;
+        let track = tracks.find((t) => t.type === trackType);
+        if (!track) {
+          const { data: newTrack, error: newTrackErr } = await supabase
+            .from("projects_assets")
+            .insert([
+              {
+                project_id: project.id,
+                asset_id: media.id,
+                type: trackType,
+                label: media.type,
+                locked: true,
+              },
+            ])
+            .select()
+            .single();
+
+          if (newTrackErr) {
+            console.log("Error adding track: ", newTrackErr);
+            throw newTrackErr;
+          }
+
+          track = newTrack;
+        }
+
+        const { data: keyframes, error: keyframesError } = await supabase
+          .from("keyframes")
+          .select("*")
+          .eq("track_id", track.id)
+          .order("timestamp", { ascending: true });
+
+        if (keyframesError) {
+          console.log("Error fetching keyframes: ", keyframesError);
+          throw keyframesError;
+        }
+
+        const lastKeyframe = keyframes?.reduce(
+          (acc, frame) =>
+            frame.timestamp + frame.duration > acc.timestamp + acc.duration
+              ? frame
+              : acc,
+          { timestamp: 0, duration: 0 },
+        );
+
+        const duration = resolveDuration(media) ?? 5000;
+
+        const baseData = {
+          track_id: track.id,
+          timestamp: lastKeyframe
+            ? lastKeyframe.timestamp + lastKeyframe.duration
+            : 0,
+          duration,
+          asset_id: media.id,
+        };
+
+        let insertData;
+        if (media?.metadata && "input" in media.metadata) {
+          insertData = {
+            ...baseData,
+            type: media.metadata.input?.image_url ? "image" : "prompt",
+            prompt: media.metadata.input.prompt || "",
+            url: media.metadata.input.image_url?.url,
+          };
+        } else if (media?.metadata && "description" in media.metadata) {
+          insertData = {
+            ...baseData,
+            type: media.type,
+            prompt: media.metadata.description || "",
+            url: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/${media.file_path}`,
+          };
+        } else {
+          toast({
+            title: "Cannot drop asset",
+            description: "Error inserting media",
+          });
+          return;
+        }
+
+        const { data: newKeyframe, error: insertKeyframeError } = await supabase
+          .from("keyframes")
+          .insert(insertData)
           .select()
           .single();
 
-        if (newTrackErr) {
-          console.log("Error adding track: ", newTrackErr);
-          throw newTrackErr;
+        if (insertKeyframeError) {
+          console.log("Error inserting keyframes: ", insertKeyframeError);
+          throw insertKeyframeError;
         }
 
-        track = newTrack;
-      }
-
-      const { data: keyframes, error: keyframesError } = await supabase
-        .from("keyframes")
-        .select("*")
-        .eq("track_id", track.id)
-        .order("timestamp", { ascending: true });
-
-      if (keyframesError) {
-        console.log("Error fetching keyframes: ", keyframesError);
-        throw keyframesError;
-      }
-
-      const lastKeyframe = keyframes?.reduce(
-        (acc, frame) =>
-          frame.timestamp + frame.duration > acc.timestamp + acc.duration
-            ? frame
-            : acc,
-        { timestamp: 0, duration: 0 },
-      );
-
-      const duration = resolveDuration(media) ?? 5000;
-
-      const baseData = {
-        track_id: track.id,
-        timestamp: lastKeyframe
-          ? lastKeyframe.timestamp + lastKeyframe.duration
-          : 0,
-        duration,
-        asset_id: media.id,
-      };
-
-      let insertData;
-      if (media?.metadata && "input" in media.metadata) {
-        insertData = {
-          ...baseData,
-          type: media.metadata.input?.image_url ? "image" : "prompt",
-          prompt: media.metadata.input.prompt || "",
-          url: media.metadata.input.image_url?.url,
-        };
-      } else if (media?.metadata && "description" in media.metadata) {
-        insertData = {
-          ...baseData,
-          type: media.type,
-          prompt: media.metadata.description || "",
-          url: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/${media.file_path}`,
-        };
-      } else {
+        return newKeyframe;
+      } catch (error){
+        console.error("An error occurred: ", error);
         toast({
-          title: "Cannot drop asset",
-          description: "Error inserting media",
+          title: "Error",
+          description: "An unexpected error occurred. Please try again.",
         });
-        return;
+        throw error;
       }
-
-      const { data: newKeyframe, error: insertKeyframeError } = await supabase
-        .from("keyframes")
-        .insert(insertData)
-        .select()
-        .single();
-
-      if (insertKeyframeError) {
-        console.log("Error inserting keyframes: ", insertKeyframeError);
-        throw insertKeyframeError;
-      }
-
-      return newKeyframe;
     },
     onSuccess: (data) => {
       if (!data) return;

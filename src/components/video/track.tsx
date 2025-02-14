@@ -298,7 +298,7 @@ export function VideoTrackView({
   // #endregion
 
   // #region Get Media Url
-  const mediaUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/${media.file_path}`
+  const mediaUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/${media.file_path}`;
 
   const imageUrl = useMemo(() => {
     if (!media) return;
