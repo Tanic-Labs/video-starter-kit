@@ -56,17 +56,15 @@ export function MediaItemRow({
   const queryClient = useQueryClient();
   const projectId = project.id;
   const { toast } = useToast();
-  
+
   useQuery({
     queryKey: queryKeys.projectMedia(projectId, data.id),
     queryFn: async () => {
       if (
         data.source_type === "uploaded" ||
-        (
-          data.metadata &&
+        (data.metadata &&
           "status" in data.metadata &&
-          data.metadata.status === "completed"
-        )
+          data.metadata.status === "completed")
       ) {
         return null;
       }

@@ -47,7 +47,7 @@ type MediaGallerySheetProps = ComponentProps<typeof Sheet> & {
 
 type AudioPlayerProps = {
   media: MediaItem;
-  mediaUrl: string
+  mediaUrl: string;
 } & HTMLAttributes<HTMLAudioElement>;
 // #endregion
 
@@ -269,10 +269,7 @@ export function MediaGallerySheet({
               )}
               {(selectedMedia.type === "audio" ||
                 selectedMedia.type === "voiceover") && (
-                <AudioPlayer 
-                  media={selectedMedia} 
-                  mediaUrl={mediaUrl}
-                />
+                <AudioPlayer media={selectedMedia} mediaUrl={mediaUrl} />
               )}
             </>
           )}
