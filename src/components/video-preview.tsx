@@ -271,8 +271,7 @@ export default function VideoPreview({
         });
       } finally {
         setIsCompositionLoading(false);
-      } 
-      
+      }
     };
 
     if (project && project !== PROJECT_PLACEHOLDER) {
