@@ -298,10 +298,7 @@ export function VideoTrackView({
   // #endregion
 
   // #region Get Media Url
-  const mediaUrl =
-    media && media.source_type === "uploaded"
-      ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/${media.file_path}`
-      : `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/7f4041c4-c378-4c1e-a47f-8b5389a8a322/images/0406c906-9e24-4ec2-9e2e-95ce3aab039a.png`;
+  const mediaUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/${media.file_path}`
 
   const imageUrl = useMemo(() => {
     if (!media) return;
