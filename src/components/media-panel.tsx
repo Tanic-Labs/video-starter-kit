@@ -1,3 +1,4 @@
+// #region IMPORTS
 import { db } from "@/data/db";
 import { queryKeys } from "@/data/queries";
 import type { MediaItem, VideoProject } from "@/data/schema";
@@ -31,7 +32,9 @@ import { useToast } from "@/hooks/use-toast";
 import { getMediaMetadata } from "@/lib/ffmpeg";
 import { metadata } from "@/app/layout";
 import { SupabaseClient } from "@supabase/supabase-js";
+// #endregion
 
+// #region MEDIA ITEM ROW PROPS TYPE
 type MediaItemRowProps = {
   supabase: SupabaseClient;
   data: MediaItem;
@@ -39,7 +42,9 @@ type MediaItemRowProps = {
   draggable?: boolean;
   project: VideoProject;
 } & HTMLAttributes<HTMLDivElement>;
+// #endregion
 
+// #region MEDIA ITEM ROW
 export function MediaItemRow({
   supabase,
   data,
@@ -49,14 +54,23 @@ export function MediaItemRow({
   project,
   ...props
 }: MediaItemRowProps) {
+  // #region Const and Values
   const isDone =
     data?.metadata &&
     "status" in data.metadata &&
     (data.metadata.status === "completed" || data.metadata.status === "failed");
   const queryClient = useQueryClient();
   const projectId = project.id;
-  const { toast } = useToast();
+  const { toast } = useToast(); 
+  const mediaUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/${data.file_path}`;
+  const mediaId = data.id.split("-")[0];
+  const coverImage =
+    data.type === "video"
+      ? data.metadata?.start_frame_url || data?.metadata?.end_frame_url
+      : mediaUrl;
+  //#endregion
 
+  // #region Update Status
   useQuery({
     queryKey: queryKeys.projectMedia(projectId, data.id),
     queryFn: async () => {
@@ -79,33 +93,71 @@ export function MediaItemRow({
               : "",
         },
       );
-      if (queueStatus.status === "IN_PROGRESS") {
-        /* await db.media.update(data.id, {
-          ...data,
-          status: "running",
-        });
-        await queryClient.invalidateQueries({
-          queryKey: queryKeys.projectMediaItems(data.projectId),
-        }); */
-        const { data: progressData, error: progressError } = await supabase
-          .from("assets")
-          .update({
-            metadata: {
-              ...data.metadata,
-              status: "runnin",
-            },
-          })
-          .eq("id", data.id)
-          .select("*");
 
-        if (progressError) {
-          console.error("Error updating asset:", progressError);
-        } else {
-          console.log("Asset actualizado:", progressData);
+      // #region status in progress
+      if (queueStatus.status === "IN_PROGRESS") {
+        try {
+          /* await db.media.update(data.id, {
+            ...data,
+            status: "running",
+          });
+          await queryClient.invalidateQueries({
+            queryKey: queryKeys.projectMediaItems(data.projectId),
+          }); */
+          const { data: progressData, error: progressError } = await supabase
+            .from("assets")
+            .update({
+              metadata: {
+                ...data.metadata,
+                status: "running",
+              },
+            })
+            .eq("id", data.id)
+            .select("*");
+
+          if (progressError) {
+            console.error("Error updating asset:", progressError);
+            throw progressError;
+          } else {
+            console.log("Asset actualizado:", progressData);
+          }
+        } catch (error) {
+          try {
+            const { data: failData, error: failError } = await supabase
+              .from("assets")
+              .update({
+                metadata: {
+                  ...data.metadata,
+                  status: "failed",
+                },
+              })
+              .eq("id", data.id)
+              .select("*");
+    
+            if (failError) {
+              console.error("Error updating asset:", failError);
+            } else {
+              console.log("Asset updated:", failData);
+            }
+    
+            toast({
+              title: "Generation failed",
+              description: `Failed to generate ${data.type}.`,
+            });
+          } catch (innerError) {
+            console.error("Error in catch block:", innerError);
+          }
+        } finally {
+          await queryClient.invalidateQueries({
+            queryKey: queryKeys.projectMediaItems(projectId),
+          });
         }
-      }
+      } 
+      // #endregion
+
       let media: Partial<MediaItem> = {};
 
+      // #region status completed
       if (queueStatus.status === "COMPLETED") {
         try {
           const result = await fal.queue.result(
@@ -148,6 +200,7 @@ export function MediaItemRow({
 
           if (completedError) {
             console.error("Error updating asset:", completedError);
+            throw completedError
           } else {
             console.log("Asset updated:", completedData);
           }
@@ -156,65 +209,67 @@ export function MediaItemRow({
             title: "Generation completed",
             description: `Your ${data.type} has been generated successfully.`,
           });
-        } catch {
-          /* await db.media.update(data.id, {
-            ...data,
-            metadata:
-              data.metadata && data.source_type === "generated"
-                ? {
-                    ...data.metadata,
-                    status: "failed",
-                  }
-                : data.metadata,
-          }); */ // update tu supabase in futere
+        } catch (error) {
+          try {
+            /* await db.media.update(data.id, {
+              ...data,
+              metadata:
+                data.metadata && data.source_type === "generated"
+                  ? {
+                      ...data.metadata,
+                      status: "failed",
+                    }
+                  : data.metadata,
+            }); */ // update tu supabase in futere
 
-          const { data: failData, error: failError } = await supabase
-            .from("assets")
-            .update({
-              metadata: {
-                ...data.metadata,
-                status: "failed",
-              },
-            })
-            .eq("id", data.id)
-            .select("*");
+            const { data: failData, error: failError } = await supabase
+              .from("assets")
+              .update({
+                metadata: {
+                  ...data.metadata,
+                  status: "failed",
+                },
+              })
+              .eq("id", data.id)
+              .select("*");
 
-          if (failError) {
-            console.error("Error updating asset:", failError);
-          } else {
-            console.log("Asset updated:", failData);
+            if (failError) {
+              console.error("Error updating asset:", failError);
+            } else {
+              console.log("Asset updated:", failData);
+            }
+
+            toast({
+              title: "Generation failed",
+              description: `Failed to generate ${data.type}.`,
+            });
+          } catch (innerError) {
+            console.error("Error in catch block:", innerError);
           }
-
-          toast({
-            title: "Generation failed",
-            description: `Failed to generate ${data.type}.`,
-          });
         } finally {
           await queryClient.invalidateQueries({
             queryKey: queryKeys.projectMediaItems(projectId),
           });
         }
       }
+      // #endregion
 
       return null;
     },
     enabled: !isDone && data.source_type === "generated",
     refetchInterval: data.type === "video" ? 20000 : 1000,
   });
-  const mediaUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/${data.file_path}`;
-  const mediaId = data.id.split("-")[0];
+  // #endregion
+
+  // #region Hande Drag Function
   const handleOnDragStart: DragEventHandler<HTMLDivElement> = (event) => {
     event.dataTransfer.setData("job", JSON.stringify(data));
     return true;
     // event.dataTransfer.dropEffect = "copy";
   };
-
-  //const coverImage = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/${data.file_path}`;
-  const coverImage =
-    data.type === "video"
-      ? data.metadata?.start_frame_url || data?.metadata?.end_frame_url
-      : mediaUrl;
-
+  // # endregion
+  
+  // #region  Media Item Row JSX
   return (
     <div
       className={cn(
@@ -376,8 +431,11 @@ export function MediaItemRow({
       </div>
     </div>
   );
+  // #endregion
 }
+// #endregion
 
+// #region MEDIA ITEM PANEL PROPS
 type MediaItemsPanelProps = {
   supabase: SupabaseClient;
   data: MediaItem[];
@@ -385,7 +443,9 @@ type MediaItemsPanelProps = {
   setSelectedMedia: Dispatch<SetStateAction<MediaItem | null>>;
   project: VideoProject;
 } & HTMLAttributes<HTMLDivElement>;
+// #endregion
 
+// #region MEDIA ITEM PANEL
 export function MediaItemPanel({
   className,
   data,
@@ -394,12 +454,15 @@ export function MediaItemPanel({
   setSelectedMedia,
   project,
 }: MediaItemsPanelProps) {
+  // #region Const & States 
   const setSelectedMediaId = useVideoProjectStore((s) => s.setSelectedMediaId);
   //const [selectedMedia, setSelectedMedia] = useState<MediaItem[]>();
   const handleOnOpen = (item: MediaItem) => {
     setSelectedMedia(item);
   };
+  // #endregion
 
+  // #region Media Item Panel JSX
   return (
     <div
       className={cn(
@@ -424,4 +487,6 @@ export function MediaItemPanel({
         ))}
     </div>
   );
+  // #endregion
 }
+// #endregion
