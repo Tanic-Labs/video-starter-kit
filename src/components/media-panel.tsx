@@ -61,7 +61,7 @@ export function MediaItemRow({
     (data.metadata.status === "completed" || data.metadata.status === "failed");
   const queryClient = useQueryClient();
   const projectId = project.id;
-  const { toast } = useToast(); 
+  const { toast } = useToast();
   const mediaUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/${data.file_path}`;
   const mediaId = data.id.split("-")[0];
   const coverImage =
@@ -133,13 +133,13 @@ export function MediaItemRow({
               })
               .eq("id", data.id)
               .select("*");
-    
+
             if (failError) {
               console.error("Error updating asset:", failError);
             } else {
               console.log("Asset updated:", failData);
             }
-    
+
             toast({
               title: "Generation failed",
               description: `Failed to generate ${data.type}.`,
@@ -152,7 +152,7 @@ export function MediaItemRow({
             queryKey: queryKeys.projectMediaItems(projectId),
           });
         }
-      } 
+      }
       // #endregion
 
       let media: Partial<MediaItem> = {};
@@ -200,7 +200,7 @@ export function MediaItemRow({
 
           if (completedError) {
             console.error("Error updating asset:", completedError);
-            throw completedError
+            throw completedError;
           } else {
             console.log("Asset updated:", completedData);
           }
@@ -268,7 +268,7 @@ export function MediaItemRow({
     // event.dataTransfer.dropEffect = "copy";
   };
   // # endregion
-  
+
   // #region  Media Item Row JSX
   return (
     <div
@@ -454,7 +454,7 @@ export function MediaItemPanel({
   setSelectedMedia,
   project,
 }: MediaItemsPanelProps) {
-  // #region Const & States 
+  // #region Const & States
   const setSelectedMediaId = useVideoProjectStore((s) => s.setSelectedMediaId);
   //const [selectedMedia, setSelectedMedia] = useState<MediaItem[]>();
   const handleOnOpen = (item: MediaItem) => {
