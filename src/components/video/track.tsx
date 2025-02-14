@@ -25,6 +25,7 @@ import { WithTooltip } from "../ui/tooltip";
 import { useVideoProjectStore } from "@/data/store";
 import { fal } from "@/lib/fal";
 import { SupabaseClient, User } from "@supabase/supabase-js";
+import { toast } from "@/hooks/use-toast";
 //import { timeStamp } from "console";
 // #endregion
 
@@ -51,17 +52,27 @@ export function VideoTrackRow({
   const { data: keyframes = [] } = useQuery({
     queryKey: ["frames", data],
     queryFn: async () => {
-      const { data: keyframesData, error } = await supabase
-        .from("keyframes")
-        .select("*")
-        .eq("track_id", data.id)
-        .order("timestamp", { ascending: true });
+      try {
+        const { data: keyframesData, error } = await supabase
+          .from("keyframes")
+          .select("*")
+          .eq("track_id", data.id)
+          .order("timestamp", { ascending: true });
 
-      if (error) {
-        console.log("Error fetchin track in VTR: ", error);
-        throw error;
+        if (error) {
+          console.log("Error fetchin track in VTR: ", error);
+          throw error;
+        }
+
+        return keyframesData;
+      } catch (error) {
+        console.error("Error in queryFn: ", error);
+        toast({
+          title: "Error!",
+          description: "An unexpected error occurred. Please try again.",
+        });
+        return [];
       }
-      return keyframesData;
     },
     enabled: Boolean(
       data?.id && !["video", "audio", "voiceover"].includes(data.id),
@@ -226,15 +237,23 @@ export function VideoTrackView({
   // #region Delete Function
   const deleteKeyframe = useMutation({
     mutationFn: async () => {
-      const { data: deleteKeySuccess, error: deleteKeyError } = await supabase
-        .from("keyframes")
-        .delete()
-        .eq("id", frame.id);
+      try {
+        const { data: deleteKeySuccess, error: deleteKeyError } = await supabase
+          .from("keyframes")
+          .delete()
+          .eq("id", frame.id);
 
-      if (deleteKeyError) {
-        console.log("Error deleting keyframes: ", deleteKeyError);
-        throw deleteKeyError;
-      }
+        if (deleteKeyError) {
+          console.log("Error deleting keyframes: ", deleteKeyError);
+          throw deleteKeyError;
+        }
+      } catch (error) {
+        console.error("Error deleting chat: ", error);
+        toast({
+          title: "Error!",
+          description: "An unexpected error occurred. Please try again.",
+        });
+      } 
     },
     onSuccess: () => {
       setRealtime(!realtime);
@@ -266,30 +285,39 @@ export function VideoTrackView({
 
   useEffect(() => {
     const fetchMediaItems = async () => {
-      const { data, error } = await supabase
-        .from("assets")
-        .select("*")
-        .eq("id", assetId);
+      try {
+        const { data, error } = await supabase
+          .from("assets")
+          .select("*")
+          .eq("id", assetId);
 
-      if (error) {
-        console.log(error);
-        throw error;
+        if (error) {
+          console.log(error);
+          throw error;
+        }
+
+        const mappedItems = data.map(
+          (item) =>
+            ({
+              id: item.id,
+              user_id: item.user_id,
+              type: item.type,
+              source_type: item.source_type,
+              file_path: item.file_path,
+              created_at: item.created_at,
+              metadata: item.metadata,
+            }) as MediaItem,
+        );
+
+        setMediaItems(mappedItems);
+      } catch (error) {
+        console.error("Error in queryFn: ", error);
+        toast({
+          title: "Error!",
+          description: "An unexpected error occurred. Please try again.",
+        });
+        setMediaItems([])
       }
-
-      const mappedItems = data.map(
-        (item) =>
-          ({
-            id: item.id,
-            user_id: item.user_id,
-            type: item.type,
-            source_type: item.source_type,
-            file_path: item.file_path,
-            created_at: item.created_at,
-            metadata: item.metadata,
-          }) as MediaItem,
-      );
-
-      setMediaItems(mappedItems);
     };
     if (projectId) fetchMediaItems();
   }, [projectId]);
@@ -379,23 +407,31 @@ export function VideoTrackView({
     };
 
     const handleMouseUp = async () => {
-      document.removeEventListener("mousemove", handleMouseMove);
-      document.removeEventListener("mouseup", handleMouseUp);
-      const { data, error } = await supabase
-        .from("keyframes")
-        .update({ timestamp: frame.timestamp })
-        .eq("id", frame.id)
-        .select();
+      try {
+        document.removeEventListener("mousemove", handleMouseMove);
+        document.removeEventListener("mouseup", handleMouseUp);
+        const { data, error } = await supabase
+          .from("keyframes")
+          .update({ timestamp: frame.timestamp })
+          .eq("id", frame.id)
+          .select();
 
-      if (error) {
-        console.log("Error updating timestapm: ", error);
-        throw error;
+        if (error) {
+          console.log("Error updating timestapm: ", error);
+          throw error;
+        }
+
+        setRealtime(!realtime);
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.projectPreview(projectId),
+        });
+      } catch (error) {
+        console.error("Error in handleMouseUp: ", error);
+        toast({
+          title: "Error!",
+          description: "An unexpected error occurred. Please try again.",
+        });
       }
-
-      setRealtime(!realtime);
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.projectPreview(projectId),
-      });
     };
 
     document.addEventListener("mousemove", handleMouseMove);
@@ -455,25 +491,34 @@ export function VideoTrackView({
     };
 
     const handleMouseUp = async () => {
-      frame.duration = Math.round(frame.duration / 100) * 100;
-      trackElement.style.width = `${((frame.duration / 30) * 100) / 1000}%`;
-      const { data, error } = await supabase
-        .from("keyframes")
-        .update({ duration: frame.duration })
-        .eq("id", frame.id)
-        .select();
+      try {
+        frame.duration = Math.round(frame.duration / 100) * 100;
+        trackElement.style.width = `${((frame.duration / 30) * 100) / 1000}%`;
+        const { data, error } = await supabase
+          .from("keyframes")
+          .update({ duration: frame.duration })
+          .eq("id", frame.id)
+          .select();
 
-      if (error) {
-        console.log("Error updating duration: ", error);
-        throw error;
+        if (error) {
+          console.log("Error updating duration: ", error);
+          throw error;
+        }
+
+        setRealtime(!realtime);
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.projectPreview(projectId),
+        });
+        document.removeEventListener("mousemove", handleMouseMove);
+        document.removeEventListener("mouseup", handleMouseUp);
+      } catch (error) {
+        console.error("Error in handleMouseUp: ", error);
+        toast({
+          title: "Error!",
+          description: "An unexpected error occurred. Please try again.",
+        });
       }
-
-      setRealtime(!realtime);
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.projectPreview(projectId),
-      });
-      document.removeEventListener("mousemove", handleMouseMove);
-      document.removeEventListener("mouseup", handleMouseUp);
+      
     };
 
     document.addEventListener("mousemove", handleMouseMove);
