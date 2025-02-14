@@ -25,6 +25,7 @@ import { throttle } from "throttle-debounce";
 import { Button } from "./ui/button";
 import { DownloadIcon } from "lucide-react";
 import { SupabaseClient, User } from "@supabase/supabase-js";
+import { toast } from "@/hooks/use-toast";
 // #endregion
 
 // #region INTERFACE VIDEOCOMP
@@ -216,52 +217,62 @@ export default function VideoPreview({
       if (!projectId || !user) return;
 
       setIsCompositionLoading(true);
-      const { data: tracks, error: tracksError } = await supabase
-        .from("projects_assets")
-        .select(`
-          *, 
-          keyframes(
-            *,
-            assets(*)
-          )
-        `)
-        .eq("project_id", projectId);
+      try {
+        const { data: tracks, error: tracksError } = await supabase
+          .from("projects_assets")
+          .select(`
+            *, 
+            keyframes(
+              *,
+              assets(*)
+            )
+          `)
+          .eq("project_id", projectId);
 
-      if (tracksError) {
-        console.log("Error fetching tracks: ", tracksError);
-        throw tracksError;
-      }
+        if (tracksError) {
+          console.log("Error fetching tracks: ", tracksError);
+          throw tracksError;
+        }
 
-      const processed = tracks.reduce<VideoCompositionData>(
-        (acc, track) => {
-          const { keyframes, ...trackWithoutKeyframes } = track;
-          acc.tracks.push(trackWithoutKeyframes);
+        const processed = tracks.reduce<VideoCompositionData>(
+          (acc, track) => {
+            const { keyframes, ...trackWithoutKeyframes } = track;
+            acc.tracks.push(trackWithoutKeyframes);
 
-          const sortedKeyframes = keyframes?.sort(
-            (a: any, b: any) => a.timestamp - b.timestamp,
-          );
-          let frameIndex = Object.keys(acc.frames).length;
+            const sortedKeyframes = keyframes?.sort(
+              (a: any, b: any) => a.timestamp - b.timestamp,
+            );
+            let frameIndex = Object.keys(acc.frames).length;
 
-          sortedKeyframes?.forEach((keyframe: any) => {
-            const { assets, ...frameWithoutAssets } = keyframe;
-            acc.frames[frameIndex] = frameWithoutAssets;
-            frameIndex++;
+            sortedKeyframes?.forEach((keyframe: any) => {
+              const { assets, ...frameWithoutAssets } = keyframe;
+              acc.frames[frameIndex] = frameWithoutAssets;
+              frameIndex++;
 
-            if (assets) {
-              const assetsArray = Array.isArray(assets) ? assets : [assets];
-              assetsArray.forEach((asset) => {
-                acc.mediaItems[asset.id] = asset;
-              });
-            }
-          });
+              if (assets) {
+                const assetsArray = Array.isArray(assets) ? assets : [assets];
+                assetsArray.forEach((asset) => {
+                  acc.mediaItems[asset.id] = asset;
+                });
+              }
+            });
 
-          return acc;
-        },
-        { tracks: [], frames: {}, mediaItems: {} },
-      );
+            return acc;
+          },
+          { tracks: [], frames: {}, mediaItems: {} },
+        );
 
-      setComposition(processed);
-      setIsCompositionLoading(false);
+        setComposition(processed);
+      } catch (error) {
+        console.error("Error in getComposition: ", error);
+        toast({
+          title: "Error!",
+          description: "An unexpected error occurred. Please try again.",
+        });
+      } finally {
+        setIsCompositionLoading(false);
+      } 
+      
     };
 
     if (project && project !== PROJECT_PLACEHOLDER) {
