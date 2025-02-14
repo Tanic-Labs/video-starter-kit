@@ -57,29 +57,35 @@ export function ProjectDialog({
   const { toast } = useToast();
   // #endregion
 
-  // #region New Get Projects
+  // #region Get Projects
   useEffect(() => {
     const getProjects = async () => {
       setIsLoading(true);
       if (user) {
-        const { data, error } = await supabase
-          .from("projects")
-          .select(`id, title, description, dimensions`)
-          .eq("user_id", user.id);
+        try {
+          const { data, error } = await supabase
+            .from("projects")
+            .select(`id, title, description, dimensions`)
+            .eq("user_id", user.id);
 
-        if (error) {
-          console.error("Error fetching data:", error.message);
+          if (error) {
+            console.error("Error fetching data:", error.message);
+            setIsLoading(false);
+          } else {
+            const projects: VideoProject[] = data.map((project) => ({
+              id: String(project.id),
+              title: String(project.title),
+              description: String(project.description),
+              aspectRatio: project.dimensions as AspectRatio,
+            }));
+            setProjects(projects);
+            setIsLoading(false);
+          }
+        } catch (error) {
+          console.error("Unexpected error:", error);
+        } finally {
           setIsLoading(false);
-        } else {
-          const projects: VideoProject[] = data.map((project) => ({
-            id: String(project.id),
-            title: String(project.title),
-            description: String(project.description),
-            aspectRatio: project.dimensions as AspectRatio,
-          }));
-          setProjects(projects);
-          setIsLoading(false);
-        }
+        };
       }
     };
     getProjects();
@@ -91,108 +97,126 @@ export function ProjectDialog({
     if (!title.trim() || !user) return;
 
     setIsLoading(true);
-    const { data, error } = await supabase
-      .from("projects")
-      .insert([
-        {
-          user_id: user.id,
-          title: title,
-          description: description,
-          status: "draft",
-          dimensions: "16:9",
-        },
-      ])
-      .select()
-      .single();
 
-    if (error) {
-      console.error("Error creating project:", error);
-      toast({
-        title: "Error!",
-        description: "Could not create project. Try again.",
-      });
-      return;
-    }
-
-    if (newProjectItem) {
-      const newTrackType =
-        newProjectItem.type === "image" ? "video" : newProjectItem.type;
-      let track;
-
-      const { data: newTrack, error: errorTrack } = await supabase
-        .from("projects_assets")
+    try {
+      const { data, error } = await supabase
+        .from("projects")
         .insert([
           {
-            project_id: data.id,
-            asset_id: newProjectItem.id,
-            type: newTrackType,
-            label: newProjectItem.type,
-            locked: true,
+            user_id: user.id,
+            title: title,
+            description: description,
+            status: "draft",
+            dimensions: "16:9",
           },
         ])
         .select()
         .single();
 
-      if (errorTrack) {
-        console.log("Error adding track to new project: ", errorTrack);
-        throw errorTrack;
-      }
-
-      track = newTrack;
-      const baseData = {
-        track_id: track.id,
-        timestamp: 0,
-        duration: newProjectItem.metadata?.duration
-          ? Math.ceil(newProjectItem.metadata.duration * 1000)
-          : 5000,
-        asset_id: newProjectItem.id,
-      };
-      let insertData;
-      if (newProjectItem?.metadata && "input" in newProjectItem.metadata) {
-        insertData = {
-          ...baseData,
-          type: newProjectItem.metadata.input?.image_url ? "image" : "prompt",
-          prompt: newProjectItem.metadata.input.prommpt || "",
-          url: newProjectItem.metadata.input.image_url?.url,
-        };
-      } else if (
-        newProjectItem?.metadata &&
-        "description" in newProjectItem.metadata
-      ) {
-        insertData = {
-          ...baseData,
-          type: newProjectItem.type,
-          prompt: newProjectItem.metadata.description || "",
-          url: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/${newProjectItem.file_path}`,
-        };
-      } else {
+      if (error) {
+        console.error("Error creating project:", error);
         toast({
-          title: "Cannot drop asset",
-          description: "Error inserting media",
+          title: "Error!",
+          description: "Could not create project. Try again.",
         });
         return;
       }
 
-      const { data: newKeyframe, error: noNewKeyframe } = await supabase
-        .from("keyframes")
-        .insert(insertData)
-        .select()
-        .single();
+      if (newProjectItem) {
+        try {
+          const newTrackType =
+            newProjectItem.type === "image" ? "video" : newProjectItem.type;
+          let track;
 
-      if (noNewKeyframe) {
-        console.log("Error inserting keyframes: ", noNewKeyframe);
-        throw noNewKeyframe;
+          const { data: newTrack, error: errorTrack } = await supabase
+            .from("projects_assets")
+            .insert([
+              {
+                project_id: data.id,
+                asset_id: newProjectItem.id,
+                type: newTrackType,
+                label: newProjectItem.type,
+                locked: true,
+              },
+            ])
+            .select()
+            .single();
+
+          if (errorTrack) {
+            console.log("Error adding track to new project: ", errorTrack);
+            throw errorTrack;
+          }
+
+          track = newTrack;
+          const baseData = {
+            track_id: track.id,
+            timestamp: 0,
+            duration: newProjectItem.metadata?.duration
+              ? Math.ceil(newProjectItem.metadata.duration * 1000)
+              : 5000,
+            asset_id: newProjectItem.id,
+          };
+          let insertData;
+          if (newProjectItem?.metadata && "input" in newProjectItem.metadata) {
+            insertData = {
+              ...baseData,
+              type: newProjectItem.metadata.input?.image_url ? "image" : "prompt",
+              prompt: newProjectItem.metadata.input.prommpt || "",
+              url: newProjectItem.metadata.input.image_url?.url,
+            };
+          } else if (
+            newProjectItem?.metadata &&
+            "description" in newProjectItem.metadata
+          ) {
+            insertData = {
+              ...baseData,
+              type: newProjectItem.type,
+              prompt: newProjectItem.metadata.description || "",
+              url: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/${newProjectItem.file_path}`,
+            };
+          } else {
+            toast({
+              title: "Cannot drop asset",
+              description: "Error inserting media",
+            });
+            return;
+          }
+
+          const { data: newKeyframe, error: noNewKeyframe } = await supabase
+            .from("keyframes")
+            .insert(insertData)
+            .select()
+            .single();
+
+          if (noNewKeyframe) {
+            console.log("Error inserting keyframes: ", noNewKeyframe);
+            throw noNewKeyframe;
+          }
+        } catch (error) {
+          console.error("An error occurred while processing newProjectItem:", error);
+          toast({
+            title: "Error!",
+            description: "An error occurred while processing the asset. Please try again.",
+          });
+        } finally {
+          setNewProjectItem(null);
+        }
       }
 
-      setNewProjectItem(null);
+      handleSelectProject(data);
+      toast({
+        title: "Project Created",
+        description: `Project "${data.title}" created successfully!`,
+      });
+    } catch (error) {
+      console.error("An unexpected error occurred:", error);
+      toast({
+        title: "Error!",
+        description: "An unexpected error occurred. Please try again.",
+      });
+    } finally {
+      setIsLoading(false);
     }
-
-    handleSelectProject(data);
-    setIsLoading(false);
-    toast({
-      title: "Project Created",
-      description: `Project "${data.title}" created successfully!`,
-    });
   };
   //#endregion
 
