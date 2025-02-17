@@ -32,19 +32,6 @@ export default function Header({
     }
   };
 
-  // MANEJAR CLICK AFUERA DEL MENU
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const userMenu = document.querySelector(".user-menu");
-      if (userMenu && !userMenu.contains(event.target as Node)) {
-        setUserOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
   return (
     <header className="px-4 py-2 flex justify-between items-center border-b border-border">
       <h1 className="text-lg font-medium">
