@@ -401,7 +401,7 @@ export default function VideoPreview({
           autoPlay={false}
           loop={false}
           controls={false}
-          numberOfSharedAudioTags={10} 
+          numberOfSharedAudioTags={10}
         />
       </div>
     </div>

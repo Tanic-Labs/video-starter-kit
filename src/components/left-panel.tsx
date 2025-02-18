@@ -336,28 +336,25 @@ export default function LeftPanel({
               }
             }}
           />
-          {project !== PROJECT_PLACEHOLDER && (
-            !showRatio ? (
+          {project !== PROJECT_PLACEHOLDER &&
+            (!showRatio ? (
               <div className="flex flex-row justify-between text-muted-foreground">
-                <div className="text-sm pl-1 pt-2">
-                  {ratio}
-                </div>
+                <div className="text-sm pl-1 pt-2">{ratio}</div>
                 <button
-                  onClick={() => setShowRatio(true)}  // Corregido aquí
+                  onClick={() => setShowRatio(true)} // Corregido aquí
                 >
-                  <ChevronDown/>
+                  <ChevronDown />
                 </button>
               </div>
             ) : (
-              <AspectRatioSelector 
+              <AspectRatioSelector
                 value={ratio}
                 onValueChange={setRatio}
                 onCloseRatio={setShowRatio}
                 supabase={supabase}
                 project={project}
               />
-            )
-          )}
+            ))}
         </div>
       </div>
       <div className="flex-1 py-4 flex flex-col gap-4 border-b border-border h-full overflow-hidden relative">

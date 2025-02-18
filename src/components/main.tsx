@@ -47,7 +47,7 @@ export function App({ /* projectId, */ session }: AppProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [realtime, setRealtime] = useState<boolean>(false);
   const [newProjectItem, setNewProjectItem] = useState<MediaItem | null>(null);
-  const [ratio, setRatio] = useState<AspectRatio | null>("16:9")
+  const [ratio, setRatio] = useState<AspectRatio | null>("16:9");
 
   const [user, setUser] = useState<User | null>(null);
   const router = useRouter();
@@ -187,9 +187,9 @@ export function App({ /* projectId, */ session }: AppProps) {
 
   useEffect(() => {
     if (project) {
-      setRatio(project?.aspectRatio)
+      setRatio(project?.aspectRatio);
     }
-  }, [project])
+  }, [project]);
 
   return (
     <ToastProvider>

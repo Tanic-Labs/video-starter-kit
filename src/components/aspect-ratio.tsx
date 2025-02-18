@@ -19,7 +19,7 @@ export type AspectRatioOption = keyof typeof aspectRatioOptions;
 
 interface AspectRatioSelectorProps {
   className?: string;
-  onValueChange?:  Dispatch<SetStateAction<AspectRatioOption | null>>;
+  onValueChange?: Dispatch<SetStateAction<AspectRatioOption | null>>;
   value: AspectRatioOption | null;
   onCloseRatio?: Dispatch<SetStateAction<boolean>>;
   supabase: SupabaseClient;
@@ -39,29 +39,30 @@ export function AspectRatioSelector({
       const { data: newRatio, error: ratioError } = await supabase
         .from("projects")
         .update({
-          dimensions: ratio
-        }) 
+          dimensions: ratio,
+        })
         .eq("id", project.id)
-        .select()
-  
+        .select();
+
       if (ratioError) {
-        console.log("Error updating ratio:", ratioError)
+        console.log("Error updating ratio:", ratioError);
         throw ratioError;
       }
     } catch (error) {
       console.error("An error occurred: ", error);
     }
   };
-  
-  const onClickHandler = (ratio: AspectRatioOption) => (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    if (value === ratio) {
-      onValueChange?.(null);
-      return;
-    }
-    onValueChange?.(ratio);
-    handleOnClick(ratio); // Llamada a la función asíncrona
-  };
+
+  const onClickHandler =
+    (ratio: AspectRatioOption) => (e: React.MouseEvent<HTMLButtonElement>) => {
+      e.preventDefault();
+      if (value === ratio) {
+        onValueChange?.(null);
+        return;
+      }
+      onValueChange?.(ratio);
+      handleOnClick(ratio); // Llamada a la función asíncrona
+    };
 
   const ratioValue = value ? aspectRatioOptions[value] : 0;
 
@@ -90,7 +91,7 @@ export function AspectRatioSelector({
             className="text-muted-foreground pb-2"
             onClick={() => onCloseRatio(false)}
           >
-            <ChevronUp/>
+            <ChevronUp />
           </button>
         )}
       </div>
