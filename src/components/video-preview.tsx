@@ -137,20 +137,20 @@ const VideoTrackSequence: React.FC<TrackSequenceProps> = ({
             premountFor={3000}
             style={{
               border: "solid",
-              borderColor: "gray"
+              borderColor: "gray",
             }}
           >
             {media.type === "video" && (
-              <Video 
-                src={mediaUrl} 
+              <Video
+                src={mediaUrl}
                 style={{
                   objectFit: "contain",
                   position: "relative",
                   top: "50%",
                   left: "50%",
                   transform: "translate(-50%, -50%)",
-                  width: 'auto',
-                  height: 'auto',
+                  width: "auto",
+                  height: "auto",
                 }}
               />
             )}
@@ -163,8 +163,8 @@ const VideoTrackSequence: React.FC<TrackSequenceProps> = ({
                   top: "50%",
                   left: "50%",
                   transform: "translate(-50%, -50%)",
-                  width: 'auto',
-                  height: 'auto',
+                  width: "auto",
+                  height: "auto",
                 }}
               />
             )}
@@ -241,19 +241,21 @@ export default function VideoPreview({
   );
   const setPlayer = useVideoProjectStore((s) => s.setPlayer);
 
-  const ratioWidth = ratio === "16:9" 
-    ? VIDEO_WIDTH / 2
-    : ratio === "9:16"
-      ? VIDEO_HEIGHT / 2
-      : VIDEO_HEIGHT / 2;
-  const ratioHeight = ratio === "16:9"
-    ? VIDEO_HEIGHT / 2
-    : ratio == "9:16"
+  const ratioWidth =
+    ratio === "16:9"
       ? VIDEO_WIDTH / 2
-      : VIDEO_HEIGHT / 2;
-    
-  console.log("ratioWidth: ", ratioWidth)
-  console.log("ratioHeight: ", ratioHeight)
+      : ratio === "9:16"
+        ? VIDEO_HEIGHT / 2
+        : VIDEO_HEIGHT / 2;
+  const ratioHeight =
+    ratio === "16:9"
+      ? VIDEO_HEIGHT / 2
+      : ratio == "9:16"
+        ? VIDEO_WIDTH / 2
+        : VIDEO_HEIGHT / 2;
+
+  console.log("ratioWidth: ", ratioWidth);
+  console.log("ratioHeight: ", ratioHeight);
   // #endregion
 
   // #region Get Compositon
