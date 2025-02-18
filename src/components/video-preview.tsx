@@ -1,6 +1,7 @@
 // #region IMPORTS
 import { EMPTY_VIDEO_COMPOSITION, VideoCompositionData } from "@/data/queries";
 import {
+  AspectRatio,
   type MediaItem,
   PROJECT_PLACEHOLDER,
   TRACK_TYPE_ORDER,
@@ -134,10 +135,38 @@ const VideoTrackSequence: React.FC<TrackSequenceProps> = ({
             from={Math.floor(frame.timestamp / (1000 / FPS))}
             durationInFrames={durationInFrames}
             premountFor={3000}
+            style={{
+              border: "solid",
+              borderColor: "gray"
+            }}
           >
-            {media.type === "video" && <Video src={mediaUrl} />}
+            {media.type === "video" && (
+              <Video 
+                src={mediaUrl} 
+                style={{
+                  objectFit: "contain",
+                  position: "relative",
+                  top: "50%",
+                  left: "50%",
+                  transform: "translate(-50%, -50%)",
+                  width: 'auto',
+                  height: 'auto',
+                }}
+              />
+            )}
             {media.type === "image" && (
-              <Img src={mediaUrl} style={{ objectFit: "cover" }} />
+              <Img
+                src={mediaUrl}
+                style={{
+                  objectFit: "cover",
+                  position: "relative",
+                  top: "50%",
+                  left: "50%",
+                  transform: "translate(-50%, -50%)",
+                  width: 'auto',
+                  height: 'auto',
+                }}
+              />
             )}
           </Sequence>
         );
@@ -186,6 +215,7 @@ type VideoPreviewProps = {
   supabase: SupabaseClient;
   user: User | null;
   realtime: boolean;
+  ratio: AspectRatio | null;
 };
 // #endregion
 
@@ -195,6 +225,7 @@ export default function VideoPreview({
   supabase,
   user,
   realtime,
+  ratio,
   ...props
 }: VideoPreviewProps) {
   // #region setStates
@@ -209,6 +240,20 @@ export default function VideoPreview({
     EMPTY_VIDEO_COMPOSITION,
   );
   const setPlayer = useVideoProjectStore((s) => s.setPlayer);
+
+  const ratioWidth = ratio === "16:9" 
+    ? VIDEO_WIDTH / 2
+    : ratio === "9:16"
+      ? VIDEO_HEIGHT / 2
+      : VIDEO_HEIGHT / 2;
+  const ratioHeight = ratio === "16:9"
+    ? VIDEO_HEIGHT / 2
+    : ratio == "9:16"
+      ? VIDEO_WIDTH / 2
+      : VIDEO_HEIGHT / 2;
+    
+  console.log("ratioWidth: ", ratioWidth)
+  console.log("ratioHeight: ", ratioHeight)
   // #endregion
 
   // #region Get Compositon
@@ -390,8 +435,8 @@ export default function VideoPreview({
           }}
           durationInFrames={duration * FPS}
           fps={FPS}
-          compositionWidth={VIDEO_WIDTH}
-          compositionHeight={VIDEO_HEIGHT}
+          compositionWidth={ratioWidth}
+          compositionHeight={ratioHeight}
           style={{
             width: "100%",
             height: "100%",

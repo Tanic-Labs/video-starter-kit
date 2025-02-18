@@ -218,6 +218,7 @@ export function App({ /* projectId, */ session }: AppProps) {
                   supabase={supabaseClient}
                   user={user}
                   realtime={realtime}
+                  ratio={ratio}
                 />
                 <BottomBar
                   project={project}
