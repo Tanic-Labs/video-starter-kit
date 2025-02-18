@@ -5,7 +5,7 @@ import BottomBar from "@/components/bottom-bar";
 import Header from "@/components/header";
 import RightPanel from "@/components/right-panel";
 import VideoPreview from "@/components/video-preview";
-import { type MediaItem, VideoProject } from "@/data/schema";
+import { AspectRatio, type MediaItem, VideoProject } from "@/data/schema";
 import {
   VideoProjectStoreContext,
   createVideoProjectStore,
@@ -47,6 +47,7 @@ export function App({ /* projectId, */ session }: AppProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [realtime, setRealtime] = useState<boolean>(false);
   const [newProjectItem, setNewProjectItem] = useState<MediaItem | null>(null);
+  const [ratio, setRatio] = useState<AspectRatio | null>("16:9")
 
   const [user, setUser] = useState<User | null>(null);
   const router = useRouter();
@@ -184,6 +185,12 @@ export function App({ /* projectId, */ session }: AppProps) {
     }
   }, []);
 
+  useEffect(() => {
+    if (project) {
+      setRatio(project?.aspectRatio)
+    }
+  }, [project])
+
   return (
     <ToastProvider>
       <QueryClientProvider client={queryClient}>
@@ -202,6 +209,8 @@ export function App({ /* projectId, */ session }: AppProps) {
                 fetchData={fetchData}
                 setSelectedMedia={setSelectedMedia}
                 project={project}
+                ratio={ratio}
+                setRatio={setRatio}
               />
               <div className="flex flex-col flex-1">
                 <VideoPreview

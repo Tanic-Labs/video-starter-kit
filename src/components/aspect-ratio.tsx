@@ -1,7 +1,11 @@
 // AspectRatioSelector.tsx
 import { cn } from "@/lib/utils";
-import type { MouseEventHandler } from "react";
+import type { Dispatch, MouseEventHandler, SetStateAction } from "react";
 import { ToggleGroup, ToggleGroupItem } from "./ui/toggle-group";
+import { ChevronUp } from "lucide-react";
+import { SupabaseClient } from "@supabase/supabase-js";
+import { VideoProject } from "@/data/schema";
+import { toast } from "@/hooks/use-toast";
 
 const aspectRatioOptions = {
   "16:9": 16 / 9,
@@ -15,25 +19,50 @@ export type AspectRatioOption = keyof typeof aspectRatioOptions;
 
 interface AspectRatioSelectorProps {
   className?: string;
-  onValueChange?: (ratio: AspectRatioOption | null) => void;
+  onValueChange?:  Dispatch<SetStateAction<AspectRatioOption | null>>;
   value: AspectRatioOption | null;
+  onCloseRatio?: Dispatch<SetStateAction<boolean>>;
+  supabase: SupabaseClient;
+  project: VideoProject;
 }
 
 export function AspectRatioSelector({
   className,
   onValueChange,
   value,
+  onCloseRatio,
+  supabase,
+  project,
 }: AspectRatioSelectorProps) {
-  const handleOnClick = (ratio: AspectRatioOption) => {
-    return ((e) => {
-      e.preventDefault();
-      if (value === ratio) {
-        onValueChange?.(null);
-        return;
+  const handleOnClick = async (ratio: AspectRatioOption) => {
+    try {
+      const { data: newRatio, error: ratioError } = await supabase
+        .from("projects")
+        .update({
+          dimensions: ratio
+        }) 
+        .eq("id", project.id)
+        .select()
+  
+      if (ratioError) {
+        console.log("Error updating ratio:", ratioError)
+        throw ratioError;
       }
-      onValueChange?.(ratio);
-    }) as MouseEventHandler<HTMLButtonElement>;
+    } catch (error) {
+      console.error("An error occurred: ", error);
+    }
   };
+  
+  const onClickHandler = (ratio: AspectRatioOption) => (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    if (value === ratio) {
+      onValueChange?.(null);
+      return;
+    }
+    onValueChange?.(ratio);
+    handleOnClick(ratio); // Llamada a la función asíncrona
+  };
+
   const ratioValue = value ? aspectRatioOptions[value] : 0;
 
   return (
@@ -49,13 +78,21 @@ export function AspectRatioSelector({
             <ToggleGroupItem
               key={option}
               className="tabular-nums"
-              onClick={handleOnClick(option as AspectRatioOption)}
+              onClick={onClickHandler(option as AspectRatioOption)}
               value={option}
             >
               {option}
             </ToggleGroupItem>
           ))}
         </ToggleGroup>
+        {onCloseRatio && (
+          <button
+            className="text-muted-foreground pb-2"
+            onClick={() => onCloseRatio(false)}
+          >
+            <ChevronUp/>
+          </button>
+        )}
       </div>
       <div className="flex aspect-square w-full items-center justify-center">
         <div className="relative flex aspect-square h-full w-full items-center justify-center">

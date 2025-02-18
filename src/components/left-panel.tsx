@@ -3,6 +3,7 @@
 // #region IMPORTS
 import { SupabaseClient, User } from "@supabase/supabase-js";
 import {
+  AspectRatio,
   type MediaItem,
   PROJECT_PLACEHOLDER,
   VideoProject,
@@ -35,6 +36,7 @@ import {
 import { useState, useEffect, Dispatch, SetStateAction } from "react";
 import { toast } from "@/hooks/use-toast";
 import { fal } from "@/lib/fal";
+import { AspectRatioSelector } from "./aspect-ratio";
 // #endregion
 
 // #region TYPES
@@ -46,6 +48,8 @@ type LeftPanelProps = {
   fetchData: () => Promise<void>;
   setSelectedMedia: Dispatch<SetStateAction<MediaItem | null>>;
   project: VideoProject | null;
+  ratio: AspectRatio | null;
+  setRatio: Dispatch<SetStateAction<AspectRatio | null>>;
 };
 // #endregion
 
@@ -69,6 +73,8 @@ export default function LeftPanel({
   fetchData,
   setSelectedMedia,
   project,
+  ratio,
+  setRatio,
 }: LeftPanelProps) {
   // #region States and Effects
   if (!project) {
@@ -78,6 +84,7 @@ export default function LeftPanel({
   const [isUploading, setIsUploading] = useState(false);
   const [title, setNewTitle] = useState(project.title);
   const [description, setNewDescription] = useState(project.description);
+  const [showRatio, setShowRatio] = useState<boolean>(false);
 
   useEffect(() => {
     setNewTitle(project.title);
@@ -329,6 +336,28 @@ export default function LeftPanel({
               }
             }}
           />
+          {project !== PROJECT_PLACEHOLDER && (
+            !showRatio ? (
+              <div className="flex flex-row justify-between text-muted-foreground">
+                <div className="text-sm pl-1 pt-2">
+                  {ratio}
+                </div>
+                <button
+                  onClick={() => setShowRatio(true)}  // Corregido aquí
+                >
+                  <ChevronDown/>
+                </button>
+              </div>
+            ) : (
+              <AspectRatioSelector 
+                value={ratio}
+                onValueChange={setRatio}
+                onCloseRatio={setShowRatio}
+                supabase={supabase}
+                project={project}
+              />
+            )
+          )}
         </div>
       </div>
       <div className="flex-1 py-4 flex flex-col gap-4 border-b border-border h-full overflow-hidden relative">
