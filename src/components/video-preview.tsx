@@ -135,10 +135,10 @@ const VideoTrackSequence: React.FC<TrackSequenceProps> = ({
             from={Math.floor(frame.timestamp / (1000 / FPS))}
             durationInFrames={durationInFrames}
             premountFor={3000}
-            style={{
+            /* style={{
               border: "solid",
               borderColor: "gray",
-            }}
+            }} */
           >
             {media.type === "video" && (
               <Video
@@ -243,19 +243,16 @@ export default function VideoPreview({
 
   const ratioWidth =
     ratio === "16:9"
-      ? VIDEO_WIDTH / 2
+      ? VIDEO_WIDTH
       : ratio === "9:16"
-        ? VIDEO_HEIGHT / 2
-        : VIDEO_HEIGHT / 2;
+        ? VIDEO_HEIGHT
+        : VIDEO_HEIGHT;
   const ratioHeight =
     ratio === "16:9"
-      ? VIDEO_HEIGHT / 2
+      ? VIDEO_HEIGHT
       : ratio == "9:16"
-        ? VIDEO_WIDTH / 2
-        : VIDEO_HEIGHT / 2;
-
-  console.log("ratioWidth: ", ratioWidth);
-  console.log("ratioHeight: ", ratioHeight);
+        ? VIDEO_WIDTH
+        : VIDEO_HEIGHT;
   // #endregion
 
   // #region Get Compositon
