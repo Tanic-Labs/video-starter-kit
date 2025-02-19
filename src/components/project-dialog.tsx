@@ -268,7 +268,7 @@ export function ProjectDialog({
   const handleOnOpenChange = (isOpen: boolean) => {
     setTitle("");
     setDescription("");
-    setAspectRatio(null)
+    setAspectRatio(null);
     onOpenChange?.(isOpen);
     setProjectDialogOpen(isOpen);
   };
