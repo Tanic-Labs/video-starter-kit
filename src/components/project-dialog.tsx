@@ -131,8 +131,8 @@ export function ProjectDialog({
         id: data.id,
         title: data.title,
         description: data.description,
-        aspectRatio: data.dimensions as AspectRatio
-      }
+        aspectRatio: data.dimensions as AspectRatio,
+      };
 
       if (newProjectItem) {
         try {
