@@ -34,6 +34,7 @@ type ProjectDialogProps = {
   user: User | null;
   project: VideoProject | null;
   setProject: Dispatch<SetStateAction<VideoProject | null>>;
+  setRatio: Dispatch<SetStateAction<AspectRatio | null>>;
   newProjectItem: MediaItem | null;
   setNewProjectItem: Dispatch<SetStateAction<MediaItem | null>>;
 } & Parameters<typeof Dialog>[0];
@@ -46,6 +47,7 @@ export function ProjectDialog({
   user,
   project,
   setProject,
+  setRatio,
   newProjectItem,
   setNewProjectItem,
   ...props
@@ -55,7 +57,7 @@ export function ProjectDialog({
   const [description, setDescription] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [projects, setProjects] = useState<VideoProject[]>([]);
-  const [aspectRatio, setAspectRatio] = useState<AspectRatio>("16:9");
+  const [aspectRatio, setAspectRatio] = useState<AspectRatio | null>(null);
   //const queryClient = useQueryClient();
   const { toast } = useToast();
   // #endregion
@@ -110,7 +112,7 @@ export function ProjectDialog({
             title: title,
             description: description,
             status: "draft",
-            dimensions: aspectRatio,
+            dimensions: aspectRatio ?? "16:9",
           },
         ])
         .select()
@@ -256,6 +258,7 @@ export function ProjectDialog({
 
   const handleSelectProject = (project: VideoProject) => {
     setProject(project);
+    setRatio(aspectRatio);
     setProjectDialogOpen(false);
     rememberLastProjectId(project.id);
   };
@@ -263,10 +266,9 @@ export function ProjectDialog({
 
   // #region OpenProject
   const handleOnOpenChange = (isOpen: boolean) => {
-    if (!isOpen) {
-      setTitle("");
-      setDescription("");
-    }
+    setTitle("");
+    setDescription("");
+    setAspectRatio(null)
     onOpenChange?.(isOpen);
     setProjectDialogOpen(isOpen);
   };
@@ -314,7 +316,9 @@ export function ProjectDialog({
                   "w-full text-left p-3 rounded",
                   "bg-card hover:bg-accent transition-colors",
                   "border border-border",
-                  aspectRatio === "16:9" ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground" // Resalta el botón seleccionado
+                  aspectRatio === "16:9"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary text-secondary-foreground", // Resalta el botón seleccionado
                 )}
                 onClick={() => setAspectRatio("16:9")}
               >
@@ -325,7 +329,9 @@ export function ProjectDialog({
                   "w-full text-left p-3 rounded",
                   "bg-card hover:bg-accent transition-colors",
                   "border border-border",
-                  aspectRatio === "1:1" ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground" // Resalta el botón seleccionado
+                  aspectRatio === "1:1"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary text-secondary-foreground", // Resalta el botón seleccionado
                 )}
                 onClick={() => setAspectRatio("1:1")}
               >
@@ -336,7 +342,9 @@ export function ProjectDialog({
                   "w-full text-left p-3 rounded",
                   "bg-card hover:bg-accent transition-colors",
                   "border border-border",
-                  aspectRatio === "9:16" ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground" // Resalta el botón seleccionado
+                  aspectRatio === "9:16"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary text-secondary-foreground", // Resalta el botón seleccionado
                 )}
                 onClick={() => setAspectRatio("9:16")}
               >
