@@ -5,8 +5,10 @@ import { queryKeys } from "./queries";
 import type { VideoProject } from "./schema";
 import { supabase } from "@/lib/supabase";
 
-const DIGITAL_OCEAN_ENDPOINT = 'https://faas-nyc1-2ef2e6cc.doserverless.co/api/v1/namespaces/fn-0b1258df-ad0b-4cd5-8e7e-c7f326495f3c/actions/twitter/video-generation';
-const AUTH_TOKEN = 'NmYxYmNhMWItNDEzMy00ZTQxLWJkMTEtMzFkOTU5MGE3OTE1OmFhWFRBVUNXMTdpNUlsZEd2ejNUakJMdzBDZDVhV0p6NzRzNVcwamdkMklaVDFJVHUzQWNIZE1GWmtnc3V1MVE=';
+const DIGITAL_OCEAN_ENDPOINT =
+  "https://faas-nyc1-2ef2e6cc.doserverless.co/api/v1/namespaces/fn-0b1258df-ad0b-4cd5-8e7e-c7f326495f3c/actions/twitter/video-generation";
+const AUTH_TOKEN =
+  "NmYxYmNhMWItNDEzMy00ZTQxLWJkMTEtMzFkOTU5MGE3OTE1OmFhWFRBVUNXMTdpNUlsZEd2ejNUakJMdzBDZDVhV0p6NzRzNVcwamdkMklaVDFJVHUzQWNIZE1GWmtnc3V1MVE=";
 
 type JobCreatorParams = {
   userId: string;
@@ -14,9 +16,9 @@ type JobCreatorParams = {
   endpointId: string;
   mediaType: "video" | "image" | "voiceover" | "audio";
   input: Record<string, any>;
-  urlImage:any
-  urlAudio:any
-  urlVideo:any
+  urlImage: any;
+  urlAudio: any;
+  urlVideo: any;
 };
 
 export const useProjectUpdater = (projectId: string) => {
@@ -49,45 +51,45 @@ export const useJobCreator = ({
   input,
   urlImage,
   urlAudio,
-  urlVideo
+  urlVideo,
 }: JobCreatorParams) => {
-
   return useMutation({
     mutationFn: async () => {
-      //CREAR EL ID DEL 
+      //CREAR EL ID DEL
       const { data: generationData } = await supabase
-        .from('generations')
-        .insert([
-          { user_id: userId }
-        ])
-        .select('*')
+        .from("generations")
+        .insert([{ user_id: userId }])
+        .select("*")
         .single();
 
       if (!generationData) {
-        throw new Error('No generation data returned');
+        throw new Error("No generation data returned");
       }
 
       //USAR EL ID Y SE LO MANDO PARA GENERATION
       const payload = {
         userId: userId,
-        mediaType:  mediaType === "voiceover" ? "voice" : mediaType,
+        mediaType: mediaType === "voiceover" ? "voice" : mediaType,
         endpointModel: endpointId,
         dataInsertId: generationData?.id,
         type: mediaType === "voiceover" ? "voice" : mediaType,
         prompt: input.prompt || "Default prompt",
-        imageUrl:urlImage,
-        videoUrl:urlVideo,
-        audioUrl:urlAudio
+        imageUrl: urlImage,
+        videoUrl: urlVideo,
+        audioUrl: urlAudio,
       };
 
-      const response = await fetch(`${DIGITAL_OCEAN_ENDPOINT}?blocking=true&result=true`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Basic ${AUTH_TOKEN}`,
+      const response = await fetch(
+        `${DIGITAL_OCEAN_ENDPOINT}?blocking=true&result=true`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Basic ${AUTH_TOKEN}`,
+          },
+          body: JSON.stringify(payload),
         },
-        body: JSON.stringify(payload),
-      });
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -97,4 +99,3 @@ export const useJobCreator = ({
     },
   });
 };
-
