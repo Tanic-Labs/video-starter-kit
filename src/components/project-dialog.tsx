@@ -24,6 +24,8 @@ import { Separator } from "./ui/separator";
 import { Skeleton } from "./ui/skeleton";
 import { Textarea } from "./ui/textarea";
 import { SupabaseClient, User } from "@supabase/supabase-js";
+import { WithTooltip } from "./ui/tooltip";
+import { LoadingIcon } from "./ui/icons";
 // #endregion
 
 // #region TYPES
@@ -53,6 +55,7 @@ export function ProjectDialog({
   const [description, setDescription] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [projects, setProjects] = useState<VideoProject[]>([]);
+  const [aspectRatio, setAspectRatio] = useState<AspectRatio>("16:9");
   //const queryClient = useQueryClient();
   const { toast } = useToast();
   // #endregion
@@ -107,7 +110,7 @@ export function ProjectDialog({
             title: title,
             description: description,
             status: "draft",
-            dimensions: "16:9",
+            dimensions: aspectRatio,
           },
         ])
         .select()
@@ -304,6 +307,41 @@ export function ProjectDialog({
                 rows={6}
                 className="resize-none"
               />
+            </div>
+            <div className="flex flex-row gap-2">
+              <Button
+                className={cn(
+                  "w-full text-left p-3 rounded",
+                  "bg-card hover:bg-accent transition-colors",
+                  "border border-border",
+                  aspectRatio === "16:9" ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground" // Resalta el botón seleccionado
+                )}
+                onClick={() => setAspectRatio("16:9")}
+              >
+                16:9
+              </Button>
+              <Button
+                className={cn(
+                  "w-full text-left p-3 rounded",
+                  "bg-card hover:bg-accent transition-colors",
+                  "border border-border",
+                  aspectRatio === "1:1" ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground" // Resalta el botón seleccionado
+                )}
+                onClick={() => setAspectRatio("1:1")}
+              >
+                1:1
+              </Button>
+              <Button
+                className={cn(
+                  "w-full text-left p-3 rounded",
+                  "bg-card hover:bg-accent transition-colors",
+                  "border border-border",
+                  aspectRatio === "9:16" ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground" // Resalta el botón seleccionado
+                )}
+                onClick={() => setAspectRatio("9:16")}
+              >
+                9:16
+              </Button>
             </div>
             <div className="flex-1 flex flex-row items-end justify-center gap-2">
               {/* <WithTooltip tooltip="Out of ideas? Generate a new random project.">
