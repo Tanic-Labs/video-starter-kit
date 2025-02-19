@@ -55,8 +55,11 @@ import { VoiceSelector } from "./playht/voice-selector";
 import { LoadingIcon } from "./ui/icons";
 import { getMediaMetadata } from "@/lib/ffmpeg";
 import { SupabaseClient, User } from "@supabase/supabase-js";
+import { type } from "os";
+import { metadata } from "@/app/layout";
 // #endregion
 
+//DIVIDER
 // #region TYPE MODEL ENDPOINT PICKER
 type ModelEndpointPickerProps = {
   mediaType: string;
@@ -72,7 +75,7 @@ function ModelEndpointPicker({
   const endpoints = useMemo(
     () =>
       AVAILABLE_ENDPOINTS.filter((endpoint) => endpoint.category === mediaType),
-    [mediaType],
+    [mediaType]
   );
   return (
     <Select {...props}>
@@ -120,11 +123,15 @@ export default function RightPanel({
 
   const [tab, setTab] = useState<string>("generation");
   const [assetMediaType, setAssetMediaType] = useState("all");
+  const [urlImage, setUrlImage] = useState("");
+  const [urlAudio, setUrlAudio] = useState("");
+  const [urlVideo, setUrlVideo] = useState("");
+  const [loading, setLoading] = useState(false);
   const projectId = useProjectId();
   const openGenerateDialog = useVideoProjectStore((s) => s.openGenerateDialog);
   const generateDialogOpen = useVideoProjectStore((s) => s.generateDialogOpen);
   const closeGenerateDialog = useVideoProjectStore(
-    (s) => s.closeGenerateDialog,
+    (s) => s.closeGenerateDialog
   );
   const queryClient = useQueryClient();
   const { data: project } = useProject(projectId);
@@ -173,14 +180,14 @@ export default function RightPanel({
   const endpoint = useMemo(
     () =>
       AVAILABLE_ENDPOINTS.find(
-        (endpoint) => endpoint.endpointId === endpointId,
+        (endpoint) => endpoint.endpointId === endpointId
       ),
-    [endpointId],
+    [endpointId]
   );
   const handleMediaTypeChange = (mediaType: string) => {
     setMediaType(mediaType as MediaType);
     const endpoint = AVAILABLE_ENDPOINTS.find(
-      (endpoint) => endpoint.category === mediaType,
+      (endpoint) => endpoint.category === mediaType
     );
 
     const initialInput = endpoint?.initialInput || {};
@@ -251,6 +258,7 @@ export default function RightPanel({
         }
       : {};
   const createJob = useJobCreator({
+    userId: user?.id ?? "",
     projectId,
     endpointId:
       generateData.image && mediaType === "video"
@@ -262,6 +270,9 @@ export default function RightPanel({
       ...mapInputKey(input, endpoint?.inputMap || {}),
       ...extraInput,
     },
+    urlImage,
+    urlAudio,
+    urlVideo,
   });
   // #endregion
 
@@ -308,28 +319,106 @@ export default function RightPanel({
   // #region Upload data
   const { startUpload, isUploading } = useUploadThing("fileUploader");
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    asset: any,
+    index: any
+  ) => {
+    console.log("INDEX", index);
+    console.log("asset", asset);
+
     const files = e.target.files;
     if (!files) return;
 
+    setLoading(true); // Activa el loader al iniciar la subida
+
     try {
-      const uploadedFiles = await startUpload(Array.from(files));
+      const uploadedFiles = await uploadToSupabase(Array.from(files), asset);
       if (uploadedFiles) {
         await handleUploadComplete(uploadedFiles);
       }
     } catch (err) {
+      setUrlImage("");
+      setUrlAudio("");
+      setUrlVideo("");
       console.warn(`ERROR! ${err}`);
       toast({
         title: "Failed to upload file",
         description: "Please try again",
       });
+    } finally {
+      setLoading(false); // Desactiva el loader sin importar si hubo éxito o error
     }
   };
 
+  const uploadToSupabase = async (files: File[], asset: any) => {
+    const uniqueId = crypto.randomUUID();
+    const uploadedFiles = [];
+    let filePath;
+    let typeofFilepath;
+
+    for (const file of files) {
+      const fileExt = file.type.split("/")[0];
+      typeofFilepath = mediaType === "audio" ? asset.type : asset;
+      filePath = `${user?.id}/${typeofFilepath}s/${uniqueId}.${fileExt}`;
+
+      const { data, error } = await supabase.storage
+        .from("assets")
+        .upload(filePath, file);
+
+      if (error) {
+        throw error;
+      }
+
+      // Obtener la URL pública del archivo
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("assets").getPublicUrl(filePath);
+      if (typeofFilepath === "audio") {
+        setUrlAudio(publicUrl);
+      } else if (typeofFilepath === "video") {
+        setUrlVideo("");
+      } else if (typeofFilepath === "image") {
+        setUrlImage("");
+      }
+
+      uploadedFiles.push({
+        url: publicUrl,
+        type: file.type,
+        name: file.name,
+        size: file.size,
+      });
+    }
+
+    const { data: generationData, error: generationError } = await supabase
+      .from("assets")
+      .insert([
+        {
+          id: uniqueId,
+          user_id: user?.id,
+          type: typeofFilepath,
+          source_type: "uploaded",
+          file_path: filePath,
+          metadata: uploadedFiles,
+        },
+      ])
+      .select("*")
+      .single();
+    console.log("generationError", generationError);
+    if (!generationData) {
+      throw new Error("No generation data returned");
+    }
+
+    return uploadedFiles;
+  };
+
   const handleUploadComplete = async (
-    files: ClientUploadedFileData<{
-      uploadedBy: string;
-    }>[],
+    files: Array<{
+      url: string;
+      type: string;
+      name: string;
+      size: number;
+    }>
   ) => {
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
@@ -337,18 +426,17 @@ export default function RightPanel({
       const outputType = mediaType === "audio" ? "audio" : mediaType;
 
       const data: Omit<MediaItem, "id"> = {
-        //projectId,
         user_id: user ? user.id : "",
         source_type: "uploaded",
         created_at: Date.now(),
         type: outputType as MediaType,
         file_path: file.url,
         metadata: {
-          name: "string",
-          size: 1200000,
+          name: file.name,
+          size: file.size,
           type: outputType as MediaType,
           description: "prompt",
-          original_name: "original_string",
+          original_name: file.name,
         },
       };
 
@@ -357,22 +445,33 @@ export default function RightPanel({
         [assetKeyMap[outputType as keyof typeof assetKeyMap]]: file.url,
       });
 
-      const mediaId = await db.media.create(data);
-      const media = await db.media.find(mediaId as string);
+      // Si necesitas mantener un registro en la base de datos
+      const { data: mediaRecord, error } = await supabase
+        .from("media")
+        .insert([data])
+        .select()
+        .single();
 
-      if (media && media.type !== "image") {
-        const mediaMetadata = await getMediaMetadata(media as MediaItem);
+      if (error) {
+        console.error("Error saving media record:", error);
+        continue;
+      }
 
-        await db.media
-          .update(media.id, {
-            ...media,
+      if (mediaRecord && mediaRecord.type !== "image") {
+        const mediaMetadata = await getMediaMetadata(mediaRecord as MediaItem);
+
+        const { error: updateError } = await supabase
+          .from("media")
+          .update({
             metadata: mediaMetadata?.media || {},
           })
-          .finally(() => {
-            queryClient.invalidateQueries({
-              queryKey: queryKeys.projectMediaItems(projectId),
-            });
+          .eq("id", mediaRecord.id);
+
+        if (!updateError) {
+          queryClient.invalidateQueries({
+            queryKey: queryKeys.projectMediaItems(projectId),
           });
+        }
       }
     }
   };
@@ -383,7 +482,7 @@ export default function RightPanel({
     <div
       className={cn(
         "flex flex-col border-l border-border w-96 z-50 transition-all duration-300 absolute top-0 h-full bg-background",
-        generateDialogOpen ? "right-0" : "-right-96",
+        generateDialogOpen ? "right-0" : "-right-96"
       )}
     >
       <div className="flex-1 p-4 flex flex-col gap-4 border-b border-border h-full overflow-hidden relative">
@@ -407,7 +506,7 @@ export default function RightPanel({
               onClick={() => handleMediaTypeChange("image")}
               className={cn(
                 mediaType === "image" && "bg-white/10",
-                "h-14 flex flex-col justify-center w-1/4 rounded-md gap-2 items-center",
+                "h-14 flex flex-col justify-center w-1/4 rounded-md gap-2 items-center"
               )}
             >
               <ImageIcon className="w-4 h-4 opacity-50" />
@@ -418,7 +517,7 @@ export default function RightPanel({
               onClick={() => handleMediaTypeChange("video")}
               className={cn(
                 mediaType === "video" && "bg-white/10",
-                "h-14 flex flex-col justify-center w-1/4 rounded-md gap-2 items-center",
+                "h-14 flex flex-col justify-center w-1/4 rounded-md gap-2 items-center"
               )}
             >
               <VideoIcon className="w-4 h-4 opacity-50" />
@@ -429,7 +528,7 @@ export default function RightPanel({
               onClick={() => handleMediaTypeChange("voiceover")}
               className={cn(
                 mediaType === "voiceover" && "bg-white/10",
-                "h-14 flex flex-col justify-center w-1/4 rounded-md gap-2 items-center",
+                "h-14 flex flex-col justify-center w-1/4 rounded-md gap-2 items-center"
               )}
             >
               <MicIcon className="w-4 h-4 opacity-50" />
@@ -440,7 +539,7 @@ export default function RightPanel({
               onClick={() => handleMediaTypeChange("audio")}
               className={cn(
                 mediaType === "audio" && "bg-white/10",
-                "h-14 flex flex-col justify-center w-1/4 rounded-md gap-2 items-center",
+                "h-14 flex flex-col justify-center w-1/4 rounded-md gap-2 items-center"
               )}
             >
               <MusicIcon className="w-4 h-4 opacity-50" />
@@ -457,7 +556,7 @@ export default function RightPanel({
                 setEndpointId(endpointId);
 
                 const endpoint = AVAILABLE_ENDPOINTS.find(
-                  (endpoint) => endpoint.endpointId === endpointId,
+                  (endpoint) => endpoint.endpointId === endpointId
                 );
 
                 const initialInput = endpoint?.initialInput || {};
@@ -504,7 +603,7 @@ export default function RightPanel({
                         <Button
                           variant="ghost"
                           size="sm"
-                          disabled={isUploading}
+                          disabled={loading}
                           className="cursor-pointer min-h-[30px] flex flex-col items-center justify-center border border-dashed border-border rounded-md px-4"
                           asChild
                         >
@@ -513,12 +612,14 @@ export default function RightPanel({
                               id="assetUploadButton"
                               type="file"
                               className="hidden"
-                              onChange={handleFileUpload}
+                              onChange={(e) =>
+                                handleFileUpload(e, asset, index)
+                              } // Aquí pasas `e` correctamente
                               multiple={false}
-                              disabled={isUploading}
+                              disabled={loading}
                               accept="image/*,audio/*,video/*"
                             />
-                            {isUploading ? (
+                            {loading ? (
                               <LoaderCircleIcon className="w-4 h-4 opacity-50 animate-spin" />
                             ) : (
                               <span className="text-muted-foreground text-xs text-center text-nowrap">
@@ -535,7 +636,12 @@ export default function RightPanel({
                           <button
                             type="button"
                             className="p-1 rounded hover:bg-black/50 absolute top-1 z-50 bg-black/80 right-1 group-hover:text-white"
-                            onClick={() => resetGenerateData()}
+                            onClick={() => {
+                              resetGenerateData();
+                              setUrlImage("");
+                              setUrlAudio("");
+                              setUrlVideo("");
+                            }}
                           >
                             <TrashIcon className="w-3 h-3 stroke-2" />
                           </button>

@@ -88,7 +88,7 @@ export default function LeftPanel({
   const debounceDescription = useDebounce(description, 1000);
 
   const setProjectDialogOpen = useVideoProjectStore(
-    (s) => s.setProjectDialogOpen,
+    (s) => s.setProjectDialogOpen
   );
   const openGenerateDialog = useVideoProjectStore((s) => s.openGenerateDialog);
   // #endregion
@@ -147,7 +147,7 @@ export default function LeftPanel({
       if (assetError) {
         console.error(
           "Error al insertar en la tabla assets:",
-          assetError.message,
+          assetError.message
         );
       } else {
         if (mediaType === "audio" || mediaType === "voiceover") {
@@ -159,7 +159,7 @@ export default function LeftPanel({
                 points_per_second: 5,
                 precision: 3,
               },
-            },
+            }
           );
 
           if (!waveformInfo) {
@@ -191,7 +191,7 @@ export default function LeftPanel({
                 extract_frames: true,
               },
               mode: "streaming",
-            },
+            }
           );
 
           if (!mediaMetadata.media) {
@@ -334,7 +334,7 @@ export default function LeftPanel({
       <div className="flex-1 py-4 flex flex-col gap-4 border-b border-border h-full overflow-hidden relative">
         <div className="flex flex-row items-center gap-2 px-4">
           <h2 className="text-sm text-muted-foreground font-semibold flex-1">
-            Media Gallery
+            Media Galleryy
           </h2>
           <div className="flex gap-2">
             <DropdownMenu>

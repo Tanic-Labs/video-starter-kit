@@ -1,5 +1,5 @@
 import { VideoProject } from "@/data/schema";
-import { fal } from "./fal";
+import { fal } from "@/lib/fal";
 import { extractJson } from "./utils";
 
 const SYSTEM_PROMPT = `

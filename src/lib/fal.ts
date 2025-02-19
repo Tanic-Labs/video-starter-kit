@@ -2,17 +2,17 @@
 
 import { createFalClient } from "@fal-ai/client";
 
-export const fal = createFalClient({
-  //credentials: () => localStorage?.getItem("falKey") as string,
-  /* credentials: () => {
-    if (typeof window !== "undefined" && typeof localStorage !== "undefined") {
-      return localStorage.getItem("falKey") as string;
-    }
-    return "";
-  }, */
-  credentials: () => process.env.FAL_KEY,
-  proxyUrl: "/api/fal",
-});
+// export const fal = createFalClient({
+//   credentials: () => localStorage?.getItem("falKey") as string,
+//   /* credentials: () => {
+//     if (typeof window !== "undefined" && typeof localStorage !== "undefined") {
+//       return localStorage.getItem("falKey") as string;
+//     }
+//     return "";
+//   }, */
+//   credentials: () => process.env.FAL_KEY,
+//   proxyUrl: "/api/fal",
+// });
 
 export type InputAsset =
   | "video"
@@ -73,14 +73,14 @@ export const AVAILABLE_ENDPOINTS: ApiInfo[] = [
     inputAsset: ["image"],
   },
   {
-    endpointId: "fal-ai/hunyuan-video",
+    endpointId: "fal-ai/hunyuan-video-lora",
     label: "Hunyuan",
     description: "High visual quality, motion diversity and text alignment",
     cost: "",
     category: "video",
   },
   {
-    endpointId: "fal-ai/kling-video/v1.5/pro",
+    endpointId: "fal-ai/kling-video/v1.5/pro/image-to-video",
     label: "Kling 1.5 Pro",
     description: "High quality video",
     cost: "",
@@ -88,7 +88,7 @@ export const AVAILABLE_ENDPOINTS: ApiInfo[] = [
     inputAsset: ["image"],
   },
   {
-    endpointId: "fal-ai/luma-dream-machine",
+    endpointId: "fal-ai/luma-dream-machine/image-to-video",
     label: "Luma Dream Machine 1.5",
     description: "High quality video",
     cost: "",
@@ -119,15 +119,6 @@ export const AVAILABLE_ENDPOINTS: ApiInfo[] = [
     category: "video",
   },
   {
-    endpointId: "fal-ai/sync-lipsync",
-    label: "sync.so -- lipsync 1.8.0",
-    description:
-      "Generate realistic lipsync animations from audio using advanced algorithms for high-quality synchronization.",
-    cost: "",
-    inputAsset: ["video", "audio"],
-    category: "video",
-  },
-  {
     endpointId: "fal-ai/stable-audio",
     label: "Stable Audio",
     description: "Stable Diffusion music creation with high-quality tracks",
@@ -135,7 +126,7 @@ export const AVAILABLE_ENDPOINTS: ApiInfo[] = [
     category: "audio",
   },
   {
-    endpointId: "fal-ai/playht/tts/v3",
+    endpointId: "fal-ai/playai/tts/v3",
     label: "PlayHT TTS v3",
     description: "Fluent and faithful speech with flow matching",
     cost: "",

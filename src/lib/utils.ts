@@ -4,7 +4,7 @@ import { type ClassValue, clsx } from "clsx";
 import { ImageIcon, MicIcon, MusicIcon, VideoIcon } from "lucide-react";
 import type { FunctionComponent } from "react";
 import { twMerge } from "tailwind-merge";
-import type { InputAsset } from "./fal";
+import type { InputAsset } from "@/lib/fal";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
