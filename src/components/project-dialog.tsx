@@ -115,7 +115,7 @@ export function ProjectDialog({
             dimensions: aspectRatio ?? "16:9",
           },
         ])
-        .select()
+        .select("id, title, description, dimensions")
         .single();
 
       if (error) {
@@ -125,6 +125,13 @@ export function ProjectDialog({
           description: "Could not create project. Try again.",
         });
         return;
+      }
+
+      const newProject: VideoProject = {
+        id: data.id,
+        title: data.title,
+        description: data.description,
+        aspectRatio: data.dimensions as AspectRatio
       }
 
       if (newProjectItem) {
@@ -137,7 +144,7 @@ export function ProjectDialog({
             .from("projects_assets")
             .insert([
               {
-                project_id: data.id,
+                project_id: newProject.id,
                 asset_id: newProjectItem.id,
                 type: newTrackType,
                 label: newProjectItem.type,
@@ -214,10 +221,10 @@ export function ProjectDialog({
         }
       }
 
-      handleSelectProject(data);
+      handleSelectProject(newProject);
       toast({
         title: "Project Created",
-        description: `Project "${data.title}" created successfully!`,
+        description: `Project "${newProject.title}" created successfully!`,
       });
     } catch (error) {
       console.error("An unexpected error occurred:", error);

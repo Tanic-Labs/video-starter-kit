@@ -187,7 +187,8 @@ export function App({ /* projectId, */ session }: AppProps) {
 
   useEffect(() => {
     if (project) {
-      setRatio(project?.aspectRatio);
+      console.log(project)
+      setRatio(project.aspectRatio);
     }
   }, [project]);
 
