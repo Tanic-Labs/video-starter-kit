@@ -75,7 +75,7 @@ export function App({ /* projectId, */ session }: AppProps) {
   const projectStore = useRef(
     createVideoProjectStore({
       //projectId
-    }),
+    })
   ).current;
   // #endregion
 
@@ -84,7 +84,7 @@ export function App({ /* projectId, */ session }: AppProps) {
   const selectedMediaId = useStore(projectStore, (s) => s.selectedMediaId);
   const setSelectedMediaId = useStore(
     projectStore,
-    (s) => s.setSelectedMediaId,
+    (s) => s.setSelectedMediaId
   );
   const handleOnSheetOpenChange = (open: boolean) => {
     if (!open) {
@@ -94,7 +94,7 @@ export function App({ /* projectId, */ session }: AppProps) {
   const isExportDialogOpen = useStore(projectStore, (s) => s.exportDialogOpen);
   const setExportDialogOpen = useStore(
     projectStore,
-    (s) => s.setExportDialogOpen,
+    (s) => s.setExportDialogOpen
   );
   // #endregion
 
@@ -117,27 +117,16 @@ export function App({ /* projectId, */ session }: AppProps) {
         const { data, error } = await supabaseClient
           .from("assets")
           .select("*")
-          .eq("user_id", user.id);
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false });
 
         if (error) {
           console.error("Error fetching data:", error.message);
-          setIsLoading(false);
           return;
-        } else {
-          setMediaItems(data);
-          setIsLoading(false);
         }
-      } /* else {
-        const { data, error } = await supabaseClient.from("assets").select("*");
 
-        if (error) {
-          console.error("Error fetching data:", error.message);
-          setIsLoading(false);
-        } else {
-          setMediaItems(data);
-          setIsLoading(false);
-        }
-      } */
+        setMediaItems(data || []);
+      }
     } catch (error) {
       console.error("An error occurred while fetching data: ", error);
       toast({
@@ -148,6 +137,52 @@ export function App({ /* projectId, */ session }: AppProps) {
       setIsLoading(false);
     }
   }
+
+  useEffect(() => {
+    if (!user) return;
+
+    //SUBSCRIBE TO CHANGES ON ASSETS TABLE
+    const subscription = supabaseClient
+      .channel("assets_changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*", //(INSERT, UPDATE, DELETE)
+          schema: "public",
+          table: "assets",
+          filter: `user_id=eq.${user.id}`, // Only listen to changes for the current user
+        },
+        async (payload) => {
+          // Handle different types of changes
+          if (payload.eventType === "INSERT") {
+            // Add new asset to the list
+            setMediaItems((current) => [payload.new as MediaItem, ...current]);
+            toast({
+              title: "New Asset Added",
+              description: "Your media library has been updated.",
+            });
+          } else if (payload.eventType === "DELETE") {
+            // Remove deleted asset from the list
+            setMediaItems((current) =>
+              current.filter((item) => item.id !== payload.old.id)
+            );
+          } else if (payload.eventType === "UPDATE") {
+            // Update modified asset in the list
+            setMediaItems((current) =>
+              current.map((item) =>
+                item.id === payload.new.id ? { ...item, ...payload.new } : item
+              )
+            );
+          }
+        }
+      )
+      .subscribe();
+
+    // Cleanup subscription on unmount
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [user, supabaseClient]);
 
   useEffect(() => {
     fetchData();

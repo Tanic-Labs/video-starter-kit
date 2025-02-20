@@ -55,10 +55,28 @@ export const useJobCreator = ({
 }: JobCreatorParams) => {
   return useMutation({
     mutationFn: async () => {
-      //CREAR EL ID DEL
+      //CREACION DE ROW EN ASSETS
+      const { data: assetData } = await supabase
+        .from("assets")
+        .insert([
+          {
+            user_id: userId,
+            type: mediaType === "voiceover" ? "voice" : mediaType,
+            source_type: "generated",
+            metadata: { status: "pending" },
+          },
+        ])
+        .select("*")
+        .single();
+
+      if (!assetData) {
+        throw new Error("No generation data returned");
+      }
+
+      //CREACION DE ROW EN GENERATIONS
       const { data: generationData } = await supabase
         .from("generations")
-        .insert([{ user_id: userId }])
+        .insert([{ user_id: userId, asset_id: assetData?.id }])
         .select("*")
         .single();
 
@@ -66,19 +84,21 @@ export const useJobCreator = ({
         throw new Error("No generation data returned");
       }
 
-      //USAR EL ID Y SE LO MANDO PARA GENERATION
+      //USAR EL ID Y SE LO MANDO PARA GENERATION Y ID DE ASSETS
       const payload = {
         userId: userId,
+        assetDataId: assetData?.id,
+        prompt: input.prompt,
         mediaType: mediaType === "voiceover" ? "voice" : mediaType,
         endpointModel: endpointId,
         dataInsertId: generationData?.id,
         type: mediaType === "voiceover" ? "voice" : mediaType,
-        prompt: input.prompt || "Default prompt",
         imageUrl: urlImage,
         videoUrl: urlVideo,
         audioUrl: urlAudio,
       };
 
+      //ENDPOINT DE DIGITAL OCEAN
       const response = await fetch(
         `${DIGITAL_OCEAN_ENDPOINT}?blocking=true&result=true`,
         {
@@ -88,14 +108,35 @@ export const useJobCreator = ({
             Authorization: `Basic ${AUTH_TOKEN}`,
           },
           body: JSON.stringify(payload),
-        },
+        }
       );
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      const responseData = await response.json();
+
+      // Si hay un error, actualizamos el estado y lanzamos el error
+      if (!response.ok || responseData.status === "ERROR") {
+        // Actualizar estados a FAILED
+        if (generationData?.id) {
+          await supabase
+            .from("generations")
+            .update({ status: "FAILED" })
+            .eq("id", generationData.id);
+        }
+
+        if (assetData?.id) {
+          await supabase
+            .from("assets")
+            .update({
+              metadata: { status: "failed" },
+            })
+            .eq("id", assetData.id);
+        }
+
+        // Lanzar el error con los detalles de la respuesta
+        throw new Error(JSON.stringify(responseData?.message));
       }
 
-      return await response.json();
+      return responseData;
     },
   });
 };
