@@ -45,6 +45,7 @@ export type VideoKeyFrame = {
   track_id: string;
   asset_id: string;
   data: KeyFrameData;
+  url: string;
 };
 
 export type KeyFrameData = {

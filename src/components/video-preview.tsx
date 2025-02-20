@@ -13,7 +13,7 @@ import { useVideoProjectStore } from "@/data/store";
 import { resolveDuration } from "@/lib/utils";
 import { Player, type PlayerRef } from "@remotion/player";
 import { preloadVideo, preloadAudio } from "@remotion/preload";
-import { useCallback, useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useCallback, useEffect, useState } from "react";
 import {
   AbsoluteFill,
   Audio,
@@ -216,6 +216,7 @@ type VideoPreviewProps = {
   user: User | null;
   realtime: boolean;
   ratio: AspectRatio | null;
+  setNewExport: Dispatch<SetStateAction<boolean>>;
 };
 // #endregion
 
@@ -226,6 +227,7 @@ export default function VideoPreview({
   user,
   realtime,
   ratio,
+  setNewExport,
   ...props
 }: VideoPreviewProps) {
   // #region setStates
@@ -409,13 +411,17 @@ export default function VideoPreview({
   );
   // #endregion
 
+
   // #region Main JSX
   return (
     <div className="flex-grow flex-1 h-full flex items-center justify-center bg-background-dark dark:bg-background-light relative">
       <Button
-        className="absolute top-4 right-4"
+        className="absolute top-4 right-4 z-10"
         variant="default"
-        onClick={() => setExportDialogOpen(true)}
+        onClick={() => {
+          setExportDialogOpen(true)
+          setNewExport(true)
+        }}
         disabled={isCompositionLoading || tracks.length === 0}
       >
         <DownloadIcon className="w-4 h-4" />

@@ -12,6 +12,7 @@ import {
   EMPTY_VIDEO_COMPOSITION,
   useProject,
   useVideoComposition,
+  VideoCompositionData,
 } from "@/data/queries";
 import { fal } from "@/lib/fal";
 import { Button } from "./ui/button";
@@ -25,33 +26,133 @@ import {
 } from "lucide-react";
 import { Input } from "./ui/input";
 import type { ShareVideoParams } from "@/lib/share";
-import { PROJECT_PLACEHOLDER } from "@/data/schema";
+import { PROJECT_PLACEHOLDER, VideoKeyFrame, VideoProject } from "@/data/schema";
 import { useRouter } from "next/navigation";
+import { SupabaseClient, User } from "@supabase/supabase-js";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { toast } from "@/hooks/use-toast";
+import { object } from "zod";
 
-type ExportDialogProps = {} & Parameters<typeof Dialog>[0];
+type ExportDialogProps = {
+  project: VideoProject | null;
+  supabase: SupabaseClient;
+  user: User | null;
+  newExport: boolean;
+  setNewExport: Dispatch<SetStateAction<boolean>>;
+} & Parameters<typeof Dialog>[0];
 
 type ShareResult = {
   video_url: string;
   thumbnail_url: string;
 };
 
-export function ExportDialog({ onOpenChange, ...props }: ExportDialogProps) {
-  const projectId = useProjectId();
-  const { data: composition = EMPTY_VIDEO_COMPOSITION } =
-    useVideoComposition(projectId);
+export function ExportDialog({ 
+  onOpenChange, 
+  project, 
+  supabase, 
+  user,
+  newExport,
+  setNewExport,
+  ...props 
+}: ExportDialogProps) {
+  if (!project) {
+    project = PROJECT_PLACEHOLDER
+  }
+  /* const { data: composition = EMPTY_VIDEO_COMPOSITION } =
+    useVideoComposition(project.id); */
+  
+  const [isCompositionLoading, setIsCompositionLoading] = useState<boolean>(false);
+  const [composition, setComposition] = useState<VideoCompositionData>(EMPTY_VIDEO_COMPOSITION); 
   const router = useRouter();
+
+  useEffect(() => {
+    const getComposition = async () => {
+      if (!project || !user) return;
+
+      setIsCompositionLoading(true);
+      try {
+        const {data: tracks, error: errorTracks} = await supabase
+          .from("projects_assets")
+          .select(`
+            *, 
+            keyframes(
+              *,
+              assets(*)
+            )
+          `)
+          .eq("project_id", project.id);
+
+        if (errorTracks) {
+          console.log("Error getting composition: ", errorTracks)
+          throw errorTracks;
+        }
+
+        const processed = tracks.reduce<VideoCompositionData>(
+          (acc, track) => {
+            const { keyframes, ...trackWithoutKeyframes } = track;
+            acc.tracks.push(trackWithoutKeyframes);
+
+            const sortedKeyframes = keyframes?.sort(
+              (a: any, b: any) => a.timestamp - b.timestamp,
+            );
+            let frameIndex = Object.keys(acc.frames).length;
+
+            sortedKeyframes?.forEach((keyframe: any) => {
+              const { assets, ...frameWithoutAssets } = keyframe;
+              acc.frames[frameIndex] = frameWithoutAssets;
+              frameIndex++;
+
+              if (assets) {
+                const assetsArray = Array.isArray(assets) ? assets : [assets];
+                assetsArray.forEach((asset) => {
+                  acc.mediaItems[asset.id] = asset;
+                });
+              }
+            });
+
+            return acc;
+          },
+          { tracks: [], frames: {}, mediaItems: {} },
+        );
+
+        setComposition(processed);
+      } catch (error) {
+        console.error("Error in getComposition: ", error);
+        toast({
+          title: "Error!",
+          description: "An unexpected error occurred. Please try again.",
+        });
+      } finally {
+        setIsCompositionLoading(false);
+      }
+    }
+
+    if (newExport && project && project !== PROJECT_PLACEHOLDER) {
+      getComposition();
+    }
+    setNewExport(false);
+  } ,[newExport])
+
   const exportVideo = useMutation({
     mutationFn: async () => {
       const mediaItems = composition.mediaItems;
-      const videoData = composition.tracks.map((track) => ({
-        id: track.id,
-        type: track.type === "video" ? "video" : "audio",
-        keyframes: composition.frames[track.id].map((frame) => ({
-          timestamp: frame.timestamp,
-          duration: frame.duration,
-          url: resolveMediaUrl(mediaItems[frame.data.mediaId]),
-        })),
-      }));
+      const videoData = composition.tracks.map((track) => {
+        const frames = Object.values(composition.frames).filter(
+          (frame) => frame.track_id === track.id
+        );
+        return {
+          id: track.id,
+          type: track.type === "video" ? "video" : "audio",
+          keyframes: frames.map((frame, index) => ({
+              timestamp: frame.timestamp,
+              duration: frame.duration,
+              url: frame.url,
+          })),
+        };
+      })
+      console.log("videoData: ", videoData)
+      return;
+
       if (videoData.length === 0) {
         throw new Error("No tracks to export");
       }
@@ -65,6 +166,7 @@ export function ExportDialog({ onOpenChange, ...props }: ExportDialogProps) {
       return data as ShareResult;
     },
   });
+
   const setExportDialogOpen = useVideoProjectStore(
     (s) => s.setExportDialogOpen,
   );
@@ -73,7 +175,6 @@ export function ExportDialog({ onOpenChange, ...props }: ExportDialogProps) {
     onOpenChange?.(open);
   };
 
-  const { data: project = PROJECT_PLACEHOLDER } = useProject(projectId);
   const share = useMutation({
     mutationFn: async () => {
       if (!exportVideo.data) {
