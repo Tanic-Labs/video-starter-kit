@@ -108,7 +108,7 @@ export const useJobCreator = ({
             Authorization: `Basic ${AUTH_TOKEN}`,
           },
           body: JSON.stringify(payload),
-        }
+        },
       );
 
       const responseData = await response.json();

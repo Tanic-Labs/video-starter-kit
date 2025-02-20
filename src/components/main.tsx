@@ -75,7 +75,7 @@ export function App({ /* projectId, */ session }: AppProps) {
   const projectStore = useRef(
     createVideoProjectStore({
       //projectId
-    })
+    }),
   ).current;
   // #endregion
 
@@ -84,7 +84,7 @@ export function App({ /* projectId, */ session }: AppProps) {
   const selectedMediaId = useStore(projectStore, (s) => s.selectedMediaId);
   const setSelectedMediaId = useStore(
     projectStore,
-    (s) => s.setSelectedMediaId
+    (s) => s.setSelectedMediaId,
   );
   const handleOnSheetOpenChange = (open: boolean) => {
     if (!open) {
@@ -94,7 +94,7 @@ export function App({ /* projectId, */ session }: AppProps) {
   const isExportDialogOpen = useStore(projectStore, (s) => s.exportDialogOpen);
   const setExportDialogOpen = useStore(
     projectStore,
-    (s) => s.setExportDialogOpen
+    (s) => s.setExportDialogOpen,
   );
   // #endregion
 
@@ -164,17 +164,17 @@ export function App({ /* projectId, */ session }: AppProps) {
           } else if (payload.eventType === "DELETE") {
             // Remove deleted asset from the list
             setMediaItems((current) =>
-              current.filter((item) => item.id !== payload.old.id)
+              current.filter((item) => item.id !== payload.old.id),
             );
           } else if (payload.eventType === "UPDATE") {
             // Update modified asset in the list
             setMediaItems((current) =>
               current.map((item) =>
-                item.id === payload.new.id ? { ...item, ...payload.new } : item
-              )
+                item.id === payload.new.id ? { ...item, ...payload.new } : item,
+              ),
             );
           }
-        }
+        },
       )
       .subscribe();
 

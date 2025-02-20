@@ -88,7 +88,7 @@ export default function LeftPanel({
   const debounceDescription = useDebounce(description, 1000);
 
   const setProjectDialogOpen = useVideoProjectStore(
-    (s) => s.setProjectDialogOpen
+    (s) => s.setProjectDialogOpen,
   );
   const openGenerateDialog = useVideoProjectStore((s) => s.openGenerateDialog);
   // #endregion
@@ -147,7 +147,7 @@ export default function LeftPanel({
       if (assetError) {
         console.error(
           "Error al insertar en la tabla assets:",
-          assetError.message
+          assetError.message,
         );
       } else {
         if (mediaType === "audio" || mediaType === "voiceover") {
@@ -159,7 +159,7 @@ export default function LeftPanel({
                 points_per_second: 5,
                 precision: 3,
               },
-            }
+            },
           );
 
           if (!waveformInfo) {
@@ -191,7 +191,7 @@ export default function LeftPanel({
                 extract_frames: true,
               },
               mode: "streaming",
-            }
+            },
           );
 
           if (!mediaMetadata.media) {
