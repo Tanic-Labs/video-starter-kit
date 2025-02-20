@@ -48,7 +48,7 @@ export function App({ /* projectId, */ session }: AppProps) {
   const [realtime, setRealtime] = useState<boolean>(false);
   const [newProjectItem, setNewProjectItem] = useState<MediaItem | null>(null);
   const [ratio, setRatio] = useState<AspectRatio | null>(null);
-  const [newExport, setNewExport] = useState<boolean>(false)
+  const [newExport, setNewExport] = useState<boolean>(false);
 
   const [user, setUser] = useState<User | null>(null);
   const router = useRouter();
@@ -191,7 +191,7 @@ export function App({ /* projectId, */ session }: AppProps) {
       setRatio(project.aspectRatio);
     }
   }, [project]);
-  
+
   return (
     <ToastProvider>
       <QueryClientProvider client={queryClient}>

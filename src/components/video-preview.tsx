@@ -13,7 +13,13 @@ import { useVideoProjectStore } from "@/data/store";
 import { resolveDuration } from "@/lib/utils";
 import { Player, type PlayerRef } from "@remotion/player";
 import { preloadVideo, preloadAudio } from "@remotion/preload";
-import { Dispatch, SetStateAction, useCallback, useEffect, useState } from "react";
+import {
+  Dispatch,
+  SetStateAction,
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
 import {
   AbsoluteFill,
   Audio,
@@ -411,7 +417,6 @@ export default function VideoPreview({
   );
   // #endregion
 
-
   // #region Main JSX
   return (
     <div className="flex-grow flex-1 h-full flex items-center justify-center bg-background-dark dark:bg-background-light relative">
@@ -419,8 +424,8 @@ export default function VideoPreview({
         className="absolute top-4 right-4 z-10"
         variant="default"
         onClick={() => {
-          setExportDialogOpen(true)
-          setNewExport(true)
+          setExportDialogOpen(true);
+          setNewExport(true);
         }}
         disabled={isCompositionLoading || tracks.length === 0}
       >
