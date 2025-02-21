@@ -55,7 +55,7 @@ const RecoverPasswordComponent: React.FC<
 
   const handlePasswordChange = (
     e: ChangeEvent<HTMLInputElement>,
-    setter: (value: string) => void
+    setter: (value: string) => void,
   ) => {
     setter(e.target.value);
   };
