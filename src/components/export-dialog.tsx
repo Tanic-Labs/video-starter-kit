@@ -174,32 +174,34 @@ export function ExportDialog({
       });
 
       const assetId = crypto.randomUUID();
-      const videoFilePath = `${user.id}${assetId}.mp4`
-      const thumbnailFilePath = `${user.id}/${assetId}.jpg`
+      const videoFilePath = `${user.id}${assetId}.mp4`;
+      const thumbnailFilePath = `${user.id}/${assetId}.jpg`;
 
-      const { data: videoStrogae, error: videoStorageErr } = await supabase.storage
-        .from("videos")
-        .upload(videoFilePath, data.video_url, {
-          cacheControl: "3600",
-          upsert: false,
-        });
-      
+      const { data: videoStrogae, error: videoStorageErr } =
+        await supabase.storage
+          .from("videos")
+          .upload(videoFilePath, data.video_url, {
+            cacheControl: "3600",
+            upsert: false,
+          });
+
       if (videoStorageErr) {
-        console.warn(`Error al subir archivo: ${videoStorageErr.message}`)
+        console.warn(`Error al subir archivo: ${videoStorageErr.message}`);
       }
 
-      const { data: thumbnailStroage, error: thumbnailStroageErr} = await supabase.storage
-        .from("thumbnails")
-        .upload(thumbnailFilePath, data.thumbnail_url, {
-          cacheControl: "3600",
-          upsert: false,
-        });
-      
+      const { data: thumbnailStroage, error: thumbnailStroageErr } =
+        await supabase.storage
+          .from("thumbnails")
+          .upload(thumbnailFilePath, data.thumbnail_url, {
+            cacheControl: "3600",
+            upsert: false,
+          });
+
       if (thumbnailStroageErr) {
-        console.warn(`Error al subir archivo: ${thumbnailStroageErr.message}`)
+        console.warn(`Error al subir archivo: ${thumbnailStroageErr.message}`);
       }
 
-      const {data: exportInsert, error: exportError } = await supabase
+      const { data: exportInsert, error: exportError } = await supabase
         .from("exports")
         .insert([
           {
@@ -208,12 +210,12 @@ export function ExportDialog({
             project_id: project.id,
             video_path: videoFilePath,
             thumbnail_path: thumbnailFilePath,
-          }
+          },
         ])
         .select();
-      
-      if(exportError) {
-        console.warn(`Error al subir archivo: ${exportError.message}`)
+
+      if (exportError) {
+        console.warn(`Error al subir archivo: ${exportError.message}`);
       }
 
       return data as ShareResult;
