@@ -161,7 +161,7 @@ export function ExportDialog({
         };
       });
       console.log("videoData: ", videoData);
-      return
+      return;
 
       if (videoData.length === 0) {
         throw new Error("No tracks to export");
@@ -192,26 +192,24 @@ export function ExportDialog({
       const videoFilePath = `${user.id}${assetId}.mp4`;
       const thumbnailFilePath = `${user.id}/${assetId}.jpg`;
 
-      const { error: videoStorageErr } =
-        await supabase.storage
-          .from("videos")
-          .upload(videoFilePath, videoBlob, {
-            cacheControl: "3600",
-            upsert: false,
-          });
+      const { error: videoStorageErr } = await supabase.storage
+        .from("videos")
+        .upload(videoFilePath, videoBlob, {
+          cacheControl: "3600",
+          upsert: false,
+        });
 
       if (videoStorageErr) {
         console.warn(`Error uploading file: ${videoStorageErr.message}`);
         throw new Error("Failed to upload video to storage");
       }
 
-      const { error: thumbnailStroageErr } =
-        await supabase.storage
-          .from("thumbnails")
-          .upload(thumbnailFilePath, thumbnailBlob, {
-            cacheControl: "3600",
-            upsert: false,
-          });
+      const { error: thumbnailStroageErr } = await supabase.storage
+        .from("thumbnails")
+        .upload(thumbnailFilePath, thumbnailBlob, {
+          cacheControl: "3600",
+          upsert: false,
+        });
 
       if (thumbnailStroageErr) {
         console.warn(`Error uploading file: ${thumbnailStroageErr.message}`);
