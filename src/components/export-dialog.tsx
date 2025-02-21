@@ -147,12 +147,13 @@ export function ExportDialog({
       const mediaItems = composition.mediaItems;
       const videoData = composition.tracks.map((track) => {
         const frames = Object.values(composition.frames).filter(
+          //@ts-ignore
           (frame) => frame.track_id === track.id,
         );
         return {
           id: track.id,
           type: track.type === "video" ? "video" : "audio",
-          keyframes: frames.map((frame, index) => ({
+          keyframes: frames.map((frame) => ({
             timestamp: frame.timestamp,
             duration: frame.duration,
             url: frame.url,
@@ -160,7 +161,7 @@ export function ExportDialog({
         };
       });
       console.log("videoData: ", videoData);
-      return;
+      return
 
       if (videoData.length === 0) {
         throw new Error("No tracks to export");
@@ -173,32 +174,48 @@ export function ExportDialog({
         pollInterval: 3000,
       });
 
+      if (!data.video_url || !data.thumbnail_url) {
+        throw new Error("No video or thumbnail URL returned from the service");
+      }
+
+      const videoResponse = await fetch(data.video_url);
+      const thumbnailResponse = await fetch(data.thumbnail_url);
+
+      if (!videoResponse.ok || !thumbnailResponse.ok) {
+        throw new Error("Failed to download video or thumbnail");
+      }
+
+      const videoBlob = await videoResponse.blob();
+      const thumbnailBlob = await thumbnailResponse.blob();
+
       const assetId = crypto.randomUUID();
       const videoFilePath = `${user.id}${assetId}.mp4`;
       const thumbnailFilePath = `${user.id}/${assetId}.jpg`;
 
-      const { data: videoStrogae, error: videoStorageErr } =
+      const { error: videoStorageErr } =
         await supabase.storage
           .from("videos")
-          .upload(videoFilePath, data.video_url, {
+          .upload(videoFilePath, videoBlob, {
             cacheControl: "3600",
             upsert: false,
           });
 
       if (videoStorageErr) {
-        console.warn(`Error al subir archivo: ${videoStorageErr.message}`);
+        console.warn(`Error uploading file: ${videoStorageErr.message}`);
+        throw new Error("Failed to upload video to storage");
       }
 
-      const { data: thumbnailStroage, error: thumbnailStroageErr } =
+      const { error: thumbnailStroageErr } =
         await supabase.storage
           .from("thumbnails")
-          .upload(thumbnailFilePath, data.thumbnail_url, {
+          .upload(thumbnailFilePath, thumbnailBlob, {
             cacheControl: "3600",
             upsert: false,
           });
 
       if (thumbnailStroageErr) {
-        console.warn(`Error al subir archivo: ${thumbnailStroageErr.message}`);
+        console.warn(`Error uploading file: ${thumbnailStroageErr.message}`);
+        throw new Error("Failed to upload thumnail to storage");
       }
 
       const { data: exportInsert, error: exportError } = await supabase
@@ -215,7 +232,8 @@ export function ExportDialog({
         .select();
 
       if (exportError) {
-        console.warn(`Error al subir archivo: ${exportError.message}`);
+        console.warn(`Error inserting in database: ${exportError.message}`);
+        throw new Error("Failed to insert export record");
       }
 
       return data as ShareResult;
