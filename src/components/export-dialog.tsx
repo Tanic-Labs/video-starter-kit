@@ -1,3 +1,4 @@
+// #region IMPORT
 import { useMutation } from "@tanstack/react-query";
 import {
   Dialog,
@@ -36,7 +37,9 @@ import { SupabaseClient, User } from "@supabase/supabase-js";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { toast } from "@/hooks/use-toast";
 import { object } from "zod";
+// #endregion
 
+// #region TYPES
 type ExportDialogProps = {
   project: VideoProject | null;
   supabase: SupabaseClient;
@@ -49,7 +52,9 @@ type ShareResult = {
   video_url: string;
   thumbnail_url: string;
 };
+// #endregion
 
+// #region MAIN
 export function ExportDialog({
   onOpenChange,
   project,
@@ -59,6 +64,7 @@ export function ExportDialog({
   setNewExport,
   ...props
 }: ExportDialogProps) {
+  // #region Const & States
   if (!project) {
     project = PROJECT_PLACEHOLDER;
   }
@@ -72,6 +78,7 @@ export function ExportDialog({
   );
   const router = useRouter();
 
+  // #region Get Composition
   useEffect(() => {
     const getComposition = async () => {
       if (!project || !user) return;
@@ -139,12 +146,14 @@ export function ExportDialog({
     }
     setNewExport(false);
   }, [newExport]);
-
+  // #endregion
+    
+  // #region Export Video
   const exportVideo = useMutation({
     mutationFn: async () => {
       if (!user || !project) return;
-
-      const mediaItems = composition.mediaItems;
+      
+      // #region build object
       const videoData = composition.tracks.map((track) => {
         const frames = Object.values(composition.frames).filter(
           //@ts-ignore
@@ -154,15 +163,20 @@ export function ExportDialog({
           id: track.id,
           type: track.type === "video" ? "video" : "audio",
           keyframes: frames.map((frame) => ({
+            //@ts-ignore
             timestamp: frame.timestamp,
+            //@ts-ignore
             duration: frame.duration,
+            //@ts-ignore
             url: frame.url,
           })),
         };
       });
       console.log("videoData: ", videoData);
+      // #endregion
       return;
 
+      // #region ffmepg api compose
       if (videoData.length === 0) {
         throw new Error("No tracks to export");
       }
@@ -174,7 +188,7 @@ export function ExportDialog({
         pollInterval: 3000,
       });
 
-      if (!data.video_url || !data.thumbnail_url) {
+      if (!data.ok) {
         throw new Error("No video or thumbnail URL returned from the service");
       }
 
@@ -187,7 +201,9 @@ export function ExportDialog({
 
       const videoBlob = await videoResponse.blob();
       const thumbnailBlob = await thumbnailResponse.blob();
+      // #endregion
 
+      // #region insert supabase
       const assetId = crypto.randomUUID();
       const videoFilePath = `${user.id}${assetId}.mp4`;
       const thumbnailFilePath = `${user.id}/${assetId}.jpg`;
@@ -233,11 +249,14 @@ export function ExportDialog({
         console.warn(`Error inserting in database: ${exportError.message}`);
         throw new Error("Failed to insert export record");
       }
+      // #endregion
 
       return data as ShareResult;
     },
   });
+  // #endregion
 
+  // #region Modal Controls
   const setExportDialogOpen = useVideoProjectStore(
     (s) => s.setExportDialogOpen,
   );
@@ -245,7 +264,9 @@ export function ExportDialog({
     setExportDialogOpen(open);
     onOpenChange?.(open);
   };
+  // #endregion
 
+  // #region Share
   const share = useMutation({
     mutationFn: async () => {
       if (!exportVideo.data) {
@@ -279,9 +300,11 @@ export function ExportDialog({
     const { id } = await share.mutateAsync();
     router.push(`/share/${id}`);
   };
+  // #endregion
 
   const actionsDisabled = exportVideo.isPending || share.isPending;
 
+  // #region JSX Main
   return (
     <Dialog onOpenChange={handleOnOpenChange} {...props}>
       <DialogContent className="sm:max-w-4xl max-w-full">
@@ -362,4 +385,6 @@ export function ExportDialog({
       </DialogContent>
     </Dialog>
   );
+  //#endregion
 }
+//#endregion
