@@ -147,12 +147,12 @@ export function ExportDialog({
     setNewExport(false);
   }, [newExport]);
   // #endregion
-    
+
   // #region Export Video
   const exportVideo = useMutation({
     mutationFn: async () => {
       if (!user || !project) return;
-      
+
       // #region build object
       const videoData = composition.tracks.map((track) => {
         const frames = Object.values(composition.frames).filter(
