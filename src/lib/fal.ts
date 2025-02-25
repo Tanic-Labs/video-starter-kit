@@ -2,17 +2,17 @@
 
 import { createFalClient } from "@fal-ai/client";
 
-export const fal = createFalClient({
-  //credentials: () => localStorage?.getItem("falKey") as string,
-  /* credentials: () => {
-    if (typeof window !== "undefined" && typeof localStorage !== "undefined") {
-      return localStorage.getItem("falKey") as string;
-    }
-    return "";
-  }, */
-  credentials: () => process.env.FAL_KEY,
-  proxyUrl: "/api/fal",
-});
+// export const fal = createFalClient({
+//   credentials: () => localStorage?.getItem("falKey") as string,
+//   /* credentials: () => {
+//     if (typeof window !== "undefined" && typeof localStorage !== "undefined") {
+//       return localStorage.getItem("falKey") as string;
+//     }
+//     return "";
+//   }, */
+//   credentials: () => process.env.FAL_KEY,
+//   proxyUrl: "/api/fal",
+// }); <-- commented form 5 - 15
 
 export type InputAsset =
   | "video"
@@ -73,14 +73,14 @@ export const AVAILABLE_ENDPOINTS: ApiInfo[] = [
     inputAsset: ["image"],
   },
   {
-    endpointId: "fal-ai/hunyuan-video",
+    endpointId: "fal-ai/hunyuan-video-lora", // <-- change name
     label: "Hunyuan",
     description: "High visual quality, motion diversity and text alignment",
     cost: "",
     category: "video",
   },
   {
-    endpointId: "fal-ai/kling-video/v1.5/pro",
+    endpointId: "fal-ai/kling-video/v1.5/pro/image-to-video", // <-- change name
     label: "Kling 1.5 Pro",
     description: "High quality video",
     cost: "",
@@ -88,7 +88,7 @@ export const AVAILABLE_ENDPOINTS: ApiInfo[] = [
     inputAsset: ["image"],
   },
   {
-    endpointId: "fal-ai/luma-dream-machine",
+    endpointId: "fal-ai/luma-dream-machine/image-to-video", // <-- change name
     label: "Luma Dream Machine 1.5",
     description: "High quality video",
     cost: "",
@@ -117,16 +117,7 @@ export const AVAILABLE_ENDPOINTS: ApiInfo[] = [
     cost: "",
     inputAsset: ["video"],
     category: "video",
-  },
-  {
-    endpointId: "fal-ai/sync-lipsync",
-    label: "sync.so -- lipsync 1.8.0",
-    description:
-      "Generate realistic lipsync animations from audio using advanced algorithms for high-quality synchronization.",
-    cost: "",
-    inputAsset: ["video", "audio"],
-    category: "video",
-  },
+  }, // <-- killed an endpint
   {
     endpointId: "fal-ai/stable-audio",
     label: "Stable Audio",
@@ -135,7 +126,7 @@ export const AVAILABLE_ENDPOINTS: ApiInfo[] = [
     category: "audio",
   },
   {
-    endpointId: "fal-ai/playht/tts/v3",
+    endpointId: "fal-ai/playai/tts/v3", // <-- change name
     label: "PlayHT TTS v3",
     description: "Fluent and faithful speech with flow matching",
     cost: "",

@@ -91,12 +91,6 @@ const SignUpPage: React.FC = () => {
       </Link>
       <div className="bg-[#2a2a2a] p-8 rounded-xl shadow-xl w-full max-w-md">
         <div className="space-y-6">
-          {error && (
-            <div className="bg-red-500/10 border border-red-500 text-red-500 p-3 rounded-md">
-              {error}
-            </div>
-          )}
-
           <button
             onClick={handleGoogleSignIn}
             className="w-full flex items-center justify-center gap-2 bg-white text-gray-700 p-3 rounded-md hover:bg-gray-100 transition-colors"
@@ -183,7 +177,11 @@ const SignUpPage: React.FC = () => {
                 className="mt-1 block w-full rounded-md bg-gray-700 border-transparent focus:border-[#2cd4bf] focus:ring-[#2cd4bf] text-white p-2"
               />
             </div>
-
+            {error && (
+              <div className="bg-red-500/10 border border-red-500 text-red-500 p-3 rounded-md">
+                {error}
+              </div>
+            )}
             <button
               type="submit"
               disabled={loading}

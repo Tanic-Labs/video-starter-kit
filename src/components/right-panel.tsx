@@ -55,8 +55,11 @@ import { VoiceSelector } from "./playht/voice-selector";
 import { LoadingIcon } from "./ui/icons";
 import { getMediaMetadata } from "@/lib/ffmpeg";
 import { SupabaseClient, User } from "@supabase/supabase-js";
+import { type } from "os";
+import { metadata } from "@/app/layout"; // <--- new imoports 58 - 59
 // #endregion
 
+//DIVIDER <-- this
 // #region TYPE MODEL ENDPOINT PICKER
 type ModelEndpointPickerProps = {
   mediaType: string;
@@ -120,6 +123,10 @@ export default function RightPanel({
 
   const [tab, setTab] = useState<string>("generation");
   const [assetMediaType, setAssetMediaType] = useState("all");
+  const [urlImage, setUrlImage] = useState("");
+  const [urlAudio, setUrlAudio] = useState("");
+  const [urlVideo, setUrlVideo] = useState("");
+  const [loading, setLoading] = useState(false); // <-- urls and loading states 126 - 129
   const projectId = useProjectId();
   const openGenerateDialog = useVideoProjectStore((s) => s.openGenerateDialog);
   const generateDialogOpen = useVideoProjectStore((s) => s.generateDialogOpen);
@@ -251,6 +258,7 @@ export default function RightPanel({
         }
       : {};
   const createJob = useJobCreator({
+    userId: user?.id ?? "", // <--- add user or empty string / must return if no user
     projectId,
     endpointId:
       generateData.image && mediaType === "video"
@@ -262,19 +270,37 @@ export default function RightPanel({
       ...mapInputKey(input, endpoint?.inputMap || {}),
       ...extraInput,
     },
+    urlImage,
+    urlAudio,
+    urlVideo, // <-- add urls 273 - 275
   });
   // #endregion
 
   // #region Handle Generate
+  // const handleOnGenerate = async () => {
+  //   await createJob.mutateAsync({} as any, {
+  //     onSuccess: async () => {
+  //       if (!createJob.isError) {
+  //         handleOnOpenChange(false);
+  //       }
+  //     },
+  //   });
+  // }; // <-- replace Generate 280 - 288
+
   const handleOnGenerate = async () => {
     await createJob.mutateAsync({} as any, {
-      onSuccess: async () => {
-        if (!createJob.isError) {
-          handleOnOpenChange(false);
-        }
+      onSuccess: () => {
+        handleOnOpenChange(false);
+      },
+      onError: (error) => {
+        toast({
+          title: "Failed",
+          description: `Error: ${error.message}. Please try again.`,
+        });
+        handleOnOpenChange(false);
       },
     });
-  };
+  }; // <-- replace Generate 290 - 303
 
   useEffect(() => {
     videoProjectStore.onGenerate = handleOnGenerate;
@@ -308,28 +334,115 @@ export default function RightPanel({
   // #region Upload data
   const { startUpload, isUploading } = useUploadThing("fileUploader");
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  // MODIFED HANDLE FILE LOAD
+  const handleFileUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    asset: any,
+    index: any,
+  ) => {
+    console.log("INDEX", index);
+    console.log("asset", asset);
+
     const files = e.target.files;
     if (!files) return;
 
+    setLoading(true); // Activa el loader al iniciar la subida
+
     try {
-      const uploadedFiles = await startUpload(Array.from(files));
+      const uploadedFiles = await uploadToSupabase(Array.from(files), asset);
       if (uploadedFiles) {
         await handleUploadComplete(uploadedFiles);
       }
     } catch (err) {
+      setUrlImage("");
+      setUrlAudio("");
+      setUrlVideo("");
       console.warn(`ERROR! ${err}`);
       toast({
         title: "Failed to upload file",
         description: "Please try again",
       });
+    } finally {
+      setLoading(false); // Desactiva el loader sin importar si hubo éxito o error
     }
   };
+  // MODIFIED HANDLE FILE LOAD 337 - 369
+
+  // ADD SUPABASE UPLOAD
+  const uploadToSupabase = async (files: File[], asset: any) => {
+    console.log("FILE", files);
+    const uniqueId = crypto.randomUUID();
+    const uploadedFiles = [];
+    let filePath;
+    let typeofFilepath;
+
+    for (const file of files) {
+      const fileExt = file.type.split("/")[1];
+      console.log("FILE111", fileExt);
+      typeofFilepath = mediaType === "audio" ? asset.type : asset;
+      console.log("FILE222", typeofFilepath);
+      filePath = `${user?.id}/${typeofFilepath}s/${uniqueId}.${fileExt}`;
+      console.log("FILE3333", filePath);
+
+      const { data, error } = await supabase.storage
+        .from("assets")
+        .upload(filePath, file);
+
+      if (error) {
+        throw error;
+      }
+
+      // Obtener la URL pública del archivo
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("assets").getPublicUrl(filePath);
+      if (typeofFilepath === "audio") {
+        setUrlAudio(publicUrl);
+      } else if (typeofFilepath === "video") {
+        setUrlVideo(publicUrl);
+      } else if (typeofFilepath === "image") {
+        setUrlImage(publicUrl);
+      }
+
+      uploadedFiles.push({
+        url: publicUrl,
+        type: file.type,
+        name: file.name,
+        size: file.size,
+      });
+      console.log("mimi", uploadedFiles);
+    }
+
+    const { data: generationData, error: generationError } = await supabase
+      .from("assets")
+      .insert([
+        {
+          id: uniqueId,
+          user_id: user?.id,
+          type: typeofFilepath,
+          source_type: "uploaded",
+          file_path: filePath,
+          metadata: uploadedFiles,
+        },
+      ])
+      .select("*")
+      .single();
+    console.log("generationError", generationError);
+    if (!generationData) {
+      throw new Error("No generation data returned");
+    }
+
+    return uploadedFiles;
+  };
+  // ADD SUPABASE UPLOAD 437
 
   const handleUploadComplete = async (
-    files: ClientUploadedFileData<{
-      uploadedBy: string;
-    }>[],
+    files: Array<{
+      url: string;
+      type: string;
+      name: string;
+      size: number;
+    }>, // <-- add new params 440 - 445
   ) => {
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
@@ -337,18 +450,17 @@ export default function RightPanel({
       const outputType = mediaType === "audio" ? "audio" : mediaType;
 
       const data: Omit<MediaItem, "id"> = {
-        //projectId,
         user_id: user ? user.id : "",
         source_type: "uploaded",
         created_at: Date.now(),
         type: outputType as MediaType,
         file_path: file.url,
         metadata: {
-          name: "string",
-          size: 1200000,
+          name: file.name,
+          size: file.size, // <-- add new metadata name and size 459 - 460
           type: outputType as MediaType,
           description: "prompt",
-          original_name: "original_string",
+          original_name: file.name, // <-- file name added
         },
       };
 
@@ -357,23 +469,34 @@ export default function RightPanel({
         [assetKeyMap[outputType as keyof typeof assetKeyMap]]: file.url,
       });
 
-      const mediaId = await db.media.create(data);
-      const media = await db.media.find(mediaId as string);
+      // Si necesitas mantener un registro en la base de datos
+      const { data: mediaRecord, error } = await supabase
+        .from("media")
+        .insert([data])
+        .select()
+        .single();
 
-      if (media && media.type !== "image") {
-        const mediaMetadata = await getMediaMetadata(media as MediaItem);
+      if (error) {
+        console.error("Error saving media record:", error);
+        continue;
+      } // <-- media table? Replace for assetst 472 - 482
 
-        await db.media
-          .update(media.id, {
-            ...media,
+      if (mediaRecord && mediaRecord.type !== "image") {
+        const mediaMetadata = await getMediaMetadata(mediaRecord as MediaItem);
+
+        const { error: updateError } = await supabase
+          .from("media")
+          .update({
             metadata: mediaMetadata?.media || {},
           })
-          .finally(() => {
-            queryClient.invalidateQueries({
-              queryKey: queryKeys.projectMediaItems(projectId),
-            });
+          .eq("id", mediaRecord.id);
+
+        if (!updateError) {
+          queryClient.invalidateQueries({
+            queryKey: queryKeys.projectMediaItems(projectId),
           });
-      }
+        }
+      } // <-- add if and update media table, replace for assests 484 - 499
     }
   };
   // #endregion
@@ -504,7 +627,7 @@ export default function RightPanel({
                         <Button
                           variant="ghost"
                           size="sm"
-                          disabled={isUploading}
+                          disabled={loading} // <-- change disable
                           className="cursor-pointer min-h-[30px] flex flex-col items-center justify-center border border-dashed border-border rounded-md px-4"
                           asChild
                         >
@@ -513,12 +636,14 @@ export default function RightPanel({
                               id="assetUploadButton"
                               type="file"
                               className="hidden"
-                              onChange={handleFileUpload}
+                              onChange={(e) =>
+                                handleFileUpload(e, asset, index)
+                              } // Aquí pasas `e` correctamente // <-- upsade on change 639 - 641
                               multiple={false}
-                              disabled={isUploading}
+                              disabled={loading} // <-- change disable
                               accept="image/*,audio/*,video/*"
                             />
-                            {isUploading ? (
+                            {loading ? ( // <-- change condition
                               <LoaderCircleIcon className="w-4 h-4 opacity-50 animate-spin" />
                             ) : (
                               <span className="text-muted-foreground text-xs text-center text-nowrap">
@@ -535,7 +660,12 @@ export default function RightPanel({
                           <button
                             type="button"
                             className="p-1 rounded hover:bg-black/50 absolute top-1 z-50 bg-black/80 right-1 group-hover:text-white"
-                            onClick={() => resetGenerateData()}
+                            onClick={() => {
+                              resetGenerateData();
+                              setUrlImage("");
+                              setUrlAudio("");
+                              setUrlVideo("");
+                            }} // <-- replace onClick for urls 663 - 668
                           >
                             <TrashIcon className="w-3 h-3 stroke-2" />
                           </button>
@@ -644,7 +774,9 @@ export default function RightPanel({
                 disabled={enhance.isPending || createJob.isPending}
                 onClick={handleOnGenerate}
               >
-                Generate
+                {enhance.isPending || createJob.isPending
+                  ? "Loading"
+                  : "Generate"}
               </Button>
             </div>
           </div>
