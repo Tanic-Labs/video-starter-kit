@@ -2,7 +2,7 @@
 // #region IMPORTS
 import { useJobCreator } from "@/data/mutations";
 import { queryKeys, useProject, useProjectMediaItems } from "@/data/queries";
-import type { MediaItem } from "@/data/schema";
+import { PROJECT_PLACEHOLDER, type MediaItem, type VideoProject } from "@/data/schema";
 import {
   type GenerateData,
   type MediaType,
@@ -100,6 +100,7 @@ function ModelEndpointPicker({
 type RightPanelProps = {
   supabase: SupabaseClient;
   user: User | null;
+  project: VideoProject | null;
   onOpenChange?: (open: boolean) => void;
 };
 // #endregion
@@ -108,6 +109,7 @@ type RightPanelProps = {
 export default function RightPanel({
   supabase,
   user,
+  project,
   onOpenChange,
   ...props
 }: RightPanelProps) {
@@ -120,6 +122,9 @@ export default function RightPanel({
     endpointId,
     setEndpointId,
   } = videoProjectStore;
+  if(!project){
+    project = PROJECT_PLACEHOLDER
+  }
 
   const [tab, setTab] = useState<string>("generation");
   const [assetMediaType, setAssetMediaType] = useState("all");
@@ -134,7 +139,6 @@ export default function RightPanel({
     (s) => s.closeGenerateDialog,
   );
   const queryClient = useQueryClient();
-  const { data: project } = useProject(projectId);
 
   const { toast } = useToast();
   // #endregion
@@ -700,6 +704,7 @@ export default function RightPanel({
                           onOpen={handleSelectMedia}
                           className="cursor-pointer"
                           supabase={supabase}
+                          project={project}
                         />
                       ))}
                   </div>

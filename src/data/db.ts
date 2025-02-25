@@ -162,7 +162,7 @@ export const db = {
       const tracks = await db.getAllFromIndex(
         "tracks",
         "by_projectId",
-        media.projectId,
+        //media.projectId,
       );
       const trackIds = tracks.map((track) => track.id);
       const frames = (

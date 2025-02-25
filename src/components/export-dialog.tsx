@@ -174,7 +174,7 @@ export function ExportDialog({
       });
       console.log("videoData: ", videoData);
       // #endregion
-      return;
+      //return;
 
       // #region ffmepg api compose
       if (videoData.length === 0) {
