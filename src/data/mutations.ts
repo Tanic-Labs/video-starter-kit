@@ -21,7 +21,7 @@ type JobCreatorParams = {
   urlVideo: any;
 }; // <-- restruct JobCreator type 12 - 22
 
-export const useProjectUpdater = (projectId: string) => { 
+export const useProjectUpdater = (projectId: string) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (project: Partial<VideoProject>) =>
@@ -43,7 +43,8 @@ export const useProjectCreator = () => {
   });
 };
 
-export const useJobCreator = ({ // <-- updadate from 46 - 142
+export const useJobCreator = ({
+  // <-- updadate from 46 - 142
   userId,
   projectId,
   endpointId,
@@ -76,7 +77,7 @@ export const useJobCreator = ({ // <-- updadate from 46 - 142
       //CREACION DE ROW EN GENERATIONS
       const { data: generationData } = await supabase
         .from("generations")
-        .insert([{ user_id: userId, asset_id: assetData?.id }]) // <-- add asset.id 
+        .insert([{ user_id: userId, asset_id: assetData?.id }]) // <-- add asset.id
         .select("*")
         .single();
 

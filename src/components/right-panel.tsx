@@ -182,7 +182,7 @@ export default function RightPanel({
       AVAILABLE_ENDPOINTS.find(
         (endpoint) => endpoint.endpointId === endpointId,
       ),
-    [endpointId], 
+    [endpointId],
   );
   const handleMediaTypeChange = (mediaType: string) => {
     setMediaType(mediaType as MediaType);
@@ -334,7 +334,7 @@ export default function RightPanel({
   // #region Upload data
   const { startUpload, isUploading } = useUploadThing("fileUploader");
 
-  // MODIFED HANDLE FILE LOAD 
+  // MODIFED HANDLE FILE LOAD
   const handleFileUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
     asset: any,
