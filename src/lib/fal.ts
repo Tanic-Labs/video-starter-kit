@@ -2,17 +2,10 @@
 
 import { createFalClient } from "@fal-ai/client";
 
-// export const fal = createFalClient({
-//   credentials: () => localStorage?.getItem("falKey") as string,
-//   /* credentials: () => {
-//     if (typeof window !== "undefined" && typeof localStorage !== "undefined") {
-//       return localStorage.getItem("falKey") as string;
-//     }
-//     return "";
-//   }, */
-//   credentials: () => process.env.FAL_KEY,
-//   proxyUrl: "/api/fal",
-// }); <-- commented form 5 - 15
+export const fal = createFalClient({
+  credentials: () => process.env.FAL_KEY,
+  proxyUrl: "/api/fal",
+}); //<-- commented form 5 - 15
 
 export type InputAsset =
   | "video"
