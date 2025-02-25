@@ -56,10 +56,10 @@ import { LoadingIcon } from "./ui/icons";
 import { getMediaMetadata } from "@/lib/ffmpeg";
 import { SupabaseClient, User } from "@supabase/supabase-js";
 import { type } from "os";
-import { metadata } from "@/app/layout";
+import { metadata } from "@/app/layout"; // <--- new imoports 58 - 59
 // #endregion
 
-//DIVIDER
+//DIVIDER <-- this
 // #region TYPE MODEL ENDPOINT PICKER
 type ModelEndpointPickerProps = {
   mediaType: string;
@@ -126,7 +126,7 @@ export default function RightPanel({
   const [urlImage, setUrlImage] = useState("");
   const [urlAudio, setUrlAudio] = useState("");
   const [urlVideo, setUrlVideo] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false); // <-- urls and loading states 126 - 129
   const projectId = useProjectId();
   const openGenerateDialog = useVideoProjectStore((s) => s.openGenerateDialog);
   const generateDialogOpen = useVideoProjectStore((s) => s.generateDialogOpen);
@@ -182,7 +182,7 @@ export default function RightPanel({
       AVAILABLE_ENDPOINTS.find(
         (endpoint) => endpoint.endpointId === endpointId,
       ),
-    [endpointId],
+    [endpointId], 
   );
   const handleMediaTypeChange = (mediaType: string) => {
     setMediaType(mediaType as MediaType);
@@ -258,7 +258,7 @@ export default function RightPanel({
         }
       : {};
   const createJob = useJobCreator({
-    userId: user?.id ?? "",
+    userId: user?.id ?? "", // <--- add user or empty string / must return if no user
     projectId,
     endpointId:
       generateData.image && mediaType === "video"
@@ -272,7 +272,7 @@ export default function RightPanel({
     },
     urlImage,
     urlAudio,
-    urlVideo,
+    urlVideo, // <-- add urls 273 - 275
   });
   // #endregion
 
@@ -285,7 +285,7 @@ export default function RightPanel({
   //       }
   //     },
   //   });
-  // };
+  // }; // <-- replace Generate 280 - 288
 
   const handleOnGenerate = async () => {
     await createJob.mutateAsync({} as any, {
@@ -300,7 +300,7 @@ export default function RightPanel({
         handleOnOpenChange(false);
       },
     });
-  };
+  }; // <-- replace Generate 290 - 303
 
   useEffect(() => {
     videoProjectStore.onGenerate = handleOnGenerate;
@@ -334,6 +334,7 @@ export default function RightPanel({
   // #region Upload data
   const { startUpload, isUploading } = useUploadThing("fileUploader");
 
+  // MODIFED HANDLE FILE LOAD 
   const handleFileUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
     asset: any,
@@ -365,7 +366,9 @@ export default function RightPanel({
       setLoading(false); // Desactiva el loader sin importar si hubo éxito o error
     }
   };
+  // MODIFIED HANDLE FILE LOAD 337 - 369
 
+  // ADD SUPABASE UPLOAD
   const uploadToSupabase = async (files: File[], asset: any) => {
     console.log("FILE", files);
     const uniqueId = crypto.randomUUID();
@@ -431,6 +434,7 @@ export default function RightPanel({
 
     return uploadedFiles;
   };
+  // ADD SUPABASE UPLOAD 437
 
   const handleUploadComplete = async (
     files: Array<{
@@ -438,7 +442,7 @@ export default function RightPanel({
       type: string;
       name: string;
       size: number;
-    }>,
+    }>, // <-- add new params 440 - 445
   ) => {
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
@@ -453,10 +457,10 @@ export default function RightPanel({
         file_path: file.url,
         metadata: {
           name: file.name,
-          size: file.size,
+          size: file.size, // <-- add new metadata name and size 459 - 460
           type: outputType as MediaType,
           description: "prompt",
-          original_name: file.name,
+          original_name: file.name, // <-- file name added
         },
       };
 
@@ -475,7 +479,7 @@ export default function RightPanel({
       if (error) {
         console.error("Error saving media record:", error);
         continue;
-      }
+      } // <-- media table? Replace for assetst 472 - 482
 
       if (mediaRecord && mediaRecord.type !== "image") {
         const mediaMetadata = await getMediaMetadata(mediaRecord as MediaItem);
@@ -492,7 +496,7 @@ export default function RightPanel({
             queryKey: queryKeys.projectMediaItems(projectId),
           });
         }
-      }
+      } // <-- add if and update media table, replace for assests 484 - 499
     }
   };
   // #endregion
@@ -623,7 +627,7 @@ export default function RightPanel({
                         <Button
                           variant="ghost"
                           size="sm"
-                          disabled={loading}
+                          disabled={loading} // <-- change disable
                           className="cursor-pointer min-h-[30px] flex flex-col items-center justify-center border border-dashed border-border rounded-md px-4"
                           asChild
                         >
@@ -634,12 +638,12 @@ export default function RightPanel({
                               className="hidden"
                               onChange={(e) =>
                                 handleFileUpload(e, asset, index)
-                              } // Aquí pasas `e` correctamente
+                              } // Aquí pasas `e` correctamente // <-- upsade on change 639 - 641
                               multiple={false}
-                              disabled={loading}
+                              disabled={loading} // <-- change disable
                               accept="image/*,audio/*,video/*"
                             />
-                            {loading ? (
+                            {loading ? ( // <-- change condition
                               <LoaderCircleIcon className="w-4 h-4 opacity-50 animate-spin" />
                             ) : (
                               <span className="text-muted-foreground text-xs text-center text-nowrap">
@@ -661,7 +665,7 @@ export default function RightPanel({
                               setUrlImage("");
                               setUrlAudio("");
                               setUrlVideo("");
-                            }}
+                            }} // <-- replace onClick for urls 663 - 668
                           >
                             <TrashIcon className="w-3 h-3 stroke-2" />
                           </button>

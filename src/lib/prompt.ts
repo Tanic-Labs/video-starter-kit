@@ -1,5 +1,5 @@
 import type { VideoProject } from "@/data/schema";
-import { fal } from "@/lib/fal";
+import { fal } from "@/lib/fal"; // <-- change name
 
 type EnhancePromptOptions = {
   type: "image" | "video" | "audio" | "voiceover";

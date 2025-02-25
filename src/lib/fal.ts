@@ -12,7 +12,7 @@ import { createFalClient } from "@fal-ai/client";
 //   }, */
 //   credentials: () => process.env.FAL_KEY,
 //   proxyUrl: "/api/fal",
-// });
+// }); <-- commented form 5 - 15
 
 export type InputAsset =
   | "video"
@@ -73,14 +73,14 @@ export const AVAILABLE_ENDPOINTS: ApiInfo[] = [
     inputAsset: ["image"],
   },
   {
-    endpointId: "fal-ai/hunyuan-video-lora",
+    endpointId: "fal-ai/hunyuan-video-lora", // <-- change name
     label: "Hunyuan",
     description: "High visual quality, motion diversity and text alignment",
     cost: "",
     category: "video",
   },
   {
-    endpointId: "fal-ai/kling-video/v1.5/pro/image-to-video",
+    endpointId: "fal-ai/kling-video/v1.5/pro/image-to-video", // <-- change name
     label: "Kling 1.5 Pro",
     description: "High quality video",
     cost: "",
@@ -88,7 +88,7 @@ export const AVAILABLE_ENDPOINTS: ApiInfo[] = [
     inputAsset: ["image"],
   },
   {
-    endpointId: "fal-ai/luma-dream-machine/image-to-video",
+    endpointId: "fal-ai/luma-dream-machine/image-to-video", // <-- change name
     label: "Luma Dream Machine 1.5",
     description: "High quality video",
     cost: "",
@@ -117,7 +117,7 @@ export const AVAILABLE_ENDPOINTS: ApiInfo[] = [
     cost: "",
     inputAsset: ["video"],
     category: "video",
-  },
+  }, // <-- killed an endpint
   {
     endpointId: "fal-ai/stable-audio",
     label: "Stable Audio",
@@ -126,7 +126,7 @@ export const AVAILABLE_ENDPOINTS: ApiInfo[] = [
     category: "audio",
   },
   {
-    endpointId: "fal-ai/playai/tts/v3",
+    endpointId: "fal-ai/playai/tts/v3", // <-- change name
     label: "PlayHT TTS v3",
     description: "Fluent and faithful speech with flow matching",
     cost: "",

@@ -118,7 +118,7 @@ export function App({ /* projectId, */ session }: AppProps) {
           .from("assets")
           .select("*")
           .eq("user_id", user.id)
-          .order("created_at", { ascending: false });
+          .order("created_at", { ascending: false }); // <-- add created_at
 
         if (error) {
           console.error("Error fetching data:", error.message);
@@ -126,7 +126,7 @@ export function App({ /* projectId, */ session }: AppProps) {
         }
 
         setMediaItems(data || []);
-      }
+      } // <-- remove secon fetch
     } catch (error) {
       console.error("An error occurred while fetching data: ", error);
       toast({
@@ -182,7 +182,7 @@ export function App({ /* projectId, */ session }: AppProps) {
     return () => {
       subscription.unsubscribe();
     };
-  }, [user, supabaseClient]);
+  }, [user, supabaseClient]); // <-- real time fetch
 
   useEffect(() => {
     fetchData();

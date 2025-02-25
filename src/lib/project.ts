@@ -1,5 +1,5 @@
 import { VideoProject } from "@/data/schema";
-import { fal } from "@/lib/fal";
+import { fal } from "@/lib/fal"; // <-- change name
 import { extractJson } from "./utils";
 
 const SYSTEM_PROMPT = `

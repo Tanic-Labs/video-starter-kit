@@ -1,5 +1,5 @@
 import type { MediaItem } from "@/data/schema";
-import { fal } from "@/lib/fal";
+import { fal } from "@/lib/fal"; // <-- change name
 import { resolveMediaUrl } from "./utils";
 
 export async function getMediaMetadata(media: MediaItem) {
