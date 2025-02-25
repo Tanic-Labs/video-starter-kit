@@ -22,7 +22,8 @@ const TEMPLATE_PROJECT_SEED: ProjectSeed = {
       user_id: "",
       type: "audio",
       source_type: "generated",
-      file_path: "https://v2.fal.media/files/c8c6eb5859584e9382ac7c6202a98ac2_tmpla47ie4n.wav",
+      file_path:
+        "https://v2.fal.media/files/c8c6eb5859584e9382ac7c6202a98ac2_tmpla47ie4n.wav",
       created_at: 1737486876353,
       metadata: {
         name: "lofi beats, chill morning song in a bossa nova style",
@@ -42,7 +43,7 @@ const TEMPLATE_PROJECT_SEED: ProjectSeed = {
         },
         endpointId: "fal-ai/stable-audio",
         requestId: "7d2d12f8-41d8-4e20-87a1-d4fdf8a7a28b",
-        duration: 17
+        duration: 17,
       },
     },
     {
@@ -50,17 +51,20 @@ const TEMPLATE_PROJECT_SEED: ProjectSeed = {
       user_id: "",
       type: "voiceover",
       source_type: "generated",
-      file_path: "https://v3.fal.media/files/rabbit/cZzZVGe4ugQEAMBruZvgh_01a71259-c5f1-4fc2-940e-98f1ddc0d34a.mp3",
+      file_path:
+        "https://v3.fal.media/files/rabbit/cZzZVGe4ugQEAMBruZvgh_01a71259-c5f1-4fc2-940e-98f1ddc0d34a.mp3",
       created_at: 1737486790214,
       metadata: {
         name: "There's nothing like a fresh cup of coffee in a sunny morning",
         status: "completed",
         type: "voiceover",
         input: {
-          prompt: "There's nothing like a fresh cup of coffee in a sunny morning",
+          prompt:
+            "There's nothing like a fresh cup of coffee in a sunny morning",
           seconds_total: 30,
           voice: "Cecil (English (GB)/British)",
-          input: "There's nothing like a fresh cup of coffee in a sunny morning",
+          input:
+            "There's nothing like a fresh cup of coffee in a sunny morning",
         },
         output: {
           audio: {
@@ -73,7 +77,7 @@ const TEMPLATE_PROJECT_SEED: ProjectSeed = {
         },
         endpointId: "fal-ai/playht/tts/v3",
         requestId: "991f473d-7e15-48d1-bc01-fe033d7f7773",
-        duration: 2.976
+        duration: 2.976,
       },
     },
     {
@@ -81,7 +85,8 @@ const TEMPLATE_PROJECT_SEED: ProjectSeed = {
       user_id: "",
       type: "video",
       source_type: "generated",
-      file_path: "https://fal.media/files/koala/3xD7JOTCNYwUwiOaV047W_output.mp4",
+      file_path:
+        "https://fal.media/files/koala/3xD7JOTCNYwUwiOaV047W_output.mp4",
       created_at: 1737486533032,
       metadata: {
         name: "Coffee beans grinding on a morning setting",
@@ -103,8 +108,10 @@ const TEMPLATE_PROJECT_SEED: ProjectSeed = {
         endpointId: "fal-ai/minimax/video-01-live/image-to-video",
         requestId: "994b9ca4-a710-4c50-ab1e-ebd5fb2b3648",
         duration: 5.64,
-        start_frame_url: "https://v3.fal.media/files/lion/lNDR8wzGJmAgPtSdroZso_start_frame.png",
-        end_frame_url: "https://v3.fal.media/files/monkey/IrmTo3WlXwU_xt2e7LWZR_end_frame.png"
+        start_frame_url:
+          "https://v3.fal.media/files/lion/lNDR8wzGJmAgPtSdroZso_start_frame.png",
+        end_frame_url:
+          "https://v3.fal.media/files/monkey/IrmTo3WlXwU_xt2e7LWZR_end_frame.png",
       },
     },
     {
@@ -112,14 +119,16 @@ const TEMPLATE_PROJECT_SEED: ProjectSeed = {
       user_id: "",
       type: "video",
       source_type: "generated",
-      file_path: "https://fal.media/files/kangaroo/tusxIei9BCsgat_K0H_Dr_output.mp4",
+      file_path:
+        "https://fal.media/files/kangaroo/tusxIei9BCsgat_K0H_Dr_output.mp4",
       created_at: 1737486526606,
       metadata: {
         name: "a steaming cup of coffee on a cozy morning scene",
         status: "completed",
         type: "video",
         input: {
-          prompt: "a steaming cup of coffee on a cozy morning scene, with the warm sunlight peeking through the blinds, as the sound of gentle brewing fills the air.",
+          prompt:
+            "a steaming cup of coffee on a cozy morning scene, with the warm sunlight peeking through the blinds, as the sound of gentle brewing fills the air.",
           image_url: "https://fal.media/files/koala/zyEDUZ9j-AsNCatPaFmYO.png",
           aspect_ratio: "16:9",
         },
@@ -134,8 +143,10 @@ const TEMPLATE_PROJECT_SEED: ProjectSeed = {
         endpointId: "fal-ai/minimax/video-01-live/image-to-video",
         requestId: "830a26dc-e7ec-4509-b12d-15deeb619c37",
         duration: 5.64,
-        start_frame_url: "https://v3.fal.media/files/tiger/vcYlw7KVM_GYJ27Rbwe5k_start_frame.png",
-        end_frame_url: "https://v3.fal.media/files/koala/oslkG0Zf4xKBWk1oY95GD_end_frame.png"
+        start_frame_url:
+          "https://v3.fal.media/files/tiger/vcYlw7KVM_GYJ27Rbwe5k_start_frame.png",
+        end_frame_url:
+          "https://v3.fal.media/files/koala/oslkG0Zf4xKBWk1oY95GD_end_frame.png",
       },
     },
     {
@@ -155,7 +166,7 @@ const TEMPLATE_PROJECT_SEED: ProjectSeed = {
           image_size: "landscape_16_9",
           seconds_total: 30,
         },
-          output: {
+        output: {
           images: [
             {
               url: "https://fal.media/files/rabbit/lqoM2SZ6yArJG4dc5i6Eu.png",
@@ -219,15 +230,18 @@ const TEMPLATE_PROJECT_SEED: ProjectSeed = {
       user_id: "",
       type: "video",
       source_type: "generated",
-      file_path: "https://fal.media/files/tiger/3MaLDMcELHRLdI_wpaeIB_output.mp4",
+      file_path:
+        "https://fal.media/files/tiger/3MaLDMcELHRLdI_wpaeIB_output.mp4",
       created_at: 1737486370974,
       metadata: {
         name: "Image of a steaming cup of coffee in a quiet morning setting",
         status: "completed",
         type: "video",
         input: {
-          prompt: "Image of a steaming cup of coffee in a quiet morning setting, showcasing the morning brew process, using the Coffee machine as a central feature",
-          image_url: "https://fal.media/files/kangaroo/w0qQbeIhqmZfEttswt-HD.png",
+          prompt:
+            "Image of a steaming cup of coffee in a quiet morning setting, showcasing the morning brew process, using the Coffee machine as a central feature",
+          image_url:
+            "https://fal.media/files/kangaroo/w0qQbeIhqmZfEttswt-HD.png",
           aspect_ratio: "16:9",
         },
         output: {
@@ -241,8 +255,10 @@ const TEMPLATE_PROJECT_SEED: ProjectSeed = {
         endpointId: "fal-ai/minimax/video-01-live/image-to-video",
         requestId: "278d33fc-2eb9-4aaa-9f61-2851c5a82fbb",
         duration: 5.64,
-        start_frame_url: "https://v3.fal.media/files/monkey/WuO2_lfG3R6uggUWBA6Qv_start_frame.png",
-        end_frame_url: "https://v3.fal.media/files/elephant/Ti8XbHVdc78bgONN4waSL_end_frame.png"
+        start_frame_url:
+          "https://v3.fal.media/files/monkey/WuO2_lfG3R6uggUWBA6Qv_start_frame.png",
+        end_frame_url:
+          "https://v3.fal.media/files/elephant/Ti8XbHVdc78bgONN4waSL_end_frame.png",
       },
     },
     {
@@ -266,22 +282,22 @@ const TEMPLATE_PROJECT_SEED: ProjectSeed = {
           seconds_total: 30,
         },
         output: {
-        images: [
-          {
-            url: "https://fal.media/files/kangaroo/w0qQbeIhqmZfEttswt-HD.png",
-            width: 1024,
-            height: 576,
-            content_type: "image/jpeg",
+          images: [
+            {
+              url: "https://fal.media/files/kangaroo/w0qQbeIhqmZfEttswt-HD.png",
+              width: 1024,
+              height: 576,
+              content_type: "image/jpeg",
+            },
+          ],
+          timings: {
+            inference: 1.603529468877241,
           },
-        ],
-        timings: {
-          inference: 1.603529468877241,
+          seed: 20684661,
+          has_nsfw_concepts: [false],
+          prompt:
+            "Image of a steaming cup of coffee in a quiet morning setting, showcasing the morning brew process, using the Coffee machine as a central feature",
         },
-        seed: 20684661,
-        has_nsfw_concepts: [false],
-        prompt:
-          "Image of a steaming cup of coffee in a quiet morning setting, showcasing the morning brew process, using the Coffee machine as a central feature",
-      },
       },
     },
   ],

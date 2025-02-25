@@ -2,7 +2,11 @@
 // #region IMPORTS
 import { useJobCreator } from "@/data/mutations";
 import { queryKeys, useProject, useProjectMediaItems } from "@/data/queries";
-import { PROJECT_PLACEHOLDER, type MediaItem, type VideoProject } from "@/data/schema";
+import {
+  PROJECT_PLACEHOLDER,
+  type MediaItem,
+  type VideoProject,
+} from "@/data/schema";
 import {
   type GenerateData,
   type MediaType,
@@ -122,8 +126,8 @@ export default function RightPanel({
     endpointId,
     setEndpointId,
   } = videoProjectStore;
-  if(!project){
-    project = PROJECT_PLACEHOLDER
+  if (!project) {
+    project = PROJECT_PLACEHOLDER;
   }
 
   const [tab, setTab] = useState<string>("generation");

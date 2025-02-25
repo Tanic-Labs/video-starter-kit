@@ -266,8 +266,8 @@ export function App({ /* projectId, */ session }: AppProps) {
                   setNewProjectItem={setNewProjectItem}
                 />
               </div>
-              <RightPanel 
-                supabase={supabaseClient} 
+              <RightPanel
+                supabase={supabaseClient}
                 user={user}
                 project={project}
               />
