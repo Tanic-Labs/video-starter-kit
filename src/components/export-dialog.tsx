@@ -169,20 +169,218 @@ export function ExportDialog({
             duration: frame.duration,
             //@ts-ignore
             url: frame.url,
+            //@ts-ignore
+            type: frame.type,
           })),
         };
       });
       console.log("videoData: ", videoData);
       // #endregion
-      //return;
+
+      // #region decompose image and videos
+      const separateKeyframesByType = (data: any) => {
+        const imageKeyframes: any = [];
+        const videoKeyframes: any = [];
+  
+        // Recorrer todas las pistas de tipo video
+        data.forEach((track: any) => {
+          if (track.type === "video") {
+            // Recorrer todos los keyframes de esta pista
+            track.keyframes.forEach((keyframe: any) => {
+              // Clasificar por tipo
+              if (keyframe.type === "video") {
+                videoKeyframes.push({
+                  timestamp: keyframe.timestamp,
+                  duration: keyframe.duration,
+                  url: keyframe.url,
+                  type: "video"
+                });
+              } else {
+                // Por defecto, asumimos que es de tipo "image" si no es "video"
+                imageKeyframes.push({
+                  timestamp: keyframe.timestamp,
+                  duration: keyframe.duration,
+                  url: keyframe.url,
+                  type: "image"
+                });
+              }
+            });
+          }
+        });
+  
+        return {
+          imageKeyframes,
+          videoKeyframes
+        };
+      };
+  
+      // Separar los keyframes por tipo
+      const { imageKeyframes, videoKeyframes } = separateKeyframesByType(videoData);
+      let imageCompose: any;
+      console.log("Image Keyframes:", imageKeyframes);
+      console.log("Video Keyframes:", videoKeyframes);
+      console.log("Project info: ", project);
+      // #endregion
+
+      // #region merge images into vidoe
+      // Process images with Rendi compose
+      if (imageKeyframes.length > 0) {
+        try {
+          // Sort Images and get info
+          const sortedImageKeyframes = [...imageKeyframes].sort((a, b) => a.timestamp - b.timestamp);
+          const input_files: any = {};
+          const input_durations: any = [];
+
+          // Get track id
+          const videoTrack = videoData.find(track =>
+            track.type === "video" &&
+            track.keyframes.some(keyframe => keyframe.type === "image")
+          );
+          const track_id = videoTrack ? videoTrack.id : "";
+          
+          // Get lowest keyframe and full duration
+          const minTimestamp = sortedImageKeyframes.length > 0 ? sortedImageKeyframes[0].timestamp : 0;
+          const totalDuration = sortedImageKeyframes.reduce((sum, frame) => sum + frame.duration, 0);
+          
+          // build ffmpeg command
+          sortedImageKeyframes.forEach((frame, index) => {
+            const key = `in_img_${index + 1}`;
+            input_files[key] = frame.url;
+            input_durations.push(frame.duration / 1000); // Convertir ms a segundos
+          });
+
+          // Part 1: Define images entrance
+          let ffmpegCommand = "";
+          sortedImageKeyframes.forEach((frame, index) => {
+            ffmpegCommand += `-loop 1 -t ${input_durations[index]} -i {{in_img_${index + 1}}} `;
+          });
+          
+          // Part 2: filter commands, scales and padding, concatenate all images
+          ffmpegCommand += '-filter_complex "';
+          for (let i = 0; i < sortedImageKeyframes.length; i++) {
+            ffmpegCommand += `[${i}:v]scale=1280:720:force_original_aspect_ratio=decrease,pad=1280:720:(ow-iw)/2:(oh-ih)/2,setsar=1[v${i}];`;
+          }
+          ffmpegCommand += `[${sortedImageKeyframes.map((_, i) => `v${i}`).join('][')}]concat=n=${sortedImageKeyframes.length}:v=1:a=0,format=yuv420p[v]" `;
+          
+          // Part 3: Map and codex
+          ffmpegCommand += `-map [v] -c:v libx264 {{out_1}}`;
+          
+          // Define output
+          const sanitizedTitle = project.title ? project.title.replace(/\s+/g, '_') : project.id;
+          const output_files = {
+            "out_1": `${sanitizedTitle}_slideshow.mp4`
+          };
+          
+          // Payload and API
+          const payload = {
+            input_files,
+            output_files,
+            ffmpeg_command: ffmpegCommand
+          };
+          console.log("Rendi API Payload:", payload);
+
+          const rendiResponse = await fetch("https://rendi-deno-post.deno.dev", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload)
+          });
+          
+          if (!rendiResponse.ok) {
+            throw new Error(`API de Rendi respondió con estado: ${rendiResponse.status}`);
+          }
+          const rendiData = await rendiResponse.json();
+
+          // Supabase insert
+          const {data: newData, error: newError} = await supabase
+            .from("images_to_video")
+            .insert([
+              {
+                id: rendiData.command_id,
+                track_id: track_id,
+                timestamp: minTimestamp,
+                duration: totalDuration,
+              }
+            ])
+            .select()
+            .single();
+                      
+          if (newError) {
+            console.error("Error insertando en Supabase:", newError);
+            throw newError;
+          }
+
+          // Get url
+          const rendiStatusResponse = await fetch(`https://rendi-deno-get.deno.dev?command_id=${newData.id}`, {
+            method: "GET",
+            headers: {
+              'X-API-KEY': "eJyzNDVJS0w0t3dA1TzNM0zUxNDDXtbBMttRNNk61TDMxNk1LSkyNrygJKCvyMvZzrzKNdPMOsMz3tHSMSgcA7YoRZw=="
+            }
+          });
+          
+          if (!rendiStatusResponse.ok) {
+            throw new Error(`Error al consultar estado: ${rendiStatusResponse.status}`);
+          }
+          const statusData = await rendiStatusResponse.json();
+
+          const {data: updateData, error: updateError} = await supabase
+            .from("images_to_video")
+            .update({
+              url: statusData.output_files.out_1.storage_url,
+            })
+            .eq('id', newData.id)
+            .select('track_id, timestamp, duration, url')
+            .single();
+
+          if(updateError){
+            console.log("Error updating data: ", updateError);
+            throw updateError;
+          }
+
+          imageCompose = updateData
+        } catch (error) {
+          console.error("Error al procesar imágenes con Rendi API:", error);
+        }
+      }
+      // #endregion
+
+      // #region update videoData
+      let newVideoData: any = [];
+      if (imageCompose) {
+        newVideoData = videoData.map(track => {
+          if (track.id === imageCompose.track_id) {
+            const videoOnlyKeyframes = track.keyframes.filter(kf => kf.type === "video");
+
+            const imageVideoKeyframe = {
+              timestamp: imageCompose.timestamp, 
+              duration: imageCompose.duration,
+              url: imageCompose.url,
+              type: "video"
+            };
+
+            const newKeyframes = [...videoOnlyKeyframes, imageVideoKeyframe]
+              .sort((a, b) => a.timestamp - b.timestamp);
+
+            return {
+              ...track,
+              keyframes: newKeyframes
+            };
+          }
+          return track;
+        });
+      } else {
+        newVideoData = videoData;
+      }
+      // #endregion
 
       // #region ffmepg api compose
-      if (videoData.length === 0) {
+      if (newVideoData.length === 0) {
         throw new Error("No tracks to export");
       }
       const { data } = await fal.subscribe("fal-ai/ffmpeg-api/compose", {
         input: {
-          tracks: videoData,
+          tracks: newVideoData,
         },
         mode: "polling",
         pollInterval: 3000,
@@ -191,6 +389,8 @@ export function ExportDialog({
       if (!data.ok) {
         throw new Error("No video or thumbnail URL returned from the service");
       }
+
+      console.log("data", data)
 
       const videoResponse = await fetch(data.video_url);
       const thumbnailResponse = await fetch(data.thumbnail_url);
@@ -205,8 +405,8 @@ export function ExportDialog({
 
       // #region insert supabase
       const assetId = crypto.randomUUID();
-      const videoFilePath = `${user.id}${assetId}.mp4`;
-      const thumbnailFilePath = `${user.id}/${assetId}.jpg`;
+      const videoFilePath = `${user.id}/${project.id}/${assetId}.mp4`;
+      const thumbnailFilePath = `${user.id}/${project.id}/${assetId}.jpg`;
 
       const { error: videoStorageErr } = await supabase.storage
         .from("videos")
