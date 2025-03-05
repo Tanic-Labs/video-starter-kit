@@ -153,7 +153,9 @@ export function ExportDialog({
     mutationFn: async () => {
       if (!user || !project) return;
 
+      console.log("1.0 Empezamos")
       // #region build object
+      console.log("1.1 Creando videoData")
       const videoData = composition.tracks.map((track) => {
         const frames = Object.values(composition.frames).filter(
           //@ts-ignore
@@ -174,15 +176,17 @@ export function ExportDialog({
           })),
         };
       });
-      console.log("videoData: ", videoData);
+      console.log("1.2 videoData: ", videoData);
       // #endregion
 
       // #region decompose image and videos
+      console.log("2.0 Separar videoData");
       const separateKeyframesByType = (data: any) => {
         const imageKeyframes: any = [];
         const videoKeyframes: any = [];
 
         // Recorrer todas las pistas de tipo video
+        console.log("2.1 Separando")
         data.forEach((track: any) => {
           if (track.type === "video") {
             // Recorrer todos los keyframes de esta pista
@@ -208,6 +212,7 @@ export function ExportDialog({
           }
         });
 
+        console.log("2.2 Regresando Objeto separado")
         return {
           imageKeyframes,
           videoKeyframes,
@@ -218,22 +223,25 @@ export function ExportDialog({
       const { imageKeyframes, videoKeyframes } =
         separateKeyframesByType(videoData);
       let imageCompose: any;
-      console.log("Image Keyframes:", imageKeyframes);
-      console.log("Video Keyframes:", videoKeyframes);
-      console.log("Project info: ", project);
+      console.log("2.3 Image Keyframes:", imageKeyframes);
+      console.log("2.4 Video Keyframes:", videoKeyframes);
+      console.log("2.5 Project info: ", project);
       // #endregion
 
       // #region merge images into vidoe
       // Process images with Rendi compose
       if (imageKeyframes.length > 0) {
+        console.log("3.0 Empezando Rendi process")
         try {
           // Sort Images and get info
+          console.log("3.1 Organizando keyframes")
           const sortedImageKeyframes = [...imageKeyframes].sort(
             (a, b) => a.timestamp - b.timestamp,
           );
           const input_files: any = {};
           const input_durations: any = [];
 
+          console.log("3.2 obteniendo keyframes info")
           // Get track id
           const videoTrack = videoData.find(
             (track) =>
@@ -241,6 +249,7 @@ export function ExportDialog({
               track.keyframes.some((keyframe) => keyframe.type === "image"),
           );
           const track_id = videoTrack ? videoTrack.id : "";
+          console.log("3.3 Track_id: ", track_id)
 
           // Get lowest keyframe and full duration
           const minTimestamp =
@@ -251,8 +260,11 @@ export function ExportDialog({
             (sum, frame) => sum + frame.duration,
             0,
           );
+          console.log("3.4 minTimestamp: ", minTimestamp);
+          console.log("3.5 totalDuration: ", totalDuration);
 
           // build ffmpeg command
+          console.log("3.6 Crando comando ffmpeg");
           sortedImageKeyframes.forEach((frame, index) => {
             const key = `in_img_${index + 1}`;
             input_files[key] = frame.url;
@@ -274,23 +286,28 @@ export function ExportDialog({
 
           // Part 3: Map and codex
           ffmpegCommand += `-map [v] -c:v libx264 {{out_1}}`;
+          console.log("3.7 Comando ffmpeg creado: ", ffmpegCommand);
 
           // Define output
+          console.log("3.8 Creando output name")
           const sanitizedTitle = project.title
             ? project.title.replace(/\s+/g, "_")
             : project.id;
           const output_files = {
             out_1: `${sanitizedTitle}_slideshow.mp4`,
           };
+          console.log("3.9 outputname creado", output_files)
 
+          console.log("3.10 Creando Playload")
           // Payload and API
           const payload = {
             input_files,
             output_files,
             ffmpeg_command: ffmpegCommand,
           };
-          console.log("Rendi API Payload:", payload);
+          console.log("3.11 Rendi API Payload:", payload);
 
+          console.log("3.12 Llamando api de rendi via deno")
           const rendiResponse = await fetch(
             "https://rendi-deno-post.deno.dev",
             {
@@ -308,7 +325,9 @@ export function ExportDialog({
             );
           }
           const rendiData = await rendiResponse.json();
+          console.log("3.14 Respuesta api de rendi: ", rendiData);
 
+          console.log("3.15 creando row de merge en supabase")
           // Supabase insert
           const { data: newData, error: newError } = await supabase
             .from("images_to_video")
@@ -327,7 +346,9 @@ export function ExportDialog({
             console.error("Error insertando en Supabase:", newError);
             throw newError;
           }
+          console.log("3.16 Nuevo row con id creado: ", newData.id);
 
+          console.log("3.17 Obteniendo url de video merge image")
           // Get url
           const rendiStatusResponse = await fetch(
             `https://rendi-deno-get.deno.dev?command_id=${newData.id}`,
@@ -346,7 +367,9 @@ export function ExportDialog({
             );
           }
           const statusData = await rendiStatusResponse.json();
+          console.log("3.18 respuesta de obtencion de url: ", statusData);
 
+          console.log("3.19 Insertando url a row previeamente creada")
           const { data: updateData, error: updateError } = await supabase
             .from("images_to_video")
             .update({
@@ -360,51 +383,70 @@ export function ExportDialog({
             console.log("Error updating data: ", updateError);
             throw updateError;
           }
+          console.log("3.20 url insertado: ", updateData)
 
+          console.log("3.21 Agregando data a imageCompose")
           imageCompose = updateData;
         } catch (error) {
           console.error("Error al procesar imágenes con Rendi API:", error);
         }
+        console.log("3.22 imageCompose data: ", imageCompose)
       }
       // #endregion
 
+      console.log("3.0.1 Si imageCompose es vacio, saltaste todo el paso 3 (Verifica que no sea un error), imageCompose: ", imageCompose)
       // #region update videoData
+      console.log("4.0 Inicaciando nuevo Video data")
       let newVideoData: any = [];
       if (imageCompose) {
+        console.log("4.1.0 Modificando videoData")
         newVideoData = videoData.map((track) => {
           if (track.id === imageCompose.track_id) {
+            console.log("4.1.1 Obteniendo solo videos del track")
             const videoOnlyKeyframes = track.keyframes.filter(
               (kf) => kf.type === "video",
             );
 
+            console.log("4.1.2 Creando nuevo asset")
             const imageVideoKeyframe = {
               timestamp: imageCompose.timestamp,
               duration: imageCompose.duration,
               url: imageCompose.url,
               type: "video",
             };
+            console.log("4.1.3 Nuevo asset: ", imageKeyframes)
 
+            console.log("4.1.4 Creando nuevo track")
             const newKeyframes = [
               ...videoOnlyKeyframes,
               imageVideoKeyframe,
             ].sort((a, b) => a.timestamp - b.timestamp);
+            console.log("4.1.4 Nuevo track: ", newKeyframes)
 
+            console.log("4.1.5 Regresando datos")
             return {
               ...track,
               keyframes: newKeyframes,
             };
           }
+          console.log("4.1.6 Regresando datos parte 2")
           return track;
         });
+        console.log("4.1.7 newVideoData con imageCompose: ", newVideoData)
       } else {
+        console.log("4.2.0 Reasiganado videoData")
         newVideoData = videoData;
+        console.log("4.2.1 videoData en newVideoData: ", newVideoData)
       }
       // #endregion
 
       // #region ffmepg api compose
+      console.log("5.0 Empezando llamado a fal");
       if (newVideoData.length === 0) {
         throw new Error("No tracks to export");
       }
+
+      console.log("5.1 llamando al api de con newMetaData como input")
       const { data } = await fal.subscribe("fal-ai/ffmpeg-api/compose", {
         input: {
           tracks: newVideoData,
@@ -417,24 +459,34 @@ export function ExportDialog({
         throw new Error("No video or thumbnail URL returned from the service");
       }
 
-      console.log("data", data);
+      console.log("5.2 data regresada de fal", data);
 
+      console.log("5.3 Creando Blobs de video y url")
       const videoResponse = await fetch(data.video_url);
       const thumbnailResponse = await fetch(data.thumbnail_url);
+      console.log("5.4 Blobs creados")
 
       if (!videoResponse.ok || !thumbnailResponse.ok) {
         throw new Error("Failed to download video or thumbnail");
       }
 
+      console.log("5.5 Asisgnando Blobs")
       const videoBlob = await videoResponse.blob();
       const thumbnailBlob = await thumbnailResponse.blob();
+      console.log("5.6 videoBlob asignado y creado: ", videoBlob)
+      console.log("5.7 thumbnailBlob asignado y creado: ", thumbnailBlob)
       // #endregion
 
       // #region insert supabase
+      console.log("6.0 creando info para insertar en suoabase")
       const assetId = crypto.randomUUID();
       const videoFilePath = `${user.id}/${project.id}/${assetId}.mp4`;
       const thumbnailFilePath = `${user.id}/${project.id}/${assetId}.jpg`;
+      console.log("6.1 Info crada con id: ", assetId)
+      console.log("6.2 videoFilePath", videoFilePath)
+      console.log("6.3 thumbnailFilePath", thumbnailFilePath)
 
+      console.log("6.4.0 Insertando video a storage supabse")
       const { error: videoStorageErr } = await supabase.storage
         .from("videos")
         .upload(videoFilePath, videoBlob, {
@@ -447,6 +499,7 @@ export function ExportDialog({
         throw new Error("Failed to upload video to storage");
       }
 
+      console.log("6.4.1 Insertando thumbnail a storage supabse")
       const { error: thumbnailStroageErr } = await supabase.storage
         .from("thumbnails")
         .upload(thumbnailFilePath, thumbnailBlob, {
@@ -459,6 +512,7 @@ export function ExportDialog({
         throw new Error("Failed to upload thumnail to storage");
       }
 
+      console.log("6.5 Insertando row a exports tabla")
       const { data: exportInsert, error: exportError } = await supabase
         .from("exports")
         .insert([
@@ -476,9 +530,19 @@ export function ExportDialog({
         console.warn(`Error inserting in database: ${exportError.message}`);
         throw new Error("Failed to insert export record");
       }
+      console.log("6.6 Data insertad correctamente supabase: ", exportInsert)
       // #endregion
 
-      return data as ShareResult;
+      // #region Create ShareResult
+      console.log("6.7 creando finalData a regresar")
+      const finalData: ShareResult = {
+        video_url: `${process.env.NEXT_PUBLIC__SUPABASE_URL}/storage/v1/object/public/videos/${videoFilePath}`,
+        thumbnail_url: `${process.env.NEXT_PUBLIC__SUPABASE_URL}/storage/v1/object/thumbnails/${thumbnailFilePath}`,        
+      }
+      console.log("6.8 FinalData: ", finalData);
+      // #endregion
+
+      return finalData as ShareResult;
     },
   });
   // #endregion
