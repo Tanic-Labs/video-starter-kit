@@ -36,7 +36,7 @@ import { useRouter } from "next/navigation";
 import { SupabaseClient, User } from "@supabase/supabase-js";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { toast } from "@/hooks/use-toast";
-import { object } from "zod";
+import { useVideoExport } from "@/data/mutations";
 // #endregion
 
 // #region TYPES
@@ -149,7 +149,7 @@ export function ExportDialog({
   // #endregion
 
   // #region Export Video
-  const exportVideo = useMutation({
+  /* const exportVideo = useMutation({
     mutationFn: async () => {
       if (!user || !project) return;
 
@@ -547,7 +547,15 @@ export function ExportDialog({
 
       return finalData as ShareResult;
     },
-  });
+  }); */
+  // #endregion
+
+  // #region New Export Video
+  const exportVideo = useVideoExport({
+    project,
+    user,
+    composition,
+  })
   // #endregion
 
   // #region Modal Controls
@@ -671,9 +679,9 @@ export function ExportDialog({
           </Button>
           <Button
             onClick={() => exportVideo.mutate()}
-            disabled={actionsDisabled}
+            disabled={actionsDisabled || isCompositionLoading}
           >
-            Export
+            {exportVideo.isPending ? "Processing..." : "Export"}
           </Button>
         </DialogFooter>
       </DialogContent>

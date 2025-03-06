@@ -1,14 +1,17 @@
 // import { fal } from "@/lib/fal"; // <-- comment of fal library
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { db } from "./db";
-import { queryKeys } from "./queries";
+import { queryKeys, VideoCompositionData } from "./queries";
 import type { VideoProject } from "./schema";
 import { supabase } from "@/lib/supabase"; // <-- import o supabase
 
-const DIGITAL_OCEAN_ENDPOINT =
+// Endpoints de Digital Ocean
+const DIGITAL_OCEAN_ENDPOINT = //<-- Generate Assests
   "https://faas-nyc1-2ef2e6cc.doserverless.co/api/v1/namespaces/fn-0b1258df-ad0b-4cd5-8e7e-c7f326495f3c/actions/twitter/video-generation";
+const DIGITAL_OCEAN_EXPORT_ENDPOINT = //<-- Export project
+  "https://faas-nyc1-2ef2e6cc.doserverless.co/api/v1/namespaces/fn-0b1258df-ad0b-4cd5-8e7e-c7f326495f3c/actions/twitter/video-export";
 const AUTH_TOKEN =
-  "NmYxYmNhMWItNDEzMy00ZTQxLWJkMTEtMzFkOTU5MGE3OTE1OmFhWFRBVUNXMTdpNUlsZEd2ejNUakJMdzBDZDVhV0p6NzRzNVcwamdkMklaVDFJVHUzQWNIZE1GWmtnc3V1MVE="; // <-- Digital Ocean and auth token 8 - 11
+  "NmYxYmNhMWItNDEzMy00ZTQxLWJkMTEtMzFkOTU5MGE3OTE1OmFhWFRBVUNXMTdpNUlsZEd2ejNUakJMdzBDZDVhV0p6NzRzNVcwamdkMklaVDFJVHUzQWNIZE1GWmtnc3V1MVE=";
 
 type JobCreatorParams = {
   userId: string;
@@ -19,7 +22,12 @@ type JobCreatorParams = {
   urlImage: any;
   urlAudio: any;
   urlVideo: any;
-}; // <-- restruct JobCreator type 12 - 22
+};
+
+export type shareResult = {
+  video_url: string;
+  thumbnail_url: string;
+}
 
 export const useProjectUpdater = (projectId: string) => {
   const queryClient = useQueryClient();
@@ -44,7 +52,6 @@ export const useProjectCreator = () => {
 };
 
 export const useJobCreator = ({
-  // <-- updadate from 46 - 142
   userId,
   projectId,
   endpointId,
@@ -72,12 +79,12 @@ export const useJobCreator = ({
 
       if (!assetData) {
         throw new Error("No generation data returned");
-      } // <-- insert to supabse and error 59 - 74
+      }
 
       //CREACION DE ROW EN GENERATIONS
       const { data: generationData } = await supabase
         .from("generations")
-        .insert([{ user_id: userId, asset_id: assetData?.id }]) // <-- add asset.id
+        .insert([{ user_id: userId, asset_id: assetData?.id }])
         .select("*")
         .single();
 
@@ -89,7 +96,7 @@ export const useJobCreator = ({
       const payload = {
         userId: userId,
         assetDataId: assetData?.id,
-        prompt: input.prompt, // <-- modify plyaload 90 - 91
+        prompt: input.prompt,
         mediaType: mediaType === "voiceover" ? "voice" : mediaType,
         endpointModel: endpointId,
         dataInsertId: generationData?.id,
@@ -135,9 +142,62 @@ export const useJobCreator = ({
 
         // Lanzar el error con los detalles de la respuesta
         throw new Error(JSON.stringify(responseData?.message));
-      } // <-- fail update status 117 - 137
+      }
 
       return responseData;
     },
   });
 };
+
+/**
+ * Hook to export video via serverless function in Digital Ocean
+ */
+export const useVideoExport = ({project, user, composition}: {
+  project: VideoProject | null;
+  user: any | null;
+  composition: VideoCompositionData;
+}) => {
+  return useMutation({
+    mutationFn: async() => {
+      if(!user || !project){
+        throw new Error("User or project invalid");
+      }
+      
+      // Prepare playload for digital ocean
+      const payload = {
+        userId: user.id,
+        projectId: project.id,
+        composition: composition,
+        project:{
+          id: project.id,
+          title: project.title,
+          description: project.description
+        }
+      }
+      
+      // Call serverless function in Digital Ocean
+      const response = await fetch(
+        `${DIGITAL_OCEAN_EXPORT_ENDPOINT}?blocking=true&result=true`,
+        {
+          method: "POST",
+          headers:{
+            "Content-type": "application/json",
+            "Authorization": `Basic ${AUTH_TOKEN}`,
+          },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      const responseData = await response.json();
+
+      //Verify sucessful response
+      if(response.ok || responseData.status === "ERROR") {
+        const errorMessage = responseData.message || "Error exporting video";
+        throw new Error(errorMessage);
+      }
+
+      // Return final data
+      return responseData as shareResult;
+    }
+  })
+}
