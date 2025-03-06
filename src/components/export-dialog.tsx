@@ -555,7 +555,7 @@ export function ExportDialog({
     project,
     user,
     composition,
-  })
+  });
   // #endregion
 
   // #region Modal Controls

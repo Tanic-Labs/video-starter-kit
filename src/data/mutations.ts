@@ -27,7 +27,7 @@ type JobCreatorParams = {
 export type shareResult = {
   video_url: string;
   thumbnail_url: string;
-}
+};
 
 export const useProjectUpdater = (projectId: string) => {
   const queryClient = useQueryClient();
@@ -152,52 +152,56 @@ export const useJobCreator = ({
 /**
  * Hook to export video via serverless function in Digital Ocean
  */
-export const useVideoExport = ({project, user, composition}: {
+export const useVideoExport = ({
+  project,
+  user,
+  composition,
+}: {
   project: VideoProject | null;
   user: any | null;
   composition: VideoCompositionData;
 }) => {
   return useMutation({
-    mutationFn: async() => {
-      if(!user || !project){
+    mutationFn: async () => {
+      if (!user || !project) {
         throw new Error("User or project invalid");
       }
-      
+
       // Prepare playload for digital ocean
       const payload = {
         userId: user.id,
         projectId: project.id,
         composition: composition,
-        project:{
+        project: {
           id: project.id,
           title: project.title,
-          description: project.description
-        }
-      }
-      
+          description: project.description,
+        },
+      };
+
       // Call serverless function in Digital Ocean
       const response = await fetch(
         `${DIGITAL_OCEAN_EXPORT_ENDPOINT}?blocking=true&result=true`,
         {
           method: "POST",
-          headers:{
+          headers: {
             "Content-type": "application/json",
-            "Authorization": `Basic ${AUTH_TOKEN}`,
+            Authorization: `Basic ${AUTH_TOKEN}`,
           },
           body: JSON.stringify(payload),
-        }
+        },
       );
 
       const responseData = await response.json();
 
       //Verify sucessful response
-      if(response.ok || responseData.status === "ERROR") {
+      if (response.ok || responseData.status === "ERROR") {
         const errorMessage = responseData.message || "Error exporting video";
         throw new Error(errorMessage);
       }
 
       // Return final data
       return responseData as shareResult;
-    }
-  })
-}
+    },
+  });
+};
