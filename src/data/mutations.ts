@@ -9,7 +9,7 @@ import { supabase } from "@/lib/supabase"; // <-- import o supabase
 const DIGITAL_OCEAN_ENDPOINT = //<-- Generate Assests
   "https://faas-nyc1-2ef2e6cc.doserverless.co/api/v1/namespaces/fn-0b1258df-ad0b-4cd5-8e7e-c7f326495f3c/actions/twitter/video-generation";
 const DIGITAL_OCEAN_EXPORT_ENDPOINT = //<-- Export project
-  "https://faas-nyc1-2ef2e6cc.doserverless.co/api/v1/namespaces/fn-0b1258df-ad0b-4cd5-8e7e-c7f326495f3c/actions/twitter/video-export";
+  "https://faas-nyc1-2ef2e6cc.doserverless.co/api/v1/web/fn-0b1258df-ad0b-4cd5-8e7e-c7f326495f3c/twitter/video-export";
 const AUTH_TOKEN =
   "NmYxYmNhMWItNDEzMy00ZTQxLWJkMTEtMzFkOTU5MGE3OTE1OmFhWFRBVUNXMTdpNUlsZEd2ejNUakJMdzBDZDVhV0p6NzRzNVcwamdkMklaVDFJVHUzQWNIZE1GWmtnc3V1MVE=";
 
@@ -179,13 +179,14 @@ export const useVideoExport = ({
         },
       };
 
+      console.log("iniciando llamado a DO con este payload: ", payload)
       // Call serverless function in Digital Ocean
       const response = await fetch(
         `${DIGITAL_OCEAN_EXPORT_ENDPOINT}?blocking=true&result=true`,
         {
           method: "POST",
           headers: {
-            "Content-type": "application/json",
+            "Content-Type": "application/json",
             Authorization: `Basic ${AUTH_TOKEN}`,
           },
           body: JSON.stringify(payload),
@@ -195,7 +196,7 @@ export const useVideoExport = ({
       const responseData = await response.json();
 
       //Verify sucessful response
-      if (response.ok || responseData.status === "ERROR") {
+      if (!response.ok || responseData.status === "ERROR") {
         const errorMessage = responseData.message || "Error exporting video";
         throw new Error(errorMessage);
       }
