@@ -12,7 +12,7 @@ const DIGITAL_OCEAN_EXPORT_ENDPOINT = //<-- Export project
   "https://faas-nyc1-2ef2e6cc.doserverless.co/api/v1/web/fn-0b1258df-ad0b-4cd5-8e7e-c7f326495f3c/twitter/video-export";
 const AUTH_TOKEN =
   "NmYxYmNhMWItNDEzMy00ZTQxLWJkMTEtMzFkOTU5MGE3OTE1OmFhWFRBVUNXMTdpNUlsZEd2ejNUakJMdzBDZDVhV0p6NzRzNVcwamdkMklaVDFJVHUzQWNIZE1GWmtnc3V1MVE=";
-const AUTH_TOKEN_EXPORT = 
+const AUTH_TOKEN_EXPORT =
   "NmYxYmNhMWItNDEzMy00ZTQxLWJkMTEtMzFkOTU5MGE3OTE1OmFhWFRBVUNXMTdpNUlsZEd2ejNUakJMdzBDZDVhV0p6NzRzNVcwamdkMklaVDFJVHUzQWNIZE1GWmtnc3V1MVE=";
 
 type JobCreatorParams = {
@@ -185,24 +185,21 @@ export const useVideoExport = ({
         console.log("iniciando llamado a DO con este payload: ", payload);
 
         // Call serverless function in Digital Ocean
-        const response = await fetch(
-          `${DIGITAL_OCEAN_EXPORT_ENDPOINT}`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Basic ${AUTH_TOKEN_EXPORT}`,
-            },
-            body: JSON.stringify(payload),
+        const response = await fetch(`${DIGITAL_OCEAN_EXPORT_ENDPOINT}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Basic ${AUTH_TOKEN_EXPORT}`,
           },
-        );
+          body: JSON.stringify(payload),
+        });
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-      
+
         const responseData = await response.json();
-      
+
         // Verify successful response
         if (responseData.status === "ERROR") {
           const errorMessage = responseData.message || "Error exporting video";
@@ -214,7 +211,7 @@ export const useVideoExport = ({
       } catch (error) {
         // Log the error for debugging
         console.error("Video export error:", error);
-        
+
         // Rethrow the error to be handled by the mutation's onError callback
         throw error;
       } finally {
