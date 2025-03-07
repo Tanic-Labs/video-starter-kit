@@ -179,7 +179,7 @@ export const useVideoExport = ({
         },
       };
 
-      console.log("iniciando llamado a DO con este payload: ", payload)
+      console.log("iniciando llamado a DO con este payload: ", payload);
       // Call serverless function in Digital Ocean
       const response = await fetch(
         `${DIGITAL_OCEAN_EXPORT_ENDPOINT}?blocking=true&result=true`,
