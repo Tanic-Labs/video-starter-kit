@@ -116,6 +116,8 @@ export type MediaItem = {
         waveform?: any;
         start_frame_url?: string;
         end_frame_url?: string;
+        video_audio_path?: string;
+        video_audio_url?: string;
       }
     | {
         // For "uploaded"
@@ -128,5 +130,7 @@ export type MediaItem = {
         waveform?: any;
         start_frame_url?: string;
         end_frame_url?: string;
+        video_audio_path?: string;
+        video_audio_url?: string;
       };
 };

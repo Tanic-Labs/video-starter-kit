@@ -107,6 +107,7 @@ export default function LeftPanel({
     setIsUploading(true);
 
     try {
+      //#region upload file to bucker
       const file = files[0]; // One file by time (can be updated)
       const fileExt = file.name.split(".").pop();
       const assetId = crypto.randomUUID();
@@ -129,7 +130,18 @@ export default function LeftPanel({
         });
         return;
       }
+      // #endregion
 
+      // #region create asset in table
+      let assetMetadata = {
+        name: "",
+        size: file.size,
+        type: file.type,
+        description: "",
+        orignalName: file.name,
+      };
+
+      // Insert the initial asset record
       const { data: assetData, error: assetError } = await supabase
         .from("assets")
         .insert([
@@ -139,13 +151,7 @@ export default function LeftPanel({
             type: mediaType,
             source_type: "uploaded",
             file_path: filePath,
-            metadata: {
-              name: "",
-              size: file.size,
-              type: file.type,
-              description: "",
-              orignalName: file.name,
-            },
+            metadata: assetMetadata,
           },
         ])
         .select()
@@ -156,7 +162,10 @@ export default function LeftPanel({
           "Error al insertar en la tabla assets:",
           assetError.message,
         );
+      // #endregion
       } else {
+        // #region audio management
+        // Check file type and process accordingly
         if (mediaType === "audio" || mediaType === "voiceover") {
           const { data: waveformInfo = [] } = await fal.subscribe(
             "fal-ai/ffmpeg-api/waveform",
@@ -189,7 +198,10 @@ export default function LeftPanel({
             console.log(waveformError);
             throw waveformError;
           }
+        // #endregion
         } else if (mediaType === "video") {
+          // #region video managemente (get metadata)
+          // Process video metadata
           const { data: mediaMetadata = [] } = await fal.subscribe(
             "fal-ai/ffmpeg-api/metadata",
             {
@@ -205,7 +217,62 @@ export default function LeftPanel({
             throw new Error("Media metadata is not available");
           }
 
-          const { data: primeFrames, error: primeFramesError } = await supabase
+          console.log("1.2 Metadata obteneida: ", mediaMetadata)
+          //#endregion
+
+          // #region video managemente (get audio)
+          const outputName = `${assetId}_audio`;
+          const extractResponse = await fetch(
+            `https://api.apyhub.com/extract/video/audio/url?output=${outputName}`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'apy-token': `${process.env.NEXT_PUBLIC_APYHUB_API_KEY}`,
+              },
+              body: JSON.stringify({
+                video_url: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/${filePath}`,
+                start_time: '0',
+                duration: `${Math.round(mediaMetadata.media.duration / 1000)}`,
+                output_format: 'mp3'
+              }),
+            }
+          );
+
+          if (!extractResponse.ok) {
+            throw new Error(`Error extracting audio: ${extractResponse.statusText}`);
+          }
+
+          const extractData = await extractResponse.json();
+          const audioUrl = extractData.data;
+
+          // Download the extracted audio as blob
+          const audioResponse = await fetch(audioUrl);
+          if (!audioResponse.ok) {
+            throw new Error('Failed to download extracted audio');
+          }
+
+          const audioBlob = await audioResponse.blob();
+          const audioFilePath = `${user.id}/videos/${assetId}_audio.mp3`;
+          
+          const { data: audioData, error: audioUploadError } = await supabase.storage
+            .from("assets")
+            .upload(audioFilePath, audioBlob, {
+              cacheControl: "3600",
+              upsert: false,
+              contentType: 'audio/mp3'
+            });
+
+          if (audioUploadError) {
+            console.warn(`Error al subir audio extraído: ${audioUploadError.message}`);
+            throw audioUploadError;
+          }
+          //#endregion
+
+          // #region video managemente (update asset)
+          const audioPublicUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/${audioFilePath}`;
+
+          const { data: videoUpdate, error: videoUpdateError } = await supabase
             .from("assets")
             .update({
               metadata: {
@@ -213,16 +280,21 @@ export default function LeftPanel({
                 duration: mediaMetadata.media.duration,
                 start_frame_url: mediaMetadata.media.start_frame_url,
                 end_frame_url: mediaMetadata.media.end_frame_url,
+                video_audio_path: audioFilePath,
+                video_audio_url: audioPublicUrl
               },
             })
             .eq("id", assetData.id)
             .select();
 
-          if (primeFramesError) {
-            console.log(primeFramesError);
-            throw primeFramesError;
+          if (videoUpdateError) {
+            console.log(videoUpdateError);
+            throw videoUpdateError;
           }
+          // #endregion
         }
+        
+        // Refresh data and reset upload state
         fetchData();
         setIsUploading(false);
       }

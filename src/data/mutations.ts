@@ -184,8 +184,8 @@ export const useVideoExport = ({
 
         console.log("iniciando llamado a DO con este payload: ", payload);
 
-        // Call serverless function in Digital Ocean
-        const response = await fetch(`${DIGITAL_OCEAN_EXPORT_ENDPOINT}`, {
+        // CORREGIDO: Añadir los parámetros blocking=true&result=true a la URL
+        const response = await fetch(`${DIGITAL_OCEAN_EXPORT_ENDPOINT}?blocking=true&result=true`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -206,8 +206,9 @@ export const useVideoExport = ({
           throw new Error(errorMessage);
         }
 
+        console.log(responseData);
         // Return final data
-        return responseData as shareResult;
+        return responseData.data as shareResult;
       } catch (error) {
         // Log the error for debugging
         console.error("Video export error:", error);
