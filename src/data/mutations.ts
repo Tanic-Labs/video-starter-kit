@@ -185,14 +185,17 @@ export const useVideoExport = ({
         console.log("iniciando llamado a DO con este payload: ", payload);
 
         // CORREGIDO: Añadir los parámetros blocking=true&result=true a la URL
-        const response = await fetch(`${DIGITAL_OCEAN_EXPORT_ENDPOINT}?blocking=true&result=true`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Basic ${AUTH_TOKEN_EXPORT}`,
+        const response = await fetch(
+          `${DIGITAL_OCEAN_EXPORT_ENDPOINT}?blocking=true&result=true`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Basic ${AUTH_TOKEN_EXPORT}`,
+            },
+            body: JSON.stringify(payload),
           },
-          body: JSON.stringify(payload),
-        });
+        );
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
