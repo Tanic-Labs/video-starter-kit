@@ -183,7 +183,7 @@ export const useVideoExport = ({
         };
 
         console.log("iniciando llamado a DO con este payload: ", payload);
-
+        return;
         // CORREGIDO: Añadir los parámetros blocking=true&result=true a la URL
         const response = await fetch(
           `${DIGITAL_OCEAN_EXPORT_ENDPOINT}?blocking=true&result=true`,

@@ -233,7 +233,7 @@ export default function LeftPanel({
               body: JSON.stringify({
                 video_url: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/${filePath}`,
                 start_time: "0",
-                duration: `${Math.round(mediaMetadata.media.duration / 1000)}`,
+                duration: `${Math.round(mediaMetadata.media.duration)}`,
                 output_format: "mp3",
               }),
             },
@@ -254,8 +254,10 @@ export default function LeftPanel({
             throw new Error("Failed to download extracted audio");
           }
 
-          const audioBlob = await audioResponse.blob();
-          const audioFilePath = `${user.id}/videos/${assetId}_audio.mp3`;
+          const audioArrayBuffer = await audioResponse.arrayBuffer();
+          const audioBlob = new Blob([audioArrayBuffer], { type: "audio/mp3" });
+
+          const audioFilePath = `${user.id}/audios/${assetId}_audio.mp3`;
 
           const { data: audioData, error: audioUploadError } =
             await supabase.storage
